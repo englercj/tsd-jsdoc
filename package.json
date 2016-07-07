@@ -1,0 +1,15 @@
+{
+  "name": "tsd-jsdoc",
+  "version": "1.0.0",
+  "description": "Compiles JSDoc annotated javascript into a Typescript Definition file.",
+  "main": "publish.js",
+  "author": "Chad Engler <chad@pantherdev.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "@englercj/code-style": "^1.0.4",
+    "eslint": "^3.0.1"
+  },
+  "peerDependencies": {
+    "jsdoc": "^3.4.0"
+  }
+}
