@@ -3,17 +3,20 @@
 ## Warning: Highly Experimental
 
 This library's goal is to be able to take as input a jsdoc annotated source JavaScript
-file (or many files) and output a single Typescript Declaration File (.d.ts).
+file (or many files) and output a single TypeScript Declaration File (.d.ts).
+
+It is distributed as a JSDoc3 template. Running jsdoc with this as the template should
+result in a TypeScript Definition File.
 
 ## Gotchas
 
 ### Validation
 
 This library provides almost no validation beyong what jsdoc provides. Meaning if you
-have invalid jsodc comments, this will likely output an invalid Typescript Definition File.
+have invalid jsodc comments, this will likely output an invalid TypeScript Definition File.
 On the brightside, that means you will find invalid jsdoc pretty quickly.
 
-Additionally there are things that jsdoc things are fine, that Typescript does not.
+Additionally there are things that jsdoc things are fine, that TypeScript does not.
 One example would be a member variable marked with `@constant`. While that is valid
 jsdoc, it is not valid TS:
 
