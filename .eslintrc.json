@@ -1,3 +1,13 @@
 {
-    "extends": "./node_modules/@englercj/code-style/.eslintrc.json"
+    "extends": "./node_modules/@englercj/code-style/.eslintrc.json",
+    "env": {
+        "commonjs": true,
+        "node": true
+    },
+    "globals": {
+    },
+    "rules": {
+        "brace-style": [2, "allman"],
+        "no-lonely-if": 0
+    }
 }
