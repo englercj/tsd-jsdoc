@@ -64,7 +64,6 @@ function parse(docs, parent)
             case 'mixin':       return handleClass(docs, element, parent);
             case 'module':      return handleNamespace(docs, element, parent);
             case 'namespace':   return handleNamespace(docs, element, parent);
-            case 'package':     return handleNamespace(docs, element, parent);
             case 'typedef':     return handleTypedef(docs, element, parent);
             /* eslint-enable no-multi-spaces */
         }
