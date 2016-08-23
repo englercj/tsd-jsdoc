@@ -40,9 +40,8 @@ Or add this to your JSON configuration:
 
 ### Validation
 
-This library provides almost no validation beyong what jsdoc provides. Meaning if you
+This library provides almost no validation beyond what jsdoc provides. Meaning if you
 have invalid jsodc comments, this will likely output an invalid TypeScript Definition File.
-On the brightside, that means you will find invalid jsdoc pretty quickly.
 
 Additionally there are things that jsdoc things are fine, that TypeScript does not.
 One example would be a member variable marked with `@constant`. While that is valid
@@ -56,7 +55,7 @@ class MyClass {
 
 So there a few cases like this where the jsdoc is massaged into valid TS.
 
-### `module:...`
+### `module:`
 
 This syntax is used to link to another module's docs. If you use it
 to describe the code, it will be ignored.
@@ -148,8 +147,8 @@ Tags that describe the code, but support is not implemented are:
 - [`@fires`](http://usejsdoc.org/tags-fires.html) - No TS equivalent
 - [`@listens`](http://usejsdoc.org/tags-listens.html) - No TS equivalent
 - [`@override`](http://usejsdoc.org/tags-override.html) - No TS equivalent ([issue](https://github.com/Microsoft/TypeScript/issues/2000))
-- [`@readonly`](http://usejsdoc.org/tags-readonly.html) - No TS equivalent ([implemented in v2](https://github.com/Microsoft/TypeScript/issues/229))
-- [`@this`](http://usejsdoc.org/tags-this.html) - No TS equivalent ([implemented in v2](https://github.com/Microsoft/TypeScript/issues/12))
+- [`@readonly`](http://usejsdoc.org/tags-readonly.html) - No TS equivalent in v1 ([implemented in v2](https://github.com/Microsoft/TypeScript/issues/229))
+- [`@this`](http://usejsdoc.org/tags-this.html) - No TS equivalent in v1 ([implemented in v2](https://github.com/Microsoft/TypeScript/issues/12))
 - [`@throws`](http://usejsdoc.org/tags-throws.html) - No TS equivalent
 
 Additionally, tags that are just metadata and don't actually describe
