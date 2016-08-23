@@ -569,7 +569,7 @@ function isClass(e)
 
 function isInterface(e)
 {
-    return e && (e.kind === 'interface' || (getTypeName(e) === 'object' && e.properties && e.properties.length));
+    return e && (e.kind === 'interface' || (getTypeName(e) === 'Object' && e.properties && e.properties.length));
 }
 
 function findChildrenOf(docs, longname)
