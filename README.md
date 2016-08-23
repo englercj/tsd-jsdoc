@@ -8,6 +8,34 @@ file (or many files) and output a single TypeScript Declaration File (.d.ts).
 It is distributed as a JSDoc3 template. Running jsdoc with this as the template should
 result in a TypeScript Definition File.
 
+## Installation
+
+You can install this module from npm:
+
+```
+$> npm install tsd-jsdoc
+```
+
+## Usage
+
+To use this module, simply specify it as the template for your normal jsdoc generation.
+
+For example, from the command-line you can do:
+
+```
+$> jsdoc -t node_modules/tsd-jsdoc -r .
+```
+
+Or add this to your JSON configuration:
+
+```json
+{
+    "opts": {
+        "template": "./node_modules/tsd-jsdoc"
+    }
+}
+```
+
 ## Gotchas
 
 ### Validation
