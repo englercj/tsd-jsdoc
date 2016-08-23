@@ -160,13 +160,14 @@ function writeFunctionProto(element, isConstructor, isType)
     write('(');
 
     // `this` param
-    if (element.this)
-    {
-        write(`this: ${element.this}`);
+    // TODO: uncomment when using TS v2
+    // if (element.this)
+    // {
+    //     write(`this: ${element.this}`);
 
-        if (element.params && element.params.length)
-            write(', ');
-    }
+    //     if (element.params && element.params.length)
+    //         write(', ');
+    // }
 
     if (element.params)
     {

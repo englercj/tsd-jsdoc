@@ -143,12 +143,13 @@ Tags that describe the code, but support is not implemented are:
 - [`@default`](http://usejsdoc.org/tags-default.html) - No TS equivalent
 - [`@deprecated`](http://usejsdoc.org/tags-deprecated.html) - No TS equivalent ([issue](https://github.com/Microsoft/TypeScript/issues/390))
 - [`@event`](http://usejsdoc.org/tags-event.html) - No TS equivalent
-- [`@exports`](http://usejsdoc.org/tags-exports.html) - **Unimplemented**
-- [`@external`](http://usejsdoc.org/tags-external.html) - **Unimplemented**
+- [`@exports`](http://usejsdoc.org/tags-exports.html) - **Not Yet Implemented**
+- [`@external`](http://usejsdoc.org/tags-external.html) - **Not Yet Implemented**
 - [`@fires`](http://usejsdoc.org/tags-fires.html) - No TS equivalent
 - [`@listens`](http://usejsdoc.org/tags-listens.html) - No TS equivalent
 - [`@override`](http://usejsdoc.org/tags-override.html) - No TS equivalent ([issue](https://github.com/Microsoft/TypeScript/issues/2000))
-- [`@readonly`](http://usejsdoc.org/tags-readonly.html) - No TS equivalent (implemented in v2)
+- [`@readonly`](http://usejsdoc.org/tags-readonly.html) - No TS equivalent ([implemented in v2](https://github.com/Microsoft/TypeScript/issues/229))
+- [`@this`](http://usejsdoc.org/tags-this.html) - No TS equivalent ([implemented in v2](https://github.com/Microsoft/TypeScript/issues/12))
 - [`@throws`](http://usejsdoc.org/tags-throws.html) - No TS equivalent
 
 Additionally, tags that are just metadata and don't actually describe
