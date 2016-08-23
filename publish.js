@@ -480,19 +480,28 @@ function handleClass(docs, element, parent, isInterface)
     write(`${isInterface ? 'interface' : 'class'} ${element.name} `);
 
     // extends
-    let augs = [];
+    if (element.augments && element.augments.length)
+    {
+        const augs = element.augments.filter((v) => v.indexOf('module:') === -1);
 
-    if (element.mixes) augs.push.apply(augs, element.mixes);
-    if (element.augments) augs.push.apply(augs, element.augments);
-
-    augs = augs.filter((v) => v.indexOf('module:') === -1);
-
-    if (augs.length)
-        write(`extends ${augs} `);
+        if (augs.length)
+            write(`extends ${augs[0]} `);
+    }
 
     // implements
-    if (element.implements)
-        write(`implements ${element.implements.join(', ')} `);
+    let impls = [];
+
+    if (element.mixes) impls.push.apply(impls, element.mixes);
+    if (element.implements) impls.push.apply(impls, element.implements);
+
+    impls = impls.filter((v) => v.indexOf('module:') === -1);
+
+    // TODO: If we have an implemented object, ensure all the properties are here.
+    // If there are properties missing from this declaration that are in something
+    // it implements TS will be upset. Need to iterate through properties of the
+    // implemented classes and copy-paste properties that aren't here already.
+    if (impls.length)
+        write(`implements ${impls.join(', ')} `);
 
     // header end
     write('{');

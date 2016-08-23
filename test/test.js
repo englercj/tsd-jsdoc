@@ -36,6 +36,30 @@ class OtherThing
 {}
 
 /**
+ *
+ */
+class Stuff
+{
+    /**
+     *
+     */
+    doStuff()
+    {}
+}
+
+/**
+ *
+ */
+class Things
+{
+    /**
+     *
+     */
+    doThings()
+    {}
+}
+
+/**
  * @class
  * @extends OtherThing
  * @mixes Stuff
