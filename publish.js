@@ -1,5 +1,9 @@
 'use strict';
 
+const fs = require('jsdoc/fs');
+const helper = require('jsdoc/util/templateHelper');
+const path = require('path');
+
 const indentSize = 4;
 let indentLevel = 0;
 let ostream = null;
@@ -14,15 +18,26 @@ const interfaceQueue = [];
  * @param {TAFFY} data - The TaffyDB containing the data that jsdoc parsed.
  * @param {object} opts - Options passed into jsdoc.
  */
-module.exports.publish = function publishTsd(data/* , opts*/)
+module.exports.publish = function publishTsd(data, opts)
 {
     // remove undocumented stuff.
     data({ undocumented: true }).remove();
 
     const docs = data().get();
 
-    // ostream = fs.createWriteStream('./_temp.d.ts');
-    ostream = process.stdout;
+    if (opts.destination === 'console')
+    {
+        ostream = process.stdout;
+    }
+    else
+    {
+        fs.mkPath(opts.destination);
+
+        const pkg = (helper.find(data, { kind: 'package' }) || [])[0];
+        const out = path.join(opts.destination, pkg && pkg.name ? `${pkg.name}.d.ts` : 'types.d.ts');
+
+        ostream = fs.createWriteStream(out);
+    }
 
     parse(docs);
 
@@ -36,7 +51,7 @@ module.exports.publish = function publishTsd(data/* , opts*/)
         writeInterfaceForObjectType(element);
     }
 
-    // ostream.end();
+    ostream.end();
 };
 
 function parse(docs, parent)
