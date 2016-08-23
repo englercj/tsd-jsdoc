@@ -164,7 +164,9 @@ function writeFunctionProto(element, isConstructor, isType)
             const names = p.name.split('.');
 
             if (names.length === 1)
+            {
                 params[p.name] = p;
+            }
             else
             {
                 let c = params[names[0]];
@@ -317,7 +319,9 @@ function handleFunction(docs, element, parent, isConstructor)
     if (!isConstructor)
     {
         if (element.scope === 'global')
+        {
             write('declare function ');
+        }
         else if (isClass(parent))
         {
             // access
@@ -329,7 +333,9 @@ function handleFunction(docs, element, parent, isConstructor)
                 write('static ');
         }
         else
+        {
             write('function ');
+        }
     }
 
     // name
@@ -395,7 +401,9 @@ function handleMember(docs, element, parent)
     else
     {
         if (element.scope === 'global')
+        {
             write('declare var ');
+        }
         else
         {
             // member
@@ -416,9 +424,13 @@ function handleMember(docs, element, parent)
             }
             // constant
             else if (element.kind === 'constant')
+            {
                 write('const ');
+            }
             else
+            {
                 write('var ');
+            }
         }
 
         write(`${element.name}: ${isInterface(element) ? `I${element.name}` : getTypeName(element)};`);
@@ -493,7 +505,9 @@ function handleTypedef(docs, element, parent)
     if (isInterface(element))
     {
         if (isClass(parent))
+        {
             queueInterfaceForObjectType(element);
+        }
         else
         {
             // comment

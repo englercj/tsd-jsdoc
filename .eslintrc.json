@@ -8,6 +8,7 @@
     },
     "rules": {
         "brace-style": [2, "allman"],
+        "curly": [2, "multi-or-nest", "consistent"],
         "no-lonely-if": 0
     }
 }
