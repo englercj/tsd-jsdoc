@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars,no-var,no-empty-function */
 'use strict';
 
 /**
@@ -10,27 +11,27 @@ var triState = {
     TRUE: 1,
     FALSE: -1,
     /** @type {boolean} */
-    MAYBE: true
+    MAYBE: true,
 };
 
 /**
  * @this OtherThing
  */
-function doStuff() {}
-
+function doStuff()
+{}
 
 /**
  * @class
  * @abstract
  */
-class OtherThing {}
+class OtherThing
+{}
 
 /**
  * @class
  * @extends OtherThing
  * @mixes Stuff
  * @mixes Things
- * @implements FinalThing
  */
 class MyThing extends OtherThing
 {
@@ -75,12 +76,18 @@ class MyThing extends OtherThing
      *
      * @member {string}
      */
-    get D() { return this.derp; }
+    get D()
+    {
+        return this.derp;
+    }
 
     /**
      * Sets derp
      *
      * @param {string} v - The value to set to.
      */
-    set D(v) { this.derp = v; }
+    set D(v)
+    {
+        this.derp = v;
+    }
 }

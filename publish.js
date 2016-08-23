@@ -1,9 +1,5 @@
 'use strict';
 
-const fs = require('fs');
-
-const hasOwn = Object.prototype.hasOwnProperty;
-
 const indentSize = 4;
 let indentLevel = 0;
 let ostream = null;
@@ -18,7 +14,7 @@ const interfaceQueue = [];
  * @param {TAFFY} data - The TaffyDB containing the data that jsdoc parsed.
  * @param {object} opts - Options passed into jsdoc.
  */
-module.exports.publish = function (data, opts)
+module.exports.publish = function publishTsd(data/* , opts*/)
 {
     // remove undocumented stuff.
     data({ undocumented: true }).remove();
@@ -45,11 +41,11 @@ module.exports.publish = function (data, opts)
 
 function parse(docs, parent)
 {
-    findChildrenOf(docs, (parent ? parent.longname : undefined))
+    findChildrenOf(docs, (parent ? parent.longname : undefined)) // eslint-disable-line no-undefined
     .forEach((element) =>
     {
         if (element.ignore || seenElements[element.longname])
-            return;
+            return null;
 
         seenElements[element.longname] = true;
 
@@ -68,7 +64,7 @@ function parse(docs, parent)
             /* eslint-enable no-multi-spaces */
         }
 
-        return;
+        return null;
     });
 }
 
@@ -277,7 +273,7 @@ function getTypeName(obj)
     return name;
 }
 
-function handleNamespace(docs, element, parent)
+function handleNamespace(docs, element/* , parent*/)
 {
     // comment
     writeComment(element.comment);

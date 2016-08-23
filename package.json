@@ -10,8 +10,8 @@
     "url": "git@github.com:englercj/jsdoc2tsd.git"
   },
   "devDependencies": {
-    "@englercj/code-style": "^1.0.5",
-    "eslint": "^3.0.1"
+    "@englercj/code-style": "^1.0.6",
+    "eslint": "^3.3.1"
   },
   "peerDependencies": {
     "jsdoc": "^3.4.0"
