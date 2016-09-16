@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars,no-var,no-empty-function */
+'use strict';
 
 /**
  * @classdesc
@@ -6,7 +8,8 @@
  * @constructor
  * @template T
  */
-ns.Foo = function() {
+testns.Foo = function Foo()
+{
 };
 
 /**
@@ -15,5 +18,6 @@ ns.Foo = function() {
  * @param {S=} opt_this An object.
  * @template S
  */
-ns.Foo.prototype.f = function(f, opt_this) {
+testns.Foo.prototype.f = function f(f, opt_this)
+{
 };

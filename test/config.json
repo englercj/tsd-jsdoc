@@ -12,7 +12,7 @@
     },
     "templates": {
         "jsdoc2tsd": {
-            "interfacePrefix": ""
+            "interfacePrefix": "I"
         }
     }
 }
