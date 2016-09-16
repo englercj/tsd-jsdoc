@@ -1,0 +1,18 @@
+{
+    "opts": {
+        "recurse": true,
+        "template": "."
+    },
+    "source": {
+        "includePattern": ".+\\.js(doc)?$",
+        "excludePattern": "(^|\\/|\\\\)_",
+        "include": [
+            "test"
+        ]
+    },
+    "templates": {
+        "jsdoc2tsd": {
+            "interfacePrefix": ""
+        }
+    }
+}

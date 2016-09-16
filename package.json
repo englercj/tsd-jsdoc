@@ -16,6 +16,6 @@
   },
   "scripts": {
     "lint": "eslint --rulesdir node_modules/@englercj/code-style *.js",
-    "test": "jsdoc -t . -r test -d out"
+    "test": "jsdoc -c test/config.json -d out"
   }
 }

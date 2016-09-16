@@ -1,5 +1,6 @@
 'use strict';
 
+const env = require('jsdoc/env');
 const fs = require('jsdoc/fs');
 const helper = require('jsdoc/util/templateHelper');
 const path = require('path');
@@ -139,7 +140,12 @@ function queueInterfaceForObjectType(element)
 
 function writeInterfaceForObjectType(element)
 {
-    writeLn(`interface I${element.name} {`);
+    let prefix = env.conf.templates.jsdoc2tsd.interfacePrefix;
+
+    if (!prefix)
+        prefix = '';
+
+    writeLn(`interface ${prefix}${element.name} {`);
     indent();
 
     for (let i = 0; i < element.properties.length; ++i)
