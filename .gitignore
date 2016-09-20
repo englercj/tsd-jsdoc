@@ -1,6 +1,7 @@
-# Sublime Text files
+# IDE files
 *.sublime*
 *.*~*.TMP
+.history/
 
 # OS temp files
 .DS_Store

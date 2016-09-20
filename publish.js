@@ -1,5 +1,6 @@
 'use strict';
 
+const env = require('jsdoc/env');
 const fs = require('jsdoc/fs');
 const helper = require('jsdoc/util/templateHelper');
 const path = require('path');
@@ -139,7 +140,12 @@ function queueInterfaceForObjectType(element)
 
 function writeInterfaceForObjectType(element)
 {
-    writeLn(`interface I${element.name} {`);
+    let prefix = env.conf.templates.jsdoc2tsd.interfacePrefix;
+
+    if (!prefix)
+        prefix = '';
+
+    writeLn(`interface ${prefix}${element.name} {`);
     indent();
 
     for (let i = 0; i < element.properties.length; ++i)
@@ -332,6 +338,8 @@ function handleFunction(docs, element, parent, isConstructor)
 
     startLine();
 
+    let types = null;
+
     if (!isConstructor)
     {
         if (element.scope === 'global')
@@ -352,10 +360,16 @@ function handleFunction(docs, element, parent, isConstructor)
         {
             write('function ');
         }
+
+        // templates
+        types = templateTypes(element);
     }
 
     // name
     write(name);
+
+    if (types !== null)
+        write(`<${types.join(',')}>`);
 
     writeFunctionProto(element, isConstructor);
     endLine();
@@ -476,8 +490,16 @@ function handleClass(docs, element, parent, isInterface)
     if (element.virtual)
         write('abstract ');
 
+    // templates
+    let types = templateTypes(element);
+
+    if (types !== null)
+        types = `<${types.join(',')}>`;
+    else
+        types = '';
+
     // name
-    write(`${isInterface ? 'interface' : 'class'} ${element.name} `);
+    write(`${isInterface ? 'interface' : 'class'} ${element.name}${types} `);
 
     // extends
     if (element.augments && element.augments.length)
@@ -580,6 +602,31 @@ function isClass(e)
 function isInterface(e)
 {
     return e && (e.kind === 'interface' || (getTypeName(e) === 'Object' && e.properties && e.properties.length));
+}
+
+/**
+ * Returns the list of templates types of the given element or null.
+ *
+ * @param {JSON} e an element.
+ * @returns {Array<string>} an array of the template types.
+ */
+function templateTypes(e)
+{
+    if (e.tags)
+    {
+        for (const tag of e.tags)
+        {
+            if (tag.title === 'template')
+            {
+                return tag.value.split(',').map(function trimmer(item)
+                {
+                    return item.trim();
+                });
+            }
+        }
+    }
+
+    return null;
 }
 
 function findChildrenOf(docs, longname)
