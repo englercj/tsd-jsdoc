@@ -14,11 +14,14 @@
     "test": "jsdoc -c test/config.json -d out"
   },
   "devDependencies": {
-    "@englercj/code-style": "^1.0.6",
-    "eslint": "^3.3.1",
-    "jsdoc": "^3.4.0"
+    "jsdoc": "^3.4.0",
+    "tslint": "^3.15.1",
+    "typescript": "^2.0.2"
   },
   "peerDependencies": {
     "jsdoc": "^3.4.0"
+  },
+  "dependencies": {
+    "dts-dom": "^0.1.7"
   }
 }
