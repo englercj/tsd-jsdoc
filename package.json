@@ -9,13 +9,16 @@
     "type": "git",
     "url": "git@github.com:englercj/jsdoc2tsd.git"
   },
+  "scripts": {
+    "lint": "eslint --rulesdir node_modules/@englercj/code-style *.js",
+    "test": "jsdoc -c test/config.json -d out"
+  },
   "devDependencies": {
     "@englercj/code-style": "^1.0.6",
     "eslint": "^3.3.1",
     "jsdoc": "^3.4.0"
   },
-  "scripts": {
-    "lint": "eslint --rulesdir node_modules/@englercj/code-style *.js",
-    "test": "jsdoc -c test/config.json -d out"
+  "peerDependencies": {
+    "jsdoc": "^3.4.0"
   }
 }

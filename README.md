@@ -170,3 +170,10 @@ the code are ignored. These are:
 - [`@version`](http://usejsdoc.org/tags-version.html)
 
 All other tags *should* work...
+
+## Supported ClosureCompiler Tags
+
+ClosureCompiler has a couple tags beyond the built-in jsdoc tags that can improve your TypeScript output. Here is a complete
+list of the tags from CC that are supported in this template:
+
+- [`@template`](https://github.com/google/closure-compiler/wiki/Annotating-JavaScript-for-the-Closure-Compiler#template-t) - For generics
