@@ -24,6 +24,12 @@ module.exports.publish = function publishTsd(data, opts)
     // remove undocumented stuff.
     data({ undocumented: true }).remove();
 
+    // remove private members if configured.
+    if (opts.private === false)
+    {
+        data({ access: "private" }).remove();
+    }
+
     const docs = data().get();
 
     if (opts.destination === 'console')
@@ -140,7 +146,7 @@ function queueInterfaceForObjectType(element)
 
 function writeInterfaceForObjectType(element)
 {
-    let prefix = env.conf.templates.jsdoc2tsd.interfacePrefix;
+    let prefix = env.conf.templates.jsdoc2tsd && env.conf.templates.jsdoc2tsd.interfacePrefix;
 
     if (!prefix)
         prefix = '';
