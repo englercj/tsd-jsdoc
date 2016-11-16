@@ -320,18 +320,9 @@ function handleFunction(docs, element, parent, isConstructor)
 {
     const name = isConstructor ? 'constructor' : element.name;
 
-    // skip if parent already defines it
-    if (parent && parent.augments)
-    {
-        for (let i = 0; i < parent.augments.length; ++i)
-        {
-            const aug = parent.augments[i];
-            const children = findChildrenOf(docs, aug);
-
-            if (children.filter((v) => v.name === element.name).length)
-                return;
-        }
-    }
+    // skip if purely inherited
+    if (element.inherited)
+        return;
 
     // comment
     writeComment(element.comment);
@@ -382,18 +373,9 @@ function handleMember(docs, element, parent)
     if (isInterface(element))
         writeInterfaceForObjectType(element);
 
-    // skip if parent already defines it
-    if (parent && parent.augments)
-    {
-        for (let i = 0; i < parent.augments.length; ++i)
-        {
-            const aug = parent.augments[i];
-            const children = findChildrenOf(docs, aug);
-
-            if (children.filter((v) => v.name === element.name).length)
-                return;
-        }
-    }
+    // skip if purely inherited
+    if (element.inherited)
+        return;
 
     // comment
     writeComment(element.comment);
