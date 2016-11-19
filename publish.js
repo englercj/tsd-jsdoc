@@ -293,6 +293,7 @@ function getTypeName(obj)
     name = name.replace(/\*|mixed/g, 'any');
     name = name.replace(/(^|[^\w])function(?:\(\))?([^\w]|$)/gi, '$1(() => any)$2');
     name = name.replace(/object/g, 'Object');
+    name = name.replace(/.</g, '<');
 
     return name;
 }

@@ -122,4 +122,15 @@ class MyThing extends OtherThing
     {
         this.derp = v;
     }
+
+    /**
+     * Gets a Promise that will resolve with an Object.
+     *
+     * @return {Promise<Object>} The Promise
+     */
+    promiseMe() {
+      return new Promise((resolve) => {
+        resolve({});
+      });
+    }
 }

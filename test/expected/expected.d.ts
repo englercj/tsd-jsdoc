@@ -112,6 +112,13 @@ declare class MyThing extends OtherThing implements Stuff, Things {
     */
    D: string;
 
+  /**
+   * Gets a Promise that will resolve with an Object.
+   *
+   * @return {Promise<Object>} The Promise
+   */
+   promiseMe(): Promise<Object>;
+
 }
 
 /**
