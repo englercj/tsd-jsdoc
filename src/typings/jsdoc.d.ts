@@ -16,7 +16,7 @@ declare module 'jsdoc/env' {
 }
 
 declare module 'jsdoc/util/templateHelper' {
-    export function find(data: TDocletDb, query: any): TDoclet[];
+    export function find(data: TDocletDb, query: any): (TDoclet | IPackageDoclet)[];
 }
 
 
@@ -30,6 +30,10 @@ declare interface IDocletType {
 declare interface IDocletProp {
     type: IDocletType;
     name: string;
+    comment: string;
+    meta?: any;
+    optional?: boolean;
+    variable?: boolean;
     description?: string;
 }
 
@@ -48,7 +52,7 @@ declare interface IDocletBase {
     longname: string;
     memberof?: string;
     see?: string;
-    access?: string;
+    access?: ('public' | 'private' | 'protected');
     examples?: string;
     deprecated?: string;
     defaultvalue?: string;
@@ -64,8 +68,10 @@ declare interface IDocletBase {
  */
 declare interface IClassDoclet extends IDocletBase {
     kind: 'class' | 'interface' | 'mixin';
-    params: IDocletProp[];
-    augments: string[];
+    params?: IDocletProp[];
+    augments?: string[];
+    implements?: string[];
+    mixes?: string[];
     virtual?: boolean;
     classdesc?: string;
 }
@@ -73,11 +79,15 @@ declare interface IClassDoclet extends IDocletBase {
 declare interface IFunctionDoclet extends IDocletBase {
     kind: 'function';
     params: IDocletProp[];
+    returns: { type: IDocletType, description: string }[];
     override?: boolean;
+    virtual?: string[];
 }
 
 declare interface IMemberDoclet extends IDocletBase {
     kind: 'member' | 'constant';
+    readonly: boolean;
+    isEnum: boolean;
     type: IDocletType;
 }
 

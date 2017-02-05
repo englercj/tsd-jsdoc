@@ -28,5 +28,7 @@ npm-debug.log
 node_modules/
 dist/
 docs/
+lib/
+out/
 typings/
 !src/typings/

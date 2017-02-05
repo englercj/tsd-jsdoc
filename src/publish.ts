@@ -23,7 +23,14 @@ export function publish(data: TDocletDb, opts: any) {
         console.log(emitter.emit());
     }
     else {
-        fs.mkdirSync(opts.destination);
+        try {
+            fs.mkdirSync(opts.destination);
+        }
+        catch (e) {
+            if (e.code !== 'EEXIST') {
+                throw e;
+            }
+        }
 
         const pkg = (helper.find(data, { kind: 'package' }) || [])[0] as IPackageDoclet;
         const out = path.join(opts.destination, pkg && pkg.name ? `${pkg.name}.d.ts` : 'types.d.ts');

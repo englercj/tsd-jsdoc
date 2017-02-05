@@ -13,6 +13,7 @@
  * Enum for tri-state values.
  * @readonly
  * @enum {number}
+ * @constant
  */
 var triState = {
     /** The true value */
@@ -69,9 +70,10 @@ class MyThing extends OtherThing
 {
     /**
      * Constructs!
-     * @param {number|string} a - The number.
+     * @param {...number} a - The number.
+     * @private
      */
-    constructor(a)
+    constructor(...a)
     {
         super();
 

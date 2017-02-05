@@ -2,7 +2,7 @@
   "name": "tsd-jsdoc",
   "version": "1.0.1",
   "description": "Compiles JSDoc annotated javascript into a Typescript Declaration File (.d.ts).",
-  "main": "publish.js",
+  "main": "lib/publish.js",
   "author": "Chad Engler <chad@pantherdev.com>",
   "license": "MIT",
   "repository": {
@@ -11,17 +11,18 @@
   },
   "scripts": {
     "lint": "eslint --rulesdir node_modules/@englercj/code-style *.js",
+    "build": "tsc -p tsconfig.json",
     "test": "jsdoc -c test/config.json -d out"
   },
   "devDependencies": {
-    "jsdoc": "^3.4.0",
-    "tslint": "^3.15.1",
-    "typescript": "^2.0.2"
+    "jsdoc": "^3.4.3",
+    "tslint": "^4.4.2",
+    "typescript": "^2.1.5"
   },
   "peerDependencies": {
     "jsdoc": "^3.4.0"
   },
   "dependencies": {
-    "dts-dom": "^0.1.7"
+    "dts-dom": "^0.1.12"
   }
 }
