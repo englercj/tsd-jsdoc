@@ -92,6 +92,7 @@ class MyThing extends OtherThing
         this.derp = 'me';
 
         /**
+         * @private
          * @member {number}
          */
         this.something = 1;
