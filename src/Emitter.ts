@@ -1,10 +1,7 @@
 import * as dom from 'dts-dom';
 
-dom.config.wrapJsDocComments = false;
-
 // TODO: generics
-// TODO: support
-// TODO: defaultvalues
+// TODO: typedef
 
 enum EResolveFailure {
     Memberof,
@@ -51,7 +48,7 @@ export default class Emitter {
 
     resolutionNeeded: IResolutionMap;
 
-    constructor(docs?: TDoclet[]) {
+    constructor(docs?: TDoclet[], public eol: string = '\n') {
         this.parse(docs);
     }
 
@@ -74,6 +71,8 @@ export default class Emitter {
     }
 
     emit() {
+        dom.config.outputEol = this.eol;
+
         let out = '';
 
         for (const res of this.results) {
@@ -85,6 +84,9 @@ export default class Emitter {
 
     private _parseObjects(docs: TDoclet[]) {
         for (const doclet of docs) {
+            if (this.objects[doclet.longname])
+                continue;
+
             // parse based on kind
             switch (doclet.kind) {
                 case 'class':       this._createClass(doclet); break;
@@ -123,6 +125,13 @@ export default class Emitter {
                     warnResolve(doclet, EResolveFailure.Memberof, `Found parent, but it cannot contain members. Discovered type: ${p.kind}.`);
                 }
                 else {
+                    if ((obj as any).kind === 'function')
+                        (obj as any).kind = 'method';
+
+                    // already have something of this name, ignore.
+                    if (p.members.filter((v) => v.name === (obj as any).name).length)
+                        continue;
+
                     p.members.push(obj as dom.NamespaceMember);
                 }
             }
@@ -229,7 +238,7 @@ export default class Emitter {
 
             if (!obj) {
                 warnResolve(doclet, EResolveFailure.Object);
-                return;
+                continue;
             }
 
             if (obj.kind === 'class') {
@@ -239,7 +248,7 @@ export default class Emitter {
 
                     // iterate each member of that interface
                     for (let j = 0; j < impl.members.length; ++j) {
-                        const implMember = impl.members[j];
+                        const implMember = objClone(impl.members[j]);
                         let clsMember: dom.ClassMember = null;
 
                         // search for member in class
@@ -255,6 +264,8 @@ export default class Emitter {
                                 break;
                             }
                         }
+
+                        implMember.kind = 'method';
 
                         // if class doesn't contain a member of the same type, then add it
                         if (!objEqual(clsMember, implMember)) {
@@ -298,15 +309,12 @@ export default class Emitter {
     private _createClass(doclet: IClassDoclet) {
         const obj = this.objects[doclet.longname] = dom.create.class(doclet.name);
 
-        obj.jsDocComment = doclet.comment;
+        obj.jsDocComment = cleanComment(doclet.comment);
 
         obj.flags = dom.DeclarationFlags.None;
         obj.flags |= doclet.virtual ? dom.DeclarationFlags.Abstract : dom.DeclarationFlags.None;
         obj.flags |= accessFlagMap[doclet.access];
         obj.flags |= doclet.scope === 'static' ? dom.DeclarationFlags.Static : dom.DeclarationFlags.None;
-
-        // TODO: Export flag
-        obj.flags |= dom.DeclarationFlags.Export;
 
         if (doclet.params) {
             const ctorParams: dom.Parameter[] = [];
@@ -326,15 +334,12 @@ export default class Emitter {
     private _createInterface(doclet: IClassDoclet) {
         const obj = this.objects[doclet.longname] = dom.create.interface(doclet.name);
 
-        obj.jsDocComment = doclet.comment;
+        obj.jsDocComment = cleanComment(doclet.comment);
 
         obj.flags = dom.DeclarationFlags.None;
         obj.flags |= doclet.virtual ? dom.DeclarationFlags.Abstract : dom.DeclarationFlags.None;
         obj.flags |= accessFlagMap[doclet.access];
         obj.flags |= doclet.scope === 'static' ? dom.DeclarationFlags.Static : dom.DeclarationFlags.None;
-
-        // TODO: Export flag
-        obj.flags |= dom.DeclarationFlags.Export;
     }
 
     private _createMember(doclet: IMemberDoclet) {
@@ -360,13 +365,13 @@ export default class Emitter {
                 const prop = doclet.properties[i].meta.code;
                 const val = dom.create.enumValue(prop.name);
 
-                val.jsDocComment = doclet.properties[i].comment;
+                val.jsDocComment = cleanComment(doclet.properties[i].comment);
 
                 (obj as dom.EnumDeclaration).members.push(val);
             }
         }
 
-        obj.jsDocComment = doclet.comment;
+        obj.jsDocComment = cleanComment(doclet.comment);
 
         obj.flags = dom.DeclarationFlags.None;
         obj.flags |= accessFlagMap[doclet.access];
@@ -379,7 +384,7 @@ export default class Emitter {
         if (doclet.params) {
             for (let i = 0; i < doclet.params.length; ++i) {
                 const param = doclet.params[i];
-                const flags = (param.optional ? dom.ParameterFlags.Optional : 0) | (param.variable ? dom.ParameterFlags.Rest : 0);
+                const flags = (param.optional || param.defaultvalue !== undefined ? dom.ParameterFlags.Optional : 0) | (param.variable ? dom.ParameterFlags.Rest : 0);
 
                 fnParams.push(dom.create.parameter(param.name, null, flags));
             }
@@ -387,13 +392,13 @@ export default class Emitter {
 
         const obj = this.objects[doclet.longname] = dom.create.function(doclet.name, fnParams, null);
 
-        obj.jsDocComment = doclet.comment;
+        obj.jsDocComment = cleanComment(doclet.comment);
     }
 
     private _createNamespace(doclet: INamespaceDoclet) {
         const obj = this.objects[doclet.longname] = dom.create.namespace(doclet.name);
 
-        obj.jsDocComment = doclet.comment;
+        obj.jsDocComment = cleanComment(doclet.comment);
     }
 
     private _createTypedef(doclet: ITypedefDoclet) {
@@ -421,4 +426,29 @@ function objEqual(o1: any, o2: any) {
     }
 
     return true;
+}
+
+function objClone(o: any) {
+    return JSON.parse(JSON.stringify(o));
+}
+
+const rgxJsDocHeader = /^\/\*\*\s?/;
+const rgxJsDocFooter = /\s*\*\/\s?$/;
+const rgxJsDocBody = /^\*\s?/;
+
+function cleanComment(s: string) {
+    const cleanLines = [];
+
+    for (const line of s.split(/\r?\n/g)) {
+        const cleaned = line.trim()
+                            .replace(rgxJsDocHeader, '')
+                            .replace(rgxJsDocFooter, '')
+                            .replace(rgxJsDocBody, '');
+
+        if (cleaned) {
+            cleanLines.push(cleaned);
+        }
+    }
+
+    return cleanLines.join('\n');
 }

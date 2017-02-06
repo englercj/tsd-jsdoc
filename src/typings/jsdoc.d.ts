@@ -30,11 +30,12 @@ declare interface IDocletType {
 declare interface IDocletProp {
     type: IDocletType;
     name: string;
+    description: string;
     comment: string;
+    defaultvalue?: string;
     meta?: any;
     optional?: boolean;
     variable?: boolean;
-    description?: string;
 }
 
 declare interface IDocletMeta {
