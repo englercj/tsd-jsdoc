@@ -40,7 +40,12 @@ function doStuff()
  * @abstract
  */
 class OtherThing
-{}
+{
+    /**
+     *
+     */
+    copy() {}
+}
 
 /**
  *

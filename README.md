@@ -38,6 +38,13 @@ Or add this to your JSON configuration:
 
 ## Gotchas
 
+### Notable JsDoc Issues
+
+- Private constructors will still show up when `private: false` in your config
+ * https://github.com/jsdoc3/jsdoc/issues/952
+- Overriden methods with different parameters do not resolve properly.
+ * https://github.com/jsdoc3/jsdoc/issues/1215
+
 ### Validation
 
 This library provides almost no validation beyond what jsdoc provides. Meaning if you

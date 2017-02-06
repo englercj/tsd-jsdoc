@@ -96,10 +96,10 @@ export default class Emitter {
 
     private _parseObjects(docs: TDoclet[]) {
         for (const doclet of docs) {
-            if (this.objects[doclet.longname] || doclet.ignore)
+            if (doclet.ignore)
                 continue;
 
-            if (this.config.private === false && doclet.access === 'private')
+            if (this.objects[doclet.longname] && !(doclet as IFunctionDoclet).override)
                 continue;
 
             // parse based on kind
@@ -132,12 +132,8 @@ export default class Emitter {
 
     private _resolveObjects(docs: TDoclet[]) {
         for (const doclet of docs) {
-            const parent = this.objects[doclet.memberof];
-
             // skip a few things
-            if (doclet.ignore) continue;
-            if ((doclet as any).kind === 'package') continue;
-            if (parent && (parent as any).kind === 'enum') continue;
+            if (!this._shouldResolveDoclet(doclet)) continue;
 
             const obj = this.objects[doclet.longname];
 
@@ -299,12 +295,9 @@ export default class Emitter {
     private _resolveInterfaceMembers(docs: TDoclet[]) {
         for (let i = 0; i < docs.length; ++i) {
             const doclet = docs[i];
-            const parent = this.objects[doclet.memberof];
 
             // skip a few things
-            if (doclet.ignore) continue;
-            if ((doclet as any).kind === 'package') continue;
-            if (parent && (parent as any).kind === 'enum') continue;
+            if (!this._shouldResolveDoclet(doclet)) continue;
 
             const obj = this.objects[doclet.longname] as dom.ClassDeclaration;
 
@@ -399,11 +392,11 @@ export default class Emitter {
             }
         }
 
-        // try generic type
+        // try TypeParameter type
         let p = obj as any;
         while (p) {
-            if (p.generics) {
-                for (const g of p.generics) {
+            if (p.typeParameters) {
+                for (const g of p.typeParameters) {
                     if (t === g.name) {
                         return t as dom.Type;
                     }
@@ -506,6 +499,17 @@ export default class Emitter {
         this.objects[doclet.longname] = dom.create.alias(doclet.name, type);
     }
 
+    private _shouldResolveDoclet(doclet: TDoclet) {
+        const parent = this.objects[doclet.memberof];
+
+        return (
+            !doclet.ignore
+            && (doclet as any).kind !== 'package'
+            && (!parent || (parent as any).kind !== 'enum')
+            && (this.config.private === false && doclet.access !== 'private')
+        );
+    }
+
 }
 
 function handleFlags(doclet: any, obj: dom.DeclarationBase|dom.Parameter) {
@@ -526,7 +530,7 @@ function handleCustomTags(doclet: TDoclet, obj: dom.DeclarationBase) {
     for (const tag of doclet.tags) {
         switch (tag.title) {
             case 'template':
-                (obj as dom.ClassDeclaration).generics.push(dom.create.generic(tag.value));
+                (obj as dom.ClassDeclaration).typeParameters.push(dom.create.typeParameter(tag.value));
             break;
         }
     }

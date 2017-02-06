@@ -10,10 +10,5 @@
         "include": [
             "test"
         ]
-    },
-    "templates": {
-        "jsdoc2tsd": {
-            "interfacePrefix": "I"
-        }
     }
 }
