@@ -222,7 +222,7 @@ export default class Emitter {
             // resolve member types
             if (doclet.kind === 'member' || doclet.kind === 'constant') {
                 // member with no type is likely setter
-                if (!doclet.type) {
+                if (!doclet.type && !doclet.properties) {
                     continue;
                 }
 
@@ -346,7 +346,7 @@ export default class Emitter {
         doclet: ITypedefDoclet|IMemberDoclet|IDocletProp|IDocletReturn,
         obj: dom.Parameter|dom.PropertyDeclaration|dom.MethodDeclaration|dom.TypeAliasDeclaration
     ): dom.Type {
-        const names: string[] = doclet.type.names;
+        const names: string[] = (doclet.type || (doclet as any).properties[0].type).names;
         const types: dom.Type[] = [];
 
         for (const t of names) {

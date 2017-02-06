@@ -143,3 +143,8 @@ class MyThing extends OtherThing
         this.derp = v;
     }
 }
+
+/**
+ * @prop {number} Thingy
+ */
+MyThing.me = 10;
