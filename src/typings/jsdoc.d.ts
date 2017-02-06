@@ -46,11 +46,19 @@ declare interface IDocletMeta {
     code: { id: string, name: string, type: string }
 }
 
+declare interface IDocletTag {
+    originalTitle: string;
+    title: string;
+    text: string;
+    value: string;
+}
+
 declare interface IDocletBase {
     meta: IDocletMeta;
     name: string;
     scope: string;
     longname: string;
+    tags?: IDocletTag[];
     memberof?: string;
     see?: string;
     access?: ('public' | 'private' | 'protected');

@@ -2,6 +2,7 @@ import * as dom from 'dts-dom';
 
 // TODO: generics
 // TODO: typedef
+// TODO: Bug, namespaces in param types incorrect (see: MyThing#create).
 
 enum EResolveFailure {
     Memberof,
@@ -102,7 +103,14 @@ export default class Emitter {
 
             const obj = this.objects[doclet.longname];
 
-            if (obj && !doclet.memberof) {
+            if (!obj) continue;
+
+            obj.jsDocComment = cleanComment(doclet.comment);
+
+            handleFlags(doclet, obj);
+            handleCustomTags(doclet, obj);
+
+            if (!doclet.memberof) {
                 this.results.push(obj as dom.TopLevelDeclaration);
             }
         }
@@ -309,37 +317,26 @@ export default class Emitter {
     private _createClass(doclet: IClassDoclet) {
         const obj = this.objects[doclet.longname] = dom.create.class(doclet.name);
 
-        obj.jsDocComment = cleanComment(doclet.comment);
-
-        obj.flags = dom.DeclarationFlags.None;
-        obj.flags |= doclet.virtual ? dom.DeclarationFlags.Abstract : dom.DeclarationFlags.None;
-        obj.flags |= accessFlagMap[doclet.access];
-        obj.flags |= doclet.scope === 'static' ? dom.DeclarationFlags.Static : dom.DeclarationFlags.None;
-
         if (doclet.params) {
             const ctorParams: dom.Parameter[] = [];
 
             for (let i = 0; i < doclet.params.length; ++i) {
                 const param = doclet.params[i];
-                const flags = (param.optional ? dom.ParameterFlags.Optional : 0) | (param.variable ? dom.ParameterFlags.Rest : 0);
+                const p = dom.create.parameter(param.name, null);
 
-                ctorParams.push(dom.create.parameter(param.name, null, flags));
+                handleFlags(param, p);
+
+                ctorParams.push(p);
             }
 
-            const ctorFlags = accessFlagMap[doclet.access];
-            obj.members.push(dom.create.constructor(ctorParams, ctorFlags));
+            const ctor = dom.create.constructor(ctorParams);
+            handleFlags(doclet, ctor);
+            obj.members.push(ctor);
         }
     }
 
     private _createInterface(doclet: IClassDoclet) {
-        const obj = this.objects[doclet.longname] = dom.create.interface(doclet.name);
-
-        obj.jsDocComment = cleanComment(doclet.comment);
-
-        obj.flags = dom.DeclarationFlags.None;
-        obj.flags |= doclet.virtual ? dom.DeclarationFlags.Abstract : dom.DeclarationFlags.None;
-        obj.flags |= accessFlagMap[doclet.access];
-        obj.flags |= doclet.scope === 'static' ? dom.DeclarationFlags.Static : dom.DeclarationFlags.None;
+        this.objects[doclet.longname] = dom.create.interface(doclet.name);
     }
 
     private _createMember(doclet: IMemberDoclet) {
@@ -370,12 +367,6 @@ export default class Emitter {
                 (obj as dom.EnumDeclaration).members.push(val);
             }
         }
-
-        obj.jsDocComment = cleanComment(doclet.comment);
-
-        obj.flags = dom.DeclarationFlags.None;
-        obj.flags |= accessFlagMap[doclet.access];
-        obj.flags |= doclet.scope === 'static' ? dom.DeclarationFlags.Static : dom.DeclarationFlags.None;
     }
 
     private _createFunction(doclet: IFunctionDoclet) {
@@ -384,21 +375,19 @@ export default class Emitter {
         if (doclet.params) {
             for (let i = 0; i < doclet.params.length; ++i) {
                 const param = doclet.params[i];
-                const flags = (param.optional || param.defaultvalue !== undefined ? dom.ParameterFlags.Optional : 0) | (param.variable ? dom.ParameterFlags.Rest : 0);
+                const p = dom.create.parameter(param.name, null);
 
-                fnParams.push(dom.create.parameter(param.name, null, flags));
+                handleFlags(param, p);
+
+                fnParams.push(p);
             }
         }
 
-        const obj = this.objects[doclet.longname] = dom.create.function(doclet.name, fnParams, null);
-
-        obj.jsDocComment = cleanComment(doclet.comment);
+        this.objects[doclet.longname] = dom.create.function(doclet.name, fnParams, null);
     }
 
     private _createNamespace(doclet: INamespaceDoclet) {
-        const obj = this.objects[doclet.longname] = dom.create.namespace(doclet.name);
-
-        obj.jsDocComment = cleanComment(doclet.comment);
+        this.objects[doclet.longname] = dom.create.namespace(doclet.name);
     }
 
     private _createTypedef(doclet: ITypedefDoclet) {
@@ -406,6 +395,22 @@ export default class Emitter {
         // TODO: typedef
     }
 
+}
+
+function handleFlags(doclet: any, obj: dom.DeclarationBase|dom.Parameter) {
+    obj.flags = dom.DeclarationFlags.None;
+
+    obj.flags |= accessFlagMap[doclet.access];
+    obj.flags |= doclet.optional || doclet.defaultvalue !== undefined ? dom.ParameterFlags.Optional : dom.DeclarationFlags.None;
+    obj.flags |= doclet.variable ? dom.ParameterFlags.Rest : dom.DeclarationFlags.None;
+    obj.flags |= doclet.virtual ? dom.DeclarationFlags.Abstract : dom.DeclarationFlags.None;
+    obj.flags |= doclet.readonly ? dom.DeclarationFlags.ReadOnly : dom.DeclarationFlags.None;
+    obj.flags |= doclet.scope === 'static' ? dom.DeclarationFlags.Static : dom.DeclarationFlags.None;
+}
+
+function handleCustomTags(doclet: TDoclet, obj: dom.DeclarationBase) {
+    if (!doclet.tags || !doclet.tags.length)
+        return;
 }
 
 function objEqual(o1: any, o2: any) {

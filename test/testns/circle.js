@@ -18,7 +18,7 @@ testns.CircleOptions.prototype.radius;
  * Set circle style for vector features.
  *
  * @constructor
- * @param {ns.CircleOptions=} opt_options Options.
+ * @param {testns.CircleOptions=} opt_options Options.
  */
 testns.Circle = function Circle(opt_options)
 {

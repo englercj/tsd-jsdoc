@@ -90,9 +90,10 @@ class MyThing extends OtherThing
     /**
      * Creates a new thing.
      *
+     * @param {testns.CircleOptions} opts - Namespace test!
      * @return {MyThing} the new thing.
      */
-    static create()
+    static create(opts)
     {
         return new MyThing();
     }
