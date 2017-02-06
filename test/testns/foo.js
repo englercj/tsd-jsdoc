@@ -13,8 +13,18 @@ testns.Foo = function Foo()
 };
 
 /**
+ * @callback FCallback
+ * @this S
+ * @memberof testns.Foo
+ * @param {T} first - The first param.
+ * @param {number} second - The second param.
+ * @param {T[]} third - The third param.
+ * @returns {*}
+ */
+
+/**
  * A generic method.
- * @param {function(this: S, T, number, Array.<T>): *} f A function.
+ * @param {testns.Foo.FCallback} f A function.
  * @param {S=} opt_this An object.
  * @template S
  */

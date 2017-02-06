@@ -38,12 +38,25 @@ declare interface IDocletProp {
     variable?: boolean;
 }
 
+declare interface IDocletReturn {
+    type: IDocletType;
+    description: string;
+}
+
+declare interface IDocletCode {
+    id: string;
+    name: string;
+    type: string;
+    value?: string;
+    paramnames?: string[];
+}
+
 declare interface IDocletMeta {
     range: number[];
     filename: string;
     lineno: number;
     path: string;
-    code: { id: string, name: string, type: string }
+    code: IDocletCode;
 }
 
 declare interface IDocletTag {
@@ -87,8 +100,8 @@ declare interface IClassDoclet extends IDocletBase {
 
 declare interface IFunctionDoclet extends IDocletBase {
     kind: 'function';
-    params: IDocletProp[];
-    returns: { type: IDocletType, description: string }[];
+    params?: IDocletProp[];
+    returns?: IDocletReturn[];
     override?: boolean;
     virtual?: string[];
 }
@@ -107,6 +120,10 @@ declare interface INamespaceDoclet extends IDocletBase {
 declare interface ITypedefDoclet extends IDocletBase {
     kind: 'typedef';
     type: IDocletType;
+
+    // function typedef
+    params?: IDocletProp[];
+    returns?: IDocletReturn[];
 }
 
 declare interface IPackageDoclet {

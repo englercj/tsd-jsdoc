@@ -10,6 +10,11 @@
  */
 
 /**
+ * A number, or a string containing a number.
+ * @typedef {(number|string)} NumberLike
+ */
+
+/**
  * Enum for tri-state values.
  * @readonly
  * @enum {number}
