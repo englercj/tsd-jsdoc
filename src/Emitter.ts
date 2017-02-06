@@ -60,7 +60,7 @@ export default class Emitter {
 
     resolutionNeeded: IResolutionMap;
 
-    constructor(docs?: TDoclet[], public eol: string = '\n') {
+    constructor(docs?: TDoclet[], public config?: ITemplateConfig, public eol: string = '\n') {
         this.parse(docs);
     }
 
@@ -96,7 +96,10 @@ export default class Emitter {
 
     private _parseObjects(docs: TDoclet[]) {
         for (const doclet of docs) {
-            if (this.objects[doclet.longname])
+            if (this.objects[doclet.longname] || doclet.ignore)
+                continue;
+
+            if (this.config.private === false && doclet.access === 'private')
                 continue;
 
             // parse based on kind
@@ -132,6 +135,7 @@ export default class Emitter {
             const parent = this.objects[doclet.memberof];
 
             // skip a few things
+            if (doclet.ignore) continue;
             if ((doclet as any).kind === 'package') continue;
             if (parent && (parent as any).kind === 'enum') continue;
 
@@ -298,6 +302,7 @@ export default class Emitter {
             const parent = this.objects[doclet.memberof];
 
             // skip a few things
+            if (doclet.ignore) continue;
             if ((doclet as any).kind === 'package') continue;
             if (parent && (parent as any).kind === 'enum') continue;
 

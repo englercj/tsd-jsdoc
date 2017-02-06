@@ -6,9 +6,9 @@ import Emitter from './Emitter';
 
 /**
  * @param {TAFFY} data - The TaffyDB containing the data that jsdoc parsed.
- * @param {object} opts - Options passed into jsdoc.
+ * @param {*} opts - Options passed into jsdoc.
  */
-export function publish(data: TDocletDb, opts: any) {
+export function publish(data: TDocletDb, opts: ITemplateConfig) {
     // remove undocumented stuff.
     data({ undocumented: true }).remove();
 
@@ -16,7 +16,7 @@ export function publish(data: TDocletDb, opts: any) {
     const docs = data().get();
 
     // create an emitter to parse the docs
-    const emitter = new Emitter(docs);
+    const emitter = new Emitter(docs, opts);
 
     // emit the output
     if (opts.destination === 'console') {

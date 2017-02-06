@@ -90,6 +90,11 @@ class MyThing extends OtherThing
          * @readonly
          */
         this.derp = 'me';
+
+        /**
+         * @member {number}
+         */
+        this.something = 1;
     }
 
     /**

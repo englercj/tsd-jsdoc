@@ -1,7 +1,8 @@
 {
     "opts": {
         "recurse": true,
-        "template": "../lib"
+        "template": "../lib",
+        "private": false
     },
     "source": {
         "includePattern": ".+\\.js(doc)?$",
