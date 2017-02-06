@@ -1,14 +1,14 @@
 import * as dom from 'dts-dom';
 
-const rgxArrayType = /^Array\.<([^>]*)>$/;
+const rgxArrayType = /^Array\.<(.*)>$/;
+const rgxObjectType = /^Object\.<(\w*),\s*\(?(.*)\)?>$/;
 const rgxJsDocHeader = /^\/\*\*\s?/;
 const rgxJsDocFooter = /\s*\*\/\s?$/;
 const rgxJsDocBody = /^\*\s?/;
 
-// TODO: alias modules
-
-// TODO: typedef
 // TODO: Bug, namespaces in param types incorrect (see: MyThing#create).
+// TODO: Inner classes (classes in classes) (see: _resolveModules).
+// TODO: Inner types (types in classes) (see: _resolveModules).
 
 enum EResolveFailure {
     Memberof,
@@ -80,6 +80,10 @@ export default class Emitter {
         // resolve interface members, after we resolve all members add missing
         // definitions from implmented interfaces
         this._resolveInterfaceMembers(docs);
+
+        // resolve modules, after everything is ready we need to split typedefs
+        // and inner classes into separate module declarations.
+        // this._resolveModules();
     }
 
     emit() {
@@ -181,7 +185,7 @@ export default class Emitter {
                 for (let i = 0; i < o.parameters.length; ++i) {
                     (o.parameters[i] as any)._parent = o;
                     if (!d.params[i].type) {
-                        warnResolve(d, EResolveFailure.FunctionParam, `No type specified for param: ${d.params[i].name}. Defaulting to any.`);
+                        warnResolve(d, EResolveFailure.FunctionParam, `No type specified for param: ${d.params[i].name}. Falling back to any.`);
                         o.parameters[i].type = dom.type.any;
                     }
                     else {
@@ -246,7 +250,7 @@ export default class Emitter {
                     for (let i = 0; i < doclet.params.length; ++i) {
                         (ctorObj.parameters[i] as any)._parent = ctorObj;
                         if (!doclet.params[i].type) {
-                            warnResolve(doclet, EResolveFailure.FunctionParam, `No type specified for constructor param: ${doclet.params[i].name}. Defaulting to any.`);
+                            warnResolve(doclet, EResolveFailure.FunctionParam, `No type specified for constructor param: ${doclet.params[i].name}. Falling back to any.`);
                             ctorObj.parameters[i].type = dom.type.any;
                         }
                         else {
@@ -369,26 +373,40 @@ export default class Emitter {
         doclet: ITypedefDoclet|IMemberDoclet|IDocletProp|IDocletReturn,
         obj: dom.Parameter|dom.PropertyDeclaration|dom.MethodDeclaration|dom.TypeAliasDeclaration
     ): dom.Type {
-        // try primative type
-        if (t === dom.type.string
-            || t === dom.type.number
-            || t === dom.type.boolean
-            || t === dom.type.any
-            || t === dom.type.void) {
-            return t;
-        }
-
-        // any type
-        if (t === '*') {
-            return dom.type.any;
-        }
+        if (t.startsWith('('))
+            t = t.replace('(', '');
+        if (t.endsWith(')'))
+            t = t.replace(/\)$/, '');
 
         // try array type
         if (t.startsWith('Array.<')) {
-            const stringType = t.match(rgxArrayType)[1];
+            const matches = t.match(rgxArrayType);
 
-            if (stringType) {
-                return dom.type.array(this._resolveTypeString(stringType, doclet, obj));
+            if (matches && matches[1]) {
+                return dom.create.array(this._resolveTypeString(matches[1], doclet, obj));
+            }
+        }
+
+        // try object type
+        if (t.startsWith('Object.<')) {
+            const matches = t.match(rgxObjectType);
+
+            if (matches && matches[1] && matches[2]) {
+                const indexTypeStr = matches[1].trim();
+                const valueTypeStr = matches[2].trim();
+
+                if (indexTypeStr !== 'string' && indexTypeStr !== 'number') {
+                    warn(`Invalid object index type: "${matches[1]}", must be "string" or "number". Falling back to "any".`);
+                    return dom.type.any;
+                }
+
+                return dom.create.objectType([
+                    dom.create.indexSignature(
+                        'key',
+                        indexTypeStr,
+                        this._resolveTypeString(valueTypeStr, doclet, obj)
+                    )
+                ]);
             }
         }
 
@@ -404,6 +422,25 @@ export default class Emitter {
             }
 
             p = p._parent;
+        }
+
+        // try primative type
+        if (t === dom.type.string
+            || t === dom.type.number
+            || t === dom.type.boolean
+            || t === dom.type.any
+            || t === dom.type.void) {
+            return t;
+        }
+
+        // any type
+        if (t === '*') {
+            return dom.type.any;
+        }
+
+        // try union type
+        if (t.indexOf('|') !== -1) {
+            return dom.create.union(t.split('|').map((v) => this._resolveTypeString(v, doclet, obj)));
         }
 
         // try type lookup

@@ -101,12 +101,22 @@ class MyThing extends OtherThing
          * @member {number}
          */
         this.something = 1;
+
+        /**
+         * @member {Object<string, Array<(number|string)>>}
+         */
+        this.map = {};
+
+        /**
+         * @member {Array<Array.<Array<Array.<string[]>>>>}
+         */
+        this.superArray = {};
     }
 
     /**
      * Creates a new thing.
      *
-     * @param {testns.CircleOptions} opts - Namespace test!
+     * @param {!testns.CircleOptions} opts - Namespace test!
      * @return {MyThing} the new thing.
      */
     static create(opts)
