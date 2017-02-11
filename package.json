@@ -14,10 +14,13 @@
     "build": "tsc -p tsconfig.json",
     "test": "jsdoc -c test/config.json -d out"
   },
+  "files":[
+    "lib"
+  ],
   "devDependencies": {
     "jsdoc": "^3.4.3",
     "tslint": "^4.4.2",
-    "typescript": "^2.1.5"
+    "typescript": "^2.1.6"
   },
   "peerDependencies": {
     "jsdoc": "^3.4.0"
