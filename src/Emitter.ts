@@ -6,9 +6,6 @@ const rgxJsDocHeader = /^\/\*\*\s?/;
 const rgxJsDocFooter = /\s*\*\/\s?$/;
 const rgxJsDocBody = /^\*\s?/;
 
-// TODO: Bug, namespaces in param types incorrect (see: MyThing#create).
-// TODO: Built-in, non-primative types (Promise<T>, HTML, etc).
-
 const enum EResolveFailure {
     Memberof,
     Object,
