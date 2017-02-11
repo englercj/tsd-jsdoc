@@ -583,8 +583,8 @@ export default class Emitter {
 
     private _createTypedef(doclet: ITypedefDoclet) {
         if (!doclet.type || !doclet.type.names || !doclet.type.names.length) {
-            warnResolve(doclet, EResolveFailure.NoType, 'Skipping this typedef, this may cause TypeScript errors.');
-            return;
+            warn(`No type specified on typedef "${doclet.longname}", assuming "object".`);
+            doclet.type = { names: ['object'] };
         }
 
         const typeName = doclet.type.names[0];
@@ -596,7 +596,9 @@ export default class Emitter {
             break;
 
             case 'object':
-                type = dom.create.objectType(doclet.properties.map((p) => {
+                const properties = doclet.properties || [];
+
+                type = dom.create.objectType(properties.map((p) => {
                     const prop = dom.create.property(p.name, null);
                     prop.jsDocComment = cleanComment(p.comment);
                     return prop;
@@ -615,7 +617,6 @@ export default class Emitter {
             && (doclet as any).kind !== 'package'
             && (!parent || (parent as any).kind !== 'enum')
             && (this.config.private === false && doclet.access !== 'private')
-            && (doclet.kind !== 'typedef' || (doclet.type && doclet.type.names && doclet.type.names.length))
         );
     }
 
