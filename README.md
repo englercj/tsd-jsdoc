@@ -40,10 +40,10 @@ Or add this to your JSON configuration:
 
 ### Validation
 
-This library provides almost no validation beyond what jsdoc provides. Meaning if you
+This library provides very little validation beyond what jsdoc provides. Meaning if you
 have invalid jsodc comments, this will likely output an invalid TypeScript Definition File.
 
-Additionally there are things that jsdoc things are fine, that TypeScript does not.
+Additionally there are things that jsdoc allows, that TypeScript does not.
 One example would be a member variable marked with `@constant`. While that is valid
 jsdoc, it is not valid TS:
 
@@ -89,7 +89,8 @@ describe `Loader` and then just use `@extends Loader`.
 ### Method/Member Overrides
 
 Any method or member that has the same name as one in the parent of a child class
-will be ignored.
+will be ignored in the Child class, unless it is a method with different parameters
+that *is not* marked with the `@override` tag.
 
 For example, this JavaScript:
 
@@ -106,6 +107,14 @@ class Parent {
          */
         this.someprop = true;
     }
+
+    /**
+     */
+    amethod() {}
+
+    /**
+     */
+    bmethod() {}
 }
 
 /**
@@ -121,6 +130,17 @@ class Child extends Parent {
          */
         this.someprop = false;
     }
+
+    /**
+     * @override
+     * @param {object} opt - Does stuff.
+     */
+    amethod(opt) {}
+
+    /**
+     * @param {object} opt - Does stuff.
+     */
+    bmethod(opt) {}
 }
 ```
 
@@ -129,9 +149,12 @@ Will generate this declaration:
 ```ts
 class Parent {
     someprop: boolean;
+
+    amethod(): void;
 }
 
 class Child extends Parent {
+    bmethod(opt): void;
 }
 ```
 
@@ -142,13 +165,12 @@ Tags that describe the code, but support is not implemented are:
 - [`@default`](http://usejsdoc.org/tags-default.html) - No TS equivalent
 - [`@deprecated`](http://usejsdoc.org/tags-deprecated.html) - No TS equivalent ([issue](https://github.com/Microsoft/TypeScript/issues/390))
 - [`@event`](http://usejsdoc.org/tags-event.html) - No TS equivalent
-- [`@exports`](http://usejsdoc.org/tags-exports.html) - **Not Yet Implemented**
+- [`@exports`](http://usejsdoc.org/tags-exports.html) - Everything is exported since it is a definition file.
 - [`@external`](http://usejsdoc.org/tags-external.html) - **Not Yet Implemented**
 - [`@fires`](http://usejsdoc.org/tags-fires.html) - No TS equivalent
 - [`@listens`](http://usejsdoc.org/tags-listens.html) - No TS equivalent
 - [`@override`](http://usejsdoc.org/tags-override.html) - No TS equivalent ([issue](https://github.com/Microsoft/TypeScript/issues/2000))
-- [`@readonly`](http://usejsdoc.org/tags-readonly.html) - No TS equivalent in v1 ([implemented in v2](https://github.com/Microsoft/TypeScript/issues/229))
-- [`@this`](http://usejsdoc.org/tags-this.html) - No TS equivalent in v1 ([implemented in v2](https://github.com/Microsoft/TypeScript/issues/12))
+- [`@this`](http://usejsdoc.org/tags-this.html) - **Not Yet Implemented**
 - [`@throws`](http://usejsdoc.org/tags-throws.html) - No TS equivalent
 
 Additionally, tags that are just metadata and don't actually describe
@@ -169,7 +191,7 @@ the code are ignored. These are:
 - [`@tutorial`](http://usejsdoc.org/tags-tutorial.html)
 - [`@version`](http://usejsdoc.org/tags-version.html)
 
-All other tags *should* work...
+All other jsdoc tags should work fine.
 
 ## Supported ClosureCompiler Tags
 
