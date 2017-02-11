@@ -31,3 +31,19 @@ testns.Foo = function Foo()
 testns.Foo.prototype.f = function f(f, opt_this)
 {
 };
+
+/**
+ * @classdesc
+ * A Bar.
+ *
+ * @constructor
+ * @extends testns.Foo
+ */
+testns.Bar = function Bar() {}
+
+/**
+ * A method.
+ */
+testns.Bar.prototype.f = function f()
+{
+};

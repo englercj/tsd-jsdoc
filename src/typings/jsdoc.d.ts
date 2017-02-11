@@ -83,6 +83,7 @@ declare interface IDocletBase {
     ignore?: boolean;
     undocumented?: boolean;
     properties?: IDocletProp[];
+    inherited?: boolean;
 }
 
 /**

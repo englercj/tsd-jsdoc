@@ -169,6 +169,13 @@ class MyThing extends OtherThing
     }
 
     /**
+     * Gets a Promise that will resolve with an Object.
+     *
+     * @return {Promise<Object>} The Promise
+     */
+     promiseMe() {};
+
+    /**
      * Gets derp.
      *
      * @member {string}

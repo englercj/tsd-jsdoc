@@ -13,6 +13,7 @@ const enum EResolveFailure {
     Memberof,
     Object,
     NoType,
+    Augments,
     FunctionParam,
     FunctionReturn,
 }
@@ -48,6 +49,10 @@ function warnResolve(doclet: TDoclet, reason: EResolveFailure, message: string =
 
         case EResolveFailure.NoType:
             str = `Type is required for doclet of type "${doclet.kind}" but none found for "${doclet.longname}".`;
+        break;
+
+        case EResolveFailure.Augments:
+            str = `Failed to resolve base type of "${doclet.longname}", no object found with name "${(doclet as any).augments[0]}".`;
         break;
 
         case EResolveFailure.FunctionParam:
@@ -159,7 +164,7 @@ export default class Emitter {
             }
 
             // resolve members
-            if (doclet.memberof) {
+            if (doclet.memberof && !doclet.inherited) {
                 const p = this.objects[doclet.memberof] as dom.NamespaceDeclaration;
 
                 if (!p) {
@@ -273,11 +278,18 @@ export default class Emitter {
 
                 // resolve augments
                 if (doclet.augments && doclet.augments.length) {
-                    if (o.kind === 'class') {
-                        o.baseType = this.objects[doclet.augments[0]] as dom.ClassDeclaration;
+                    const baseType = this.objects[doclet.augments[0]] as dom.ClassDeclaration | dom.InterfaceDeclaration;
+
+                    if (!baseType) {
+                        warnResolve(doclet, EResolveFailure.Augments);
                     }
                     else {
-                        o.baseTypes.push(this.objects[doclet.augments[0]] as dom.InterfaceDeclaration);
+                        if (o.kind === 'class') {
+                            o.baseType = baseType;
+                        }
+                        else {
+                            o.baseTypes.push(baseType);
+                        }
                     }
                 }
 
