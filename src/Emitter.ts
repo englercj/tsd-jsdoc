@@ -7,12 +7,12 @@ const rgxJsDocFooter = /\s*\*\/\s?$/;
 const rgxJsDocBody = /^\*\s?/;
 
 // TODO: Bug, namespaces in param types incorrect (see: MyThing#create).
-// TODO: Inner classes (classes in classes) (see: _resolveModules).
-// TODO: Inner types (types in classes) (see: _resolveModules).
+// TODO: Built-in, non-primative types (Promise<T>, HTML, etc).
 
-enum EResolveFailure {
+const enum EResolveFailure {
     Memberof,
     Object,
+    NoType,
     FunctionParam,
     FunctionReturn,
 }
@@ -35,23 +35,35 @@ function warn(...args: any[]) {
 }
 
 function warnResolve(doclet: TDoclet, reason: EResolveFailure, message: string = '') {
+    let str = '';
+
     switch (reason) {
         case EResolveFailure.Memberof:
-            warn(`Unable to resolve memberof for "${doclet.longname}", using memberof "${doclet.memberof}". ${message}`);
+            str = `Unable to resolve memberof for "${doclet.longname}", using memberof "${doclet.memberof}".`;
         break;
 
         case EResolveFailure.Object:
-            warn(`Unable to find object for longname "${doclet.longname}".`);
+            str = `Unable to find object for longname "${doclet.longname}".`;
+        break;
+
+        case EResolveFailure.NoType:
+            str = `Type is required for doclet of type "${doclet.kind}" but none found for "${doclet.longname}".`;
         break;
 
         case EResolveFailure.FunctionParam:
-            warn(`Unable to resolve function param type for longname "${doclet.longname}". ${message}`);
+            str = `Unable to resolve function param type for longname "${doclet.longname}".`;
         break;
 
         case EResolveFailure.FunctionReturn:
-            warn(`Unable to resolve function return type for longname "${doclet.longname}". ${message}`);
+            str = `Unable to resolve function return type for longname "${doclet.longname}".`;
         break;
     }
+
+    if (message) {
+        str += ` ${message}`;
+    }
+
+    warn(str);
 }
 
 export default class Emitter {
@@ -83,7 +95,7 @@ export default class Emitter {
 
         // resolve modules, after everything is ready we need to split typedefs
         // and inner classes into separate module declarations.
-        // this._resolveModules();
+        this._resolveModules(this.results);
     }
 
     emit() {
@@ -346,6 +358,51 @@ export default class Emitter {
         }
     }
 
+    private _resolveModules(classes: any[]) {
+        for (let i = classes.length - 1; i >= 0; --i) {
+            const res = classes[i];
+
+            if (res.kind === 'class' || res.kind === 'interface') {
+                this._doResolveClassModule(res);
+            }
+            else if (res.kind === 'interfact' || res.kind === 'module' || res.kind === 'namespace') {
+                this._resolveModules(res.members);
+            }
+        }
+    }
+
+    private _doResolveClassModule(clazz: dom.ClassDeclaration | dom.InterfaceDeclaration) {
+        for (const m of clazz.members) {
+            const member = m as any;
+
+            if (member.kind === 'class' || member.kind === 'interface') {
+                this._moveMemberToModule(member);
+                this._doResolveClassModule(member);
+            }
+            else if (member.kind === 'alias') {
+                this._moveMemberToModule(member);
+            }
+        }
+    }
+
+    private _moveMemberToModule(obj: dom.ClassDeclaration | dom.InterfaceDeclaration | dom.TypeAliasDeclaration) {
+        const parent = (obj as any)._parent;
+        const idx: number = parent.members.indexOf(obj);
+        const top = parent._parent;
+
+        if (!parent._module) {
+            parent._module = dom.create.module(parent.name);
+
+            if (top)
+                (top._module || top).members.push(parent._module);
+            else
+                this.results.push(parent._module);
+        }
+
+        parent._module.members.push(obj);
+        parent.members.splice(idx, 1);
+    }
+
     private _resolveType(
         doclet: ITypedefDoclet|IMemberDoclet|IDocletProp|IDocletReturn,
         obj: dom.Parameter|dom.PropertyDeclaration|dom.MethodDeclaration|dom.TypeAliasDeclaration
@@ -516,6 +573,11 @@ export default class Emitter {
     }
 
     private _createTypedef(doclet: ITypedefDoclet) {
+        if (!doclet.type || !doclet.type.names || !doclet.type.names.length) {
+            warnResolve(doclet, EResolveFailure.NoType, 'Skipping this typedef, this may cause TypeScript errors.');
+            return;
+        }
+
         const typeName = doclet.type.names[0];
         let type = null;
 
@@ -544,6 +606,7 @@ export default class Emitter {
             && (doclet as any).kind !== 'package'
             && (!parent || (parent as any).kind !== 'enum')
             && (this.config.private === false && doclet.access !== 'private')
+            && (doclet.kind !== 'typedef' || (doclet.type && doclet.type.names && doclet.type.names.length))
         );
     }
 

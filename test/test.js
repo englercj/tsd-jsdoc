@@ -72,6 +72,35 @@ class Things
 }
 
 /**
+ * Deep class #1
+ *
+ * @class
+ */
+function DeepClass1() {
+    /**
+     * Deep class #2
+     *
+     * @class
+     */
+    function DeepClass2() {
+        /**
+         * Deep class #3
+         *
+         * @class
+         */
+        function DeepClass3() {
+            /**
+             * Deep class #4
+             *
+             * @class
+             */
+            function DeepClass4() {
+            }
+        }
+    }
+}
+
+/**
  * @class
  * @extends OtherThing
  * @mixes Stuff
@@ -79,6 +108,12 @@ class Things
  */
 class MyThing extends OtherThing
 {
+    /**
+     * @typedef Something
+     * @type boolean
+     * @memberof MyThing
+     */
+
     /**
      * Constructs!
      * @param {...number} a - The number.

@@ -23,6 +23,6 @@
     "jsdoc": "^3.4.0"
   },
   "dependencies": {
-    "dts-dom": "^0.1.12"
+    "dts-dom": "^0.1.14"
   }
 }

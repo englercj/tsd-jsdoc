@@ -10,7 +10,7 @@
         "ban": false,
         "class-name": true,
         "comment-format": [true, "check-space"],
-        "curly": true,
+        "curly": false,
         "eofline": true,
         "forin": false,
         "indent": [true, "spaces"],
