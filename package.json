@@ -10,12 +10,17 @@
     "url": "git@github.com:englercj/jsdoc2tsd.git"
   },
   "scripts": {
+    "clean": "rm -rf *.js *.js.map",
     "lint": "eslint --rulesdir node_modules/@englercj/code-style *.js",
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && mv src/*.js . && mv src/*.js.map .",
+    "prepublish": "npm run build",
     "test": "jsdoc -c test/config.json -d out"
   },
   "files":[
-    "lib"
+    "*.js",
+    "*.js.map",
+    "README.md",
+    "LICENSE"
   ],
   "devDependencies": {
     "jsdoc": "^3.4.3",

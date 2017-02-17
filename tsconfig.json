@@ -4,7 +4,6 @@
         "target": "es6",
         "module": "commonjs",
         "moduleResolution": "node",
-        "outDir": "lib",
         "declaration": false,
         "noImplicitAny": true,
         "removeComments": true,

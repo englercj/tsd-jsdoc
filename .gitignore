@@ -25,6 +25,8 @@ npm-debug.log
 *__temp
 *.sqlite
 .commit
+*.js
+*.js.map
 node_modules/
 dist/
 docs/
