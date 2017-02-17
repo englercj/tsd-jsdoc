@@ -616,7 +616,7 @@ export default class Emitter {
             !doclet.ignore
             && (doclet as any).kind !== 'package'
             && (!parent || (parent as any).kind !== 'enum')
-            && (this.config.private === false && doclet.access !== 'private')
+            && (this.config.private || doclet.access !== 'private')
         );
     }
 
