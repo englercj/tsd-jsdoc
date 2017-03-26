@@ -114,7 +114,7 @@ export default class Emitter {
 
     private _parseObjects(docs: TDoclet[]) {
         for (const doclet of docs) {
-            if (doclet.ignore)
+            if (!this._shouldResolveDoclet(doclet))
                 continue;
 
             if (this.objects[doclet.longname] && !(doclet as IFunctionDoclet).override)
@@ -150,8 +150,8 @@ export default class Emitter {
 
     private _resolveObjects(docs: TDoclet[]) {
         for (const doclet of docs) {
-            // skip a few things
-            if (!this._shouldResolveDoclet(doclet)) continue;
+            if (!this._shouldResolveDoclet(doclet))
+                continue;
 
             const obj = this.objects[doclet.longname];
 
@@ -318,11 +318,9 @@ export default class Emitter {
     }
 
     private _resolveInterfaceMembers(docs: TDoclet[]) {
-        for (let i = 0; i < docs.length; ++i) {
-            const doclet = docs[i];
-
-            // skip a few things
-            if (!this._shouldResolveDoclet(doclet)) continue;
+        for (const doclet of docs) {
+            if (!this._shouldResolveDoclet(doclet))
+                continue;
 
             const obj = this.objects[doclet.longname] as dom.ClassDeclaration;
 
