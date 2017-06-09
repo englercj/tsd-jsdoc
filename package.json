@@ -23,14 +23,11 @@
     "LICENSE"
   ],
   "devDependencies": {
-    "jsdoc": "^3.4.3",
     "tslint": "^4.4.2",
     "typescript": "^2.1.6"
   },
-  "peerDependencies": {
-    "jsdoc": "^3.4.0"
-  },
   "dependencies": {
-    "dts-dom": "^0.1.14"
+    "dts-dom": "^0.1.14",
+    "jsdoc": "^3.4.3"
   }
 }
