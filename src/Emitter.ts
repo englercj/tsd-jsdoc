@@ -194,7 +194,9 @@ export default class Emitter {
             ) {
                 const d = doclet as IFunctionDoclet;
                 const o = (doclet.kind === 'typedef' ? (obj as any).type : obj) as dom.MethodDeclaration;
-
+                if (o.parameters == undefined) {
+                    o.parameters = new Array();
+                }
                 // resolve parameter types
                 for (let i = 0; i < o.parameters.length; ++i) {
                     (o.parameters[i] as any)._parent = o;
