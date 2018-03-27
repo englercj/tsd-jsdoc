@@ -18,6 +18,21 @@
  */
 
 /**
+ *
+ * @typedef {object} GitGraphOptions
+ * @property {string} [elementId = "gitGraph"] - Id of the canvas container
+ * @property {Template|string|Object} [template] - Template of the graph
+ * @property {string} [author = "Sergio Flores <saxo-guy@epic.com>"] - Default author for commits
+ * @property {string} [mode = (null|"compact")]  - Display mode
+ * @property {HTMLElement} [canvas] - DOM canvas (ex: document.getElementById("id"))
+ * @property {string} [orientation = ("vertical-reverse"|"horizontal"|"horizontal-reverse")] - Graph orientation
+ * @property {boolean} [reverseArrow = false] - Make arrows point to ancestors if true
+ * @property {number} [initCommitOffsetX = 0] - Add custom offsetX to initial commit.
+ * @property {number} [initCommitOffsetY = 0] - Add custom offsetY to initial commit.
+ * @property {HTMLElement} [tooltipContainer = document.body] - HTML Element containing tooltips in compact mode.
+ */
+
+/**
  * A number, or a string containing a number.
  * @typedef {(number|string)} NumberLike
  */
@@ -181,7 +196,13 @@ class MyThing extends OtherThing
      *
      * @return {Promise<Object>} The Promise
      */
-     promiseMe() {};
+     promiseMe() {}
+
+    /**
+     *
+     * @param {GitGraphOptions} options - GitGraph options
+      */
+     objParam(o) {}
 
     /**
      * Gets derp.
