@@ -1,7 +1,7 @@
 {
     "opts": {
         "recurse": true,
-        "template": "../",
+        "template": "../dist",
         "private": false
     },
     "source": {

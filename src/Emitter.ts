@@ -1,19 +1,39 @@
 import * as dom from 'dts-dom';
+import * as fs from 'fs';
+import * as path from 'path';
+import { EResolveFailure, warn, warnResolve } from './logger';
 
-const rgxArrayType = /^Array\.<(.*)>$/;
+const rgxArrayType = /^Array(?:\.<(.*)>)?$/;
 const rgxObjectType = /^Object\.<(\w*),\s*\(?(.*)\)?>$/;
 const rgxJsDocHeader = /^\/\*\*\s?/;
 const rgxJsDocFooter = /\s*\*\/\s?$/;
 const rgxJsDocBody = /^\*\s?/;
 
-const enum EResolveFailure {
-    Memberof,
-    Object,
-    NoType,
-    Augments,
-    FunctionParam,
-    FunctionReturn,
+const RAW_GLOBAL_TYPES: { [id: string]: string[] } = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'global-types.json')).toString());
+const GLOBAL_TYPES: { [id: string]: dom.DeclarationBase } = Object.keys(RAW_GLOBAL_TYPES)
+    .reduce(
+        (acc, key: string) => {
+            RAW_GLOBAL_TYPES[key].forEach((t) => {
+                acc[t] = dom.create.namedTypeReference(t);
+            });
+            return acc;
+        },
+        {} as any,
+    );
+
+// tslint:disable:interface-name
+declare module 'dts-dom' {
+    export interface DeclarationBase {
+        _parent?: DeclarationBase;
+        _module?: ModuleDeclaration;
+    }
+
+    export interface Parameter {
+        _parent: DeclarationBase;
+    }
 }
+
+// tslint:enable:interface-name
 
 interface IResolutionMap {
     augments: TDoclet[];
@@ -27,47 +47,6 @@ const accessFlagMap: { [key: string]: dom.DeclarationFlags } = {
     protected: dom.DeclarationFlags.Protected,
 };
 
-function warn(...args: any[]) {
-    args.unshift('[TSD-JSDoc]');
-    return console && console.warn.apply(console, args);
-}
-
-function warnResolve(doclet: TDoclet, reason: EResolveFailure, message: string = '') {
-    let str = '';
-
-    switch (reason) {
-        case EResolveFailure.Memberof:
-            str = `Unable to resolve memberof for "${doclet.longname}", using memberof "${doclet.memberof}".`;
-        break;
-
-        case EResolveFailure.Object:
-            str = `Unable to find object for longname "${doclet.longname}".`;
-        break;
-
-        case EResolveFailure.NoType:
-            str = `Type is required for doclet of type "${doclet.kind}" but none found for "${doclet.longname}".`;
-        break;
-
-        case EResolveFailure.Augments:
-            str = `Failed to resolve base type of "${doclet.longname}", no object found with name "${(doclet as any).augments[0]}".`;
-        break;
-
-        case EResolveFailure.FunctionParam:
-            str = `Unable to resolve function param type for longname "${doclet.longname}".`;
-        break;
-
-        case EResolveFailure.FunctionReturn:
-            str = `Unable to resolve function return type for longname "${doclet.longname}".`;
-        break;
-    }
-
-    if (message) {
-        str += ` ${message}`;
-    }
-
-    warn(str);
-}
-
 export default class Emitter {
     results: dom.TopLevelDeclaration[];
     objects: { [key: string]: dom.DeclarationBase };
@@ -80,9 +59,11 @@ export default class Emitter {
 
     parse(docs?: TDoclet[]) {
         this.results = [];
-        this.objects = {};
+        this.objects = { ...GLOBAL_TYPES };
 
-        if (!docs) return;
+        if (!docs) {
+            return;
+        }
 
         // initial parse, create all the necessary objects and puts them in the
         // `objects` cache
@@ -92,7 +73,7 @@ export default class Emitter {
         this._resolveObjects(docs);
 
         // resolve interface members, after we resolve all members add missing
-        // definitions from implmented interfaces
+        // definitions from implemented interfaces
         this._resolveInterfaceMembers(docs);
 
         // resolve modules, after everything is ready we need to split typedefs
@@ -114,32 +95,53 @@ export default class Emitter {
 
     private _parseObjects(docs: TDoclet[]) {
         for (const doclet of docs) {
-            if (!this._shouldResolveDoclet(doclet))
+            if (!this._shouldResolveDoclet(doclet)) {
                 continue;
+            }
 
-            if (this.objects[doclet.longname] && !(doclet as IFunctionDoclet).override)
+            if (this.objects[doclet.longname] && !(doclet as IFunctionDoclet).override) {
                 continue;
+            }
 
             // parse based on kind
             switch (doclet.kind) {
-                case 'class':       this._createClass(doclet); break;
-                case 'constant':    this._createMember(doclet); break;
-                case 'function':    this._createFunction(doclet); break;
-                case 'interface':   this._createInterface(doclet); break;
-                case 'member':      this._createMember(doclet); break;
-                case 'mixin':       this._createInterface(doclet); break;
-                case 'module':      this._createNamespace(doclet); break;
-                case 'namespace':   this._createNamespace(doclet); break;
-                case 'typedef':     this._createTypedef(doclet); break;
+                case 'class':
+                    this._createClass(doclet);
+                    break;
+                case 'constant':
+                    this._createMember(doclet);
+                    break;
+                case 'function':
+                    this._createFunction(doclet);
+                    break;
+                case 'interface':
+                    this._createInterface(doclet);
+                    break;
+                case 'member':
+                    this._createMember(doclet);
+                    break;
+                case 'mixin':
+                    this._createInterface(doclet);
+                    break;
+                case 'module':
+                    this._createNamespace(doclet);
+                    break;
+                case 'namespace':
+                    this._createNamespace(doclet);
+                    break;
+                case 'typedef':
+                    this._createTypedef(doclet);
+                    break;
             }
 
             const obj = this.objects[doclet.longname];
 
-            if (!obj) continue;
+            if (!obj) {
+                continue;
+            }
 
             obj.jsDocComment = cleanComment(doclet.comment);
 
-            handleFlags(doclet, obj);
             handleCustomTags(doclet, obj);
 
             if (!doclet.memberof) {
@@ -150,8 +152,9 @@ export default class Emitter {
 
     private _resolveObjects(docs: TDoclet[]) {
         for (const doclet of docs) {
-            if (!this._shouldResolveDoclet(doclet))
+            if (!this._shouldResolveDoclet(doclet)) {
                 continue;
+            }
 
             const obj = this.objects[doclet.longname];
 
@@ -168,17 +171,23 @@ export default class Emitter {
                     warnResolve(doclet, EResolveFailure.Memberof, 'No such name found.');
                 }
                 else if (!p.members) {
-                    warnResolve(doclet, EResolveFailure.Memberof, `Found parent, but it cannot contain members. Discovered type: ${p.kind}.`);
+                    warnResolve(
+                        doclet,
+                        EResolveFailure.Memberof,
+                        `Found parent, but it cannot contain members. Discovered type: ${p.kind}.`,
+                    );
                 }
                 else {
-                    if ((obj as any).kind === 'function')
+                    if ((obj as any).kind === 'function' && p.kind !== 'namespace') {
                         (obj as any).kind = 'method';
+                    }
 
                     // already have something of this name, ignore.
-                    if (p.members.filter((v) => v.name === (obj as any).name).length)
+                    if (p.members.filter((v) => v.name === (obj as any).name).length) {
                         continue;
+                    }
 
-                    (obj as any)._parent = p;
+                    obj._parent = p;
                     p.members.push(obj as dom.NamespaceMember);
                 }
             }
@@ -196,15 +205,12 @@ export default class Emitter {
                 const o = (doclet.kind === 'typedef' ? (obj as any).type : obj) as dom.MethodDeclaration;
 
                 // resolve parameter types
-                for (let i = 0; i < o.parameters.length; ++i) {
-                    (o.parameters[i] as any)._parent = o;
-                    if (!d.params[i].type) {
-                        warnResolve(d, EResolveFailure.FunctionParam, `No type specified for param: ${d.params[i].name}. Falling back to any.`);
-                        o.parameters[i].type = dom.type.any;
-                    }
-                    else {
-                        o.parameters[i].type = this._resolveType(d.params[i], o.parameters[i]);
-                    }
+                if (doclet.params) {
+                    o.parameters = this._resolveFunctionParams(doclet.params);
+                }
+
+                for (const param of o.parameters) {
+                    param._parent = o;
                 }
 
                 // resolve return type
@@ -222,14 +228,27 @@ export default class Emitter {
 
             // resolve object alias property types
             if (doclet.kind === 'typedef' && (obj as any).type && (obj as any).type.kind === 'object') {
-                const members = (obj as any).type.members as dom.ObjectTypeMember[];
-                for (let i = 0; i < members.length; ++i) {
-                    const m = members[i] as dom.PropertyDeclaration;
+                if (doclet.properties) {
+                    (obj as any).type.members = handleNestedProperties(doclet.properties).map((pDoc) => {
+                        let propType;
+                        if ((Object.keys(pDoc.props).length)) {
+                            propType = dom.create.property(pDoc.meta.name, this._walkNestedProps(pDoc), handleFlags(pDoc.meta));
 
-                    (m as any)._parent = (obj as any).type;
+                        } else {
+                            propType = dom.create.property(pDoc.meta.name, null, handleFlags(pDoc.meta));
+                            propType.type = this._resolveType(pDoc.meta, propType);
 
-                    m.type = this._resolveType(doclet.properties[i], m);
+                        }
+
+                        propType.jsDocComment = cleanComment(pDoc.meta.comment);
+
+                        return propType;
+                    });
                 }
+
+                (obj as any).type.members.forEach((m: any) => {
+                    m._parent = (obj as any).type;
+                });
             }
 
             // resolve alias types
@@ -254,22 +273,18 @@ export default class Emitter {
                 // resolve constructor types
                 let ctorObj: dom.ConstructorDeclaration = null;
 
-                for (let i = 0; i < o.members.length; ++i) {
-                    if (o.members[i].kind === 'constructor') {
-                        ctorObj = o.members[i] as dom.ConstructorDeclaration;
+                for (const member of o.members) {
+                    if (member.kind === 'constructor') {
+                        ctorObj = member as dom.ConstructorDeclaration;
                     }
                 }
 
                 if (ctorObj) {
-                    for (let i = 0; i < doclet.params.length; ++i) {
-                        (ctorObj.parameters[i] as any)._parent = ctorObj;
-                        if (!doclet.params[i].type) {
-                            warnResolve(doclet, EResolveFailure.FunctionParam, `No type specified for constructor param: ${doclet.params[i].name}. Falling back to any.`);
-                            ctorObj.parameters[i].type = dom.type.any;
-                        }
-                        else {
-                            ctorObj.parameters[i].type = this._resolveType(doclet.params[i], ctorObj.parameters[i]);
-                        }
+                    if (doclet.params) {
+                        ctorObj.parameters = this._resolveFunctionParams(doclet.params);
+                    }
+                    for (const param of ctorObj.parameters) {
+                        param._parent = ctorObj;
                     }
                 }
 
@@ -302,14 +317,14 @@ export default class Emitter {
 
                 // resolve mixes
                 if (doclet.mixes && doclet.mixes.length) {
-                    for (let j = 0; j < doclet.mixes.length; ++j) {
-                        const mix = this.objects[doclet.mixes[j]] as dom.InterfaceDeclaration;
+                    for (const mix of doclet.mixes) {
+                        const declaration = this.objects[mix] as dom.InterfaceDeclaration;
 
                         if (o.kind === 'class') {
-                            o.implements.push(mix);
+                            o.implements.push(declaration);
                         }
                         else {
-                            o.baseTypes.push(mix);
+                            o.baseTypes.push(declaration);
                         }
                     }
                 }
@@ -319,8 +334,9 @@ export default class Emitter {
 
     private _resolveInterfaceMembers(docs: TDoclet[]) {
         for (const doclet of docs) {
-            if (!this._shouldResolveDoclet(doclet))
+            if (!this._shouldResolveDoclet(doclet)) {
                 continue;
+            }
 
             const obj = this.objects[doclet.longname] as dom.ClassDeclaration;
 
@@ -331,29 +347,33 @@ export default class Emitter {
 
             if (obj.kind === 'class') {
                 // iterate each interface we implement
-                for (let i = 0; i < obj.implements.length; ++i) {
-                    const impl = obj.implements[i];
+                for (const impl of obj.implements) {
 
                     // iterate each member of that interface
-                    for (let j = 0; j < impl.members.length; ++j) {
-                        const implMember = Object.assign({}, impl.members[j]);
+                    for (const implMemb of impl.members) {
+                        const implMember = { ...implMemb } as any;
+                        // skip members that don't have a name-attribute
+                        if (implMember.kind === 'call-signature') {
+                            continue;
+                        }
                         let clsMember: dom.ClassMember = null;
 
                         // search for member in class
-                        for (let x = 0; x < obj.members.length; ++x) {
-                            const mem = obj.members[x];
+                        for (const member of obj.members) {
 
-                            if (mem.kind === 'constructor') {
+                            if (member.kind === 'constructor') {
                                 continue;
                             }
 
-                            if ((obj.members[x] as dom.ObjectTypeMember).name === implMember.name) {
-                                clsMember = obj.members[x];
+                            if (member.name === implMember.name) {
+                                clsMember = member;
                                 break;
                             }
                         }
 
-                        implMember.kind = 'method';
+                        if (implMember.kind === 'property' && implMember.type.kind === 'function-type') {
+                            implMember.kind = 'method';
+                        }
 
                         // if class doesn't contain a member of the same type, then add it
                         if (!objEqual(clsMember, implMember)) {
@@ -372,7 +392,7 @@ export default class Emitter {
             if (res.kind === 'class' || res.kind === 'interface') {
                 this._doResolveClassModule(res);
             }
-            else if (res.kind === 'interfact' || res.kind === 'module' || res.kind === 'namespace') {
+            else if (res.kind === 'module' || res.kind === 'namespace') {
                 this._resolveModules(res.members);
             }
         }
@@ -393,17 +413,18 @@ export default class Emitter {
     }
 
     private _moveMemberToModule(obj: dom.ClassDeclaration | dom.InterfaceDeclaration | dom.TypeAliasDeclaration) {
-        const parent = (obj as any)._parent;
+        const parent = obj._parent as any;
         const idx: number = parent.members.indexOf(obj);
         const top = parent._parent;
 
         if (!parent._module) {
             parent._module = dom.create.module(parent.name);
 
-            if (top)
+            if (top) {
                 (top._module || top).members.push(parent._module);
-            else
+            } else {
                 this.results.push(parent._module);
+            }
         }
 
         parent._module.members.push(obj);
@@ -411,10 +432,16 @@ export default class Emitter {
     }
 
     private _resolveType(
-        doclet: ITypedefDoclet|IMemberDoclet|IDocletProp|IDocletReturn,
-        obj: dom.Parameter|dom.PropertyDeclaration|dom.MethodDeclaration|dom.TypeAliasDeclaration
+        doclet: ITypedefDoclet | IMemberDoclet | IDocletProp | IDocletReturn,
+        obj: dom.Parameter | dom.PropertyDeclaration | dom.MethodDeclaration | dom.TypeAliasDeclaration,
     ): dom.Type {
-        const names: string[] = (doclet.type || (doclet as any).properties[0].type).names;
+        const candidateType = doclet.type || (doclet as any).properties && (doclet as any).properties[0].type;
+
+        if (!candidateType) {
+            return dom.type.any;
+        }
+
+        const names: string[] = candidateType.names;
         const types: dom.Type[] = [];
 
         for (const t of names) {
@@ -429,25 +456,31 @@ export default class Emitter {
             return dom.create.union(types);
         }
 
-        return types[0];
+        return (doclet as any).variable ? dom.type.array(types[0]) : types[0];
     }
 
     private _resolveTypeString(
         t: string,
-        doclet: ITypedefDoclet|IMemberDoclet|IDocletProp|IDocletReturn,
-        obj: dom.Parameter|dom.PropertyDeclaration|dom.MethodDeclaration|dom.TypeAliasDeclaration
+        doclet: ITypedefDoclet | IMemberDoclet | IDocletProp | IDocletReturn,
+        obj: dom.Parameter | dom.PropertyDeclaration | dom.MethodDeclaration | dom.TypeAliasDeclaration,
     ): dom.Type {
-        if (t.startsWith('('))
+        if (t.startsWith('(')) {
             t = t.replace('(', '');
-        if (t.endsWith(')'))
+        }
+        if (t.endsWith(')')) {
             t = t.replace(/\)$/, '');
+        }
 
         // try array type
-        if (t.startsWith('Array.<')) {
+        if (t.startsWith('Array')) {
             const matches = t.match(rgxArrayType);
 
-            if (matches && matches[1]) {
-                return dom.create.array(this._resolveTypeString(matches[1], doclet, obj));
+            if (matches) {
+                if (matches[1]) {
+                    return dom.create.array(this._resolveTypeString(matches[1], doclet, obj));
+                } else {
+                    return dom.create.array(dom.type.any);
+                }
             }
         }
 
@@ -468,10 +501,13 @@ export default class Emitter {
                     dom.create.indexSignature(
                         'key',
                         indexTypeStr,
-                        this._resolveTypeString(valueTypeStr, doclet, obj)
-                    )
+                        this._resolveTypeString(valueTypeStr, doclet, obj),
+                    ),
                 ]);
             }
+        } else if (t.startsWith('Object')) {
+            // warn(`Invalid object index type, must be "string" or "number". Falling back to "any".`);
+            return dom.type.any;
         }
 
         // try TypeParameter type
@@ -488,13 +524,24 @@ export default class Emitter {
             p = p._parent;
         }
 
+        const possiblePrimitive = /^[A-Z]/.test(t) ? t.toLowerCase() : t;
+
         // try primative type
-        if (t === dom.type.string
-            || t === dom.type.number
-            || t === dom.type.boolean
-            || t === dom.type.any
-            || t === dom.type.void) {
-            return t;
+        if (possiblePrimitive === dom.type.string
+            || possiblePrimitive === dom.type.number
+            || possiblePrimitive === dom.type.boolean
+            || possiblePrimitive === dom.type.true
+            || possiblePrimitive === dom.type.false
+            || possiblePrimitive === dom.type.object
+            || possiblePrimitive === dom.type.any
+            || possiblePrimitive === dom.type.null
+            || possiblePrimitive === dom.type.undefined
+            || possiblePrimitive === dom.type.void) {
+            return possiblePrimitive;
+        }
+
+        if (possiblePrimitive === 'function') {
+            return dom.create.functionType([], dom.type.any);
         }
 
         // any type
@@ -503,17 +550,31 @@ export default class Emitter {
         }
 
         // try union type
-        if (t.indexOf('|') !== -1) {
+        if (t.includes('|')) {
             return dom.create.union(t.split('|').map((v) => this._resolveTypeString(v, doclet, obj)));
         }
-
         // try type lookup
-        if (!this.objects[t]) {
-            warn(`Unable to resolve type name "${t}". No type found with that name, defaulting to "any".`);
+        if (this.objects[t]) {
+            return this.objects[t] as dom.TopLevelDeclaration;
+        } else {
+            try {
+                // tslint:disable-next-line:no-eval
+                const val = eval(t);
+                const evalType = typeof val;
+
+                if (evalType === 'number') {
+                    return dom.type.numberLiteral(val);
+                } else if (evalType === 'string') {
+                    return dom.type.stringLiteral(val);
+                } else {
+                    warn(`Unable to handle eval type "${evalType}", defaulting to "any"`);
+                }
+            } catch {
+                warn(`Unable to resolve type name "${t}" for "${
+                    (doclet as any).longname || doclet.description}". No type found with that name, defaulting to "any".`);
+            }
             return dom.type.any;
         }
-
-        return this.objects[t] as dom.TopLevelDeclaration;
     }
 
     private _createClass(doclet: IClassDoclet) {
@@ -522,17 +583,12 @@ export default class Emitter {
         if (doclet.params) {
             const ctorParams: dom.Parameter[] = [];
 
-            for (let i = 0; i < doclet.params.length; ++i) {
-                const param = doclet.params[i];
-                const p = dom.create.parameter(param.name, null);
-
-                handleFlags(param, p);
-
+            for (const param of doclet.params) {
+                const p = dom.create.parameter(param.name, null, handleParameterFlags(param));
                 ctorParams.push(p);
             }
 
-            const ctor = dom.create.constructor(ctorParams);
-            handleFlags(doclet, ctor);
+            const ctor = dom.create.constructor(ctorParams, handleFlags(doclet));
             obj.members.push(ctor);
         }
     }
@@ -548,23 +604,26 @@ export default class Emitter {
             obj = dom.create.enum(doclet.name, doclet.kind === 'constant');
         }
         else {
-            const o = this.objects[doclet.memberof] as dom.EnumDeclaration;
+            const o = this.objects[doclet.memberof] as any;
 
             // skip enum props
-            if (o && o.kind === 'enum')
+            if (o && o.kind === 'enum') {
                 return;
+            }
 
-            obj = dom.create.property(doclet.name, null);
+            obj = o && o.kind === 'namespace'
+                ? dom.create.const(doclet.name, null, handleFlags(doclet))
+                : dom.create.property(doclet.name, null, handleFlags(doclet));
         }
 
         this.objects[doclet.longname] = obj;
 
         if (doclet.isEnum && doclet.properties) {
-            for (let i = 0; i < doclet.properties.length; ++i) {
-                const prop = doclet.properties[i].meta.code;
-                const val = dom.create.enumValue(prop.name);
+            for (const property of doclet.properties) {
+                const propNode = property.meta.code;
+                const val = dom.create.enumValue(propNode.name);
 
-                val.jsDocComment = cleanComment(doclet.properties[i].comment);
+                val.jsDocComment = cleanComment(property.comment);
 
                 (obj as dom.EnumDeclaration).members.push(val);
             }
@@ -572,7 +631,8 @@ export default class Emitter {
     }
 
     private _createFunction(doclet: IFunctionDoclet) {
-        this.objects[doclet.longname] = dom.create.function(doclet.name, getFunctionParams(doclet), null);
+        // Here use empty params array, it will be handled in the next step in @see _resolveObjects
+        this.objects[doclet.longname] = dom.create.function(doclet.name, [], null, handleFlags(doclet));
     }
 
     private _createNamespace(doclet: INamespaceDoclet) {
@@ -588,23 +648,19 @@ export default class Emitter {
         const typeName = doclet.type.names[0];
         let type = null;
 
-        switch (typeName) {
+        switch (typeName.toLowerCase()) {
             case 'function':
-                type = dom.create.functionType(getFunctionParams(doclet), null);
-            break;
+                // Here use empty params array, it will be handled in the next step in @see _resolveObjects
+                type = dom.create.functionType([], null);
+                break;
 
             case 'object':
-                const properties = doclet.properties || [];
-
-                type = dom.create.objectType(properties.map((p) => {
-                    const prop = dom.create.property(p.name, null);
-                    prop.jsDocComment = cleanComment(p.comment);
-                    return prop;
-                }));
-            break;
+                // Here use empty properties array, it will be handled in the next step in @see _resolveObjects
+                type = dom.create.objectType([]);
+                break;
         }
 
-        this.objects[doclet.longname] = dom.create.alias(doclet.name, type);
+        this.objects[doclet.longname] = dom.create.alias(doclet.name, type, handleFlags(doclet));
     }
 
     private _shouldResolveDoclet(doclet: TDoclet) {
@@ -618,47 +674,102 @@ export default class Emitter {
         );
     }
 
+    private _resolveFunctionParams(params: IDocletProp[]) {
+        return handleNestedProperties(params).map((p) => {
+            if ((Object.keys(p.props).length)) {
+                const param = dom.create.parameter(p.meta.name, this._walkNestedProps(p), handleParameterFlags(p.meta));
+                return param;
+            } else {
+                const param = dom.create.parameter(p.meta.name, null, handleParameterFlags(p.meta));
+                param.type = this._resolveType(p.meta, param);
+                return param;
+            }
+        });
+    }
+
+    private _walkNestedProps(p: INestedPropsCache) {
+        const props = Object.keys(p.props).map((pKey) => {
+            return this._walkNestedProp(p.props[pKey], pKey);
+        });
+        return dom.create.objectType(props);
+    }
+
+    private _walkNestedProp(p: INestedPropsCache, key?: string) {
+        const hasNestProps = Object.keys(p.props).length;
+        const param = dom.create.property(key, hasNestProps ? this._walkNestedProps(p) : null, handleFlags(p.meta));
+        param.type = this._resolveType(p.meta, param);
+
+        return param;
+    }
 }
 
-function handleFlags(doclet: any, obj: dom.DeclarationBase|dom.Parameter) {
-    obj.flags = dom.DeclarationFlags.None;
+function handleFlags(doclet: any) {
+    let flags = dom.DeclarationFlags.None;
 
-    obj.flags |= accessFlagMap[doclet.access];
-    obj.flags |= doclet.optional || doclet.defaultvalue !== undefined ? dom.ParameterFlags.Optional : dom.DeclarationFlags.None;
-    obj.flags |= doclet.variable ? dom.ParameterFlags.Rest : dom.DeclarationFlags.None;
-    obj.flags |= doclet.virtual ? dom.DeclarationFlags.Abstract : dom.DeclarationFlags.None;
-    obj.flags |= doclet.readonly ? dom.DeclarationFlags.ReadOnly : dom.DeclarationFlags.None;
-    obj.flags |= doclet.scope === 'static' ? dom.DeclarationFlags.Static : dom.DeclarationFlags.None;
+    flags |= accessFlagMap[doclet.access];
+    flags |= doclet.optional || doclet.defaultvalue !== undefined ? dom.DeclarationFlags.Optional : dom.DeclarationFlags.None;
+    flags |= doclet.virtual ? dom.DeclarationFlags.Abstract : dom.DeclarationFlags.None;
+    flags |= doclet.readonly ? dom.DeclarationFlags.ReadOnly : dom.DeclarationFlags.None;
+    flags |= doclet.scope === 'static' ? dom.DeclarationFlags.Static : dom.DeclarationFlags.None;
+
+    return flags;
+}
+
+function handleParameterFlags(doclet: any) {
+    let flags = dom.ParameterFlags.None;
+
+    flags |= accessFlagMap[doclet.access];
+    flags |= doclet.optional || doclet.defaultvalue !== undefined ? dom.ParameterFlags.Optional : dom.ParameterFlags.None;
+    flags |= doclet.variable ? dom.ParameterFlags.Rest : dom.ParameterFlags.None;
+
+    return flags;
 }
 
 function handleCustomTags(doclet: TDoclet, obj: dom.DeclarationBase) {
-    if (!doclet.tags || !doclet.tags.length)
+    if (!doclet.tags || !doclet.tags.length) {
         return;
+    }
 
     for (const tag of doclet.tags) {
         switch (tag.title) {
             case 'template':
                 (obj as dom.ClassDeclaration).typeParameters.push(dom.create.typeParameter(tag.value));
-            break;
+                break;
         }
     }
 }
 
-function getFunctionParams(doclet: IFunctionDoclet|ITypedefDoclet) {
-    const fnParams: dom.Parameter[] = [];
+interface INestedPropsCache {
+    props: {
+        [idx: string]: INestedPropsCache;
+    };
+    meta?: IDocletProp;
+}
 
-    if (doclet.params) {
-        for (let i = 0; i < doclet.params.length; ++i) {
-            const param = doclet.params[i];
-            const p = dom.create.parameter(param.name, null);
+function handleNestedProperties(properties: IDocletProp[]) {
+    const nestedCache: INestedPropsCache = { props: {} };
+    const nestedProps: INestedPropsCache[] = [];
 
-            handleFlags(param, p);
+    properties.forEach((prop) => {
+        const segs = prop.name ? prop.name.split('.') : [];
 
-            fnParams.push(p);
+        if (!nestedCache.props[segs[0]]) {
+            makeNestObject(segs, nestedCache, prop);
+            nestedProps.push(nestedCache.props[segs[0]]);
+        } else {
+            makeNestObject(segs, nestedCache, prop);
         }
-    }
+    });
 
-    return fnParams;
+    return nestedProps;
+}
+
+function makeNestObject(segs: string[], context: INestedPropsCache, meta: IDocletProp) {
+    for (const seg of segs) {
+        context.props[seg] = context.props[seg] || { meta: null, props: {} };
+        context = context.props[seg];
+    }
+    context.meta = { ...meta, name: meta.name.split('.').pop() };
 }
 
 function objEqual(o1: any, o2: any) {
@@ -682,15 +793,17 @@ function objEqual(o1: any, o2: any) {
 }
 
 function cleanComment(s: string) {
-    if (!s) return '';
+    if (!s) {
+        return '';
+    }
 
     const cleanLines = [];
 
     for (const line of s.split(/\r?\n/g)) {
         const cleaned = line.trim()
-                            .replace(rgxJsDocHeader, '')
-                            .replace(rgxJsDocFooter, '')
-                            .replace(rgxJsDocBody, '');
+            .replace(rgxJsDocHeader, '')
+            .replace(rgxJsDocFooter, '')
+            .replace(rgxJsDocBody, '');
 
         if (cleaned) {
             cleanLines.push(cleaned);
