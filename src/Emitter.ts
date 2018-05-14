@@ -337,17 +337,23 @@ export default class Emitter {
                     // iterate each member of that interface
                     for (let j = 0; j < impl.members.length; ++j) {
                         const implMember = Object.assign({}, impl.members[j]);
+                        // skip members that don't have a name-attribute
+                        if (implMember.kind === "call-signature") {
+                            continue
+                        }
                         let clsMember: dom.ClassMember = null;
 
                         // search for member in class
                         for (let x = 0; x < obj.members.length; ++x) {
-                            const mem = obj.members[x];
+                            const member = obj.members[x];
 
-                            if (mem.kind === 'constructor') {
+                            // skip members that don't have a name-attribute
+                            if (member.kind === 'constructor') {
                                 continue;
                             }
 
-                            if ((obj.members[x] as dom.ObjectTypeMember).name === implMember.name) {
+
+                            if (member.name === implMember.name) {
                                 clsMember = obj.members[x];
                                 break;
                             }

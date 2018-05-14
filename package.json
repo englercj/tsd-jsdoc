@@ -16,21 +16,22 @@
     "prepublish": "npm run build",
     "test": "jsdoc -c test/config.json -d out"
   },
-  "files":[
+  "files": [
     "*.js",
     "*.js.map",
     "README.md",
     "LICENSE"
   ],
   "devDependencies": {
-    "jsdoc": "^3.4.3",
-    "tslint": "^4.4.2",
-    "typescript": "^2.1.6"
+    "@types/node": "^9.3.0",
+    "jsdoc": "^3.5.5",
+    "tslint": "^5.9.1",
+    "typescript": "^2.6.2"
   },
   "peerDependencies": {
     "jsdoc": "^3.4.0"
   },
   "dependencies": {
-    "dts-dom": "^0.1.14"
+    "dts-dom": "^0.1.24"
   }
 }
