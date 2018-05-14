@@ -4,22 +4,21 @@
 /**
  * @interface
  */
-testns.CircleOptions;
+FoobarNS.CircleOptions;
 
 
 /**
  * Circle radius.
  * @type {number}
  */
-testns.CircleOptions.prototype.radius;
+FoobarNS.CircleOptions.prototype.radius;
 
 /**
  * @classdesc
  * Set circle style for vector features.
  *
  * @constructor
- * @param {testns.CircleOptions=} opt_options Options.
+ * @param {FoobarNS.CircleOptions=} opt_options Options.
  */
-testns.Circle = function Circle(opt_options)
-{
+FoobarNS.Circle = function Circle(opt_options) {
 }
