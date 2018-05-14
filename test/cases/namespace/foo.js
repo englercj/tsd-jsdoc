@@ -8,14 +8,13 @@
  * @constructor
  * @template T
  */
-testns.Foo = function Foo()
-{
+FoobarNS.Foo = function Foo() {
 };
 
 /**
  * @callback FCallback
  * @this S
- * @memberof testns.Foo
+ * @memberof FoobarNS.Foo
  * @param {T} first - The first param.
  * @param {number} second - The second param.
  * @param {T[]} third - The third param.
@@ -24,12 +23,11 @@ testns.Foo = function Foo()
 
 /**
  * A generic method.
- * @param {testns.Foo.FCallback} f A function.
+ * @param {FoobarNS.Foo.FCallback} f A function.
  * @param {S=} opt_this An object.
  * @template S
  */
-testns.Foo.prototype.f = function f(f, opt_this)
-{
+FoobarNS.Foo.prototype.f = function f(f, opt_this) {
 };
 
 /**
@@ -37,13 +35,13 @@ testns.Foo.prototype.f = function f(f, opt_this)
  * A Bar.
  *
  * @constructor
- * @extends testns.Foo
+ * @extends FoobarNS.Foo
  */
-testns.Bar = function Bar() {}
+FoobarNS.Bar = function Bar() {
+}
 
 /**
  * A method.
  */
-testns.Bar.prototype.f = function f()
-{
+FoobarNS.Bar.prototype.f = function f() {
 };
