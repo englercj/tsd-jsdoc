@@ -9,7 +9,7 @@ const rgxJsDocHeader = /^\/\*\*\s?/;
 const rgxJsDocFooter = /\s*\*\/\s?$/;
 const rgxJsDocBody = /^\*\s?/;
 
-const RAW_GLOBAL_TYPES: { [id: string]: string[] } = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'global-types.json')).toString());
+const RAW_GLOBAL_TYPES: { [id: string]: string[] } = JSON.parse(fs.readFileSync(path.join(__dirname, '../global-types.json')).toString());
 const GLOBAL_TYPES: { [id: string]: dom.DeclarationBase } = Object.keys(RAW_GLOBAL_TYPES)
     .reduce(
         (acc, key: string) => {
