@@ -18,8 +18,7 @@
     "test": "jsdoc -c test/config.json -d out"
   },
   "files": [
-    "*.js",
-    "*.js.map",
+    "dist/*",
     "README.md",
     "LICENSE"
   ],
