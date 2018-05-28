@@ -26,6 +26,7 @@ declare module 'dts-dom' {
     export interface DeclarationBase {
         _parent?: DeclarationBase;
         _module?: ModuleDeclaration;
+        _doclet?: IDocletBase;
     }
 
     export interface Parameter {
@@ -165,7 +166,8 @@ export default class Emitter {
 
             // resolve members
             if (doclet.memberof && !doclet.inherited) {
-                const p = this.objects[doclet.memberof] as dom.NamespaceDeclaration;
+                const objMember = obj as dom.NamespaceMember | dom.ClassMember;
+                const p = this.objects[doclet.memberof] as dom.NamespaceDeclaration | dom.ClassDeclaration;
 
                 if (!p) {
                     warnResolve(doclet, EResolveFailure.Memberof, 'No such name found.');
@@ -178,17 +180,26 @@ export default class Emitter {
                     );
                 }
                 else {
-                    if ((obj as any).kind === 'function' && p.kind !== 'namespace') {
-                        (obj as any).kind = 'method';
+                    if (objMember.kind === 'function' && p.kind !== 'namespace') {
+                        (objMember as any).kind = 'method';
                     }
 
-                    // already have something of this name, ignore.
-                    if (p.members.filter((v) => v.name === (obj as any).name).length) {
+                    let isDuplicate = false;
+                    for (const member of p.members) {
+                        if (member._doclet.longname === objMember._doclet.longname) {
+                            isDuplicate = true;
+                            break;
+                        }
+                    }
+
+                    if (isDuplicate) {
                         continue;
                     }
 
                     obj._parent = p;
-                    p.members.push(obj as dom.NamespaceMember);
+
+                    // Using an any cast here to work around this issue: https://github.com/Microsoft/TypeScript/issues/7294
+                    (p.members as any).push(objMember);
                 }
             }
 
@@ -237,10 +248,10 @@ export default class Emitter {
                         } else {
                             propType = dom.create.property(pDoc.meta.name, null, handleFlags(pDoc.meta));
                             propType.type = this._resolveType(pDoc.meta, propType);
-
                         }
 
                         propType.jsDocComment = cleanComment(pDoc.meta.comment);
+                        propType._doclet = doclet;
 
                         return propType;
                     });
@@ -580,6 +591,8 @@ export default class Emitter {
     private _createClass(doclet: IClassDoclet) {
         const obj = this.objects[doclet.longname] = dom.create.class(doclet.name);
 
+        obj._doclet = doclet;
+
         if (doclet.params) {
             const ctorParams: dom.Parameter[] = [];
 
@@ -589,12 +602,14 @@ export default class Emitter {
             }
 
             const ctor = dom.create.constructor(ctorParams, handleFlags(doclet));
+            ctor._doclet = doclet;
             obj.members.push(ctor);
         }
     }
 
     private _createInterface(doclet: IClassDoclet) {
-        this.objects[doclet.longname] = dom.create.interface(doclet.name);
+        const obj = this.objects[doclet.longname] = dom.create.interface(doclet.name);
+        obj._doclet = doclet;
     }
 
     private _createMember(doclet: IMemberDoclet) {
@@ -616,6 +631,8 @@ export default class Emitter {
                 : dom.create.property(doclet.name, null, handleFlags(doclet));
         }
 
+        obj._doclet = doclet;
+
         this.objects[doclet.longname] = obj;
 
         if (doclet.isEnum && doclet.properties) {
@@ -632,11 +649,13 @@ export default class Emitter {
 
     private _createFunction(doclet: IFunctionDoclet) {
         // Here use empty params array, it will be handled in the next step in @see _resolveObjects
-        this.objects[doclet.longname] = dom.create.function(doclet.name, [], null, handleFlags(doclet));
+        const obj = this.objects[doclet.longname] = dom.create.function(doclet.name, [], null, handleFlags(doclet));
+        obj._doclet = doclet;
     }
 
     private _createNamespace(doclet: INamespaceDoclet) {
-        this.objects[doclet.longname] = dom.create.namespace(doclet.name);
+        const obj = this.objects[doclet.longname] = dom.create.namespace(doclet.name);
+        obj._doclet = doclet;
     }
 
     private _createTypedef(doclet: ITypedefDoclet) {
@@ -660,7 +679,8 @@ export default class Emitter {
                 break;
         }
 
-        this.objects[doclet.longname] = dom.create.alias(doclet.name, type, handleFlags(doclet));
+        const obj = this.objects[doclet.longname] = dom.create.alias(doclet.name, type, handleFlags(doclet));
+        obj._doclet = doclet;
     }
 
     private _shouldResolveDoclet(doclet: TDoclet) {

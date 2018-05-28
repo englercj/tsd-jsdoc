@@ -67,6 +67,40 @@ function DeepClass1() {
     }
 }
 
+/** @module util */
+
+/**
+ * @class MyClass
+ * @param {string} message
+ * @returns {MyClass}
+ */
+class MyClass {
+    constructor(message) {
+        /** @type {string} */
+        this.message = message;
+    }
+}
+
+/**
+ * GitGraph
+ * @constructor
+ * @param {object} options - GitGraph options
+ * @param {string} [options.elementId = "gitGraph"] - Id of the canvas container
+ * @param {Template|string|object} [options.template] - Template of the graph
+ * @param {string} [options.author = "Sergio Flores <saxo-guy@epic.com>"] - Default author for commits
+ * @param {string} [options.mode = (null|"compact")]  - Display mode
+ * @param {HTMLElement} [options.canvas] - DOM canvas (ex: document.getElementById("id"))
+ * @param {string} [options.orientation = ("vertical-reverse"|"horizontal"|"horizontal-reverse")] - Graph orientation
+ * @param {boolean} [options.reverseArrow = false] - Make arrows point to ancestors if true
+ * @param {number} [options.initCommitOffsetX = 0] - Add custom offsetX to initial commit.
+ * @param {number} [options.initCommitOffsetY = 0] - Add custom offsetY to initial commit.
+ * @param {HTMLElement} [options.tooltipContainer = document.body] - HTML Element containing tooltips in compact mode.
+ * @this GitGraph
+ */
+class GitGraph {
+    constructor(options) {}
+}
+
 /**
  * @class
  * @extends OtherThing

@@ -71,6 +71,7 @@ declare interface IDocletBase {
     name: string;
     scope: string;
     longname: string;
+    variation?: string;
     tags?: IDocletTag[];
     memberof?: string;
     see?: string;
