@@ -14,7 +14,7 @@
     "lint": "eslint --rulesdir node_modules/@englercj/code-style *.js",
     "build": "tsc -p tsconfig.json",
     "watch": "tsc -w -p tsconfig.json",
-    "prepublish": "npm run build",
+    "prepare": "npm run build",
     "test": "jsdoc -c test/config.json -d out"
   },
   "files": [
@@ -24,14 +24,14 @@
     "LICENSE"
   ],
   "devDependencies": {
-    "@types/node": "^10.0.4",
-    "crawler": "^1.1.2",
-    "jsdoc": "^3.4.3",
-    "tslint": "^5.9.0",
-    "typescript": "^2.8.0"
+    "@types/node": "^10.1.3",
+    "crawler": "^1.1.3",
+    "jsdoc": "^3.5.5",
+    "tslint": "^5.10.0",
+    "typescript": "^2.8.3"
   },
   "peerDependencies": {
-    "jsdoc": "^3.4.0"
+    "jsdoc": "^3.5.5"
   },
   "dependencies": {
     "dts-dom": "^3.1.0"
