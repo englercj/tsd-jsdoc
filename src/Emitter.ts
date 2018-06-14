@@ -284,9 +284,11 @@ export default class Emitter {
                 // resolve constructor types
                 let ctorObj: dom.ConstructorDeclaration = null;
 
-                for (const member of o.members) {
-                    if (member.kind === 'constructor') {
-                        ctorObj = member as dom.ConstructorDeclaration;
+                if (o.members && typeof o.members[Symbol.iterator] === 'function') {
+                    for (const member of o.members) {
+                        if (member.kind === 'constructor') {
+                            ctorObj = member as dom.ConstructorDeclaration;
+                        }
                     }
                 }
 
