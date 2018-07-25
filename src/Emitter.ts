@@ -290,6 +290,8 @@ export default class Emitter {
                             ctorObj = member as dom.ConstructorDeclaration;
                         }
                     }
+                } else {
+                    warn(`No members specified for ${doclet.kind} ${doclet.name} in ${doclet.meta.filename}`);
                 }
 
                 if (ctorObj) {
