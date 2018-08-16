@@ -34,6 +34,7 @@ docs/
 lib/
 out/
 typings/
+test/_temp/
 !src/typings/
 
 yarn-error.log

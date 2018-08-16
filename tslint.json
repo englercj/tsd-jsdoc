@@ -48,6 +48,7 @@
         "no-duplicate-variable": true,
         "no-empty": true,
         "no-eval": true,
+        "no-implicit-dependencies": [true, "dev"],
         "no-inferrable-types": false,
         "no-internal-module": true,
         "no-invalid-this": true,
