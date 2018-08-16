@@ -10,7 +10,6 @@
     "url": "git@github.com:englercj/jsdoc2tsd.git"
   },
   "scripts": {
-    "clean": "rm -rf *.js *.js.map",
     "lint": "tslint -c tslint.json 'src/**/*.ts'",
     "build": "tsc -p tsconfig.json",
     "watch": "tsc -w -p tsconfig.json",
