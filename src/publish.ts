@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import * as env from 'jsdoc/env';
-import * as helper from 'jsdoc/util/templateHelper';
+import * as env from 'jsdoc/env'; // tslint:disable-line
+import * as helper from 'jsdoc/util/templateHelper'; // tslint:disable-line
 import Emitter from './Emitter';
 
 /**
@@ -32,9 +32,11 @@ export function publish(data: TDocletDb, opts: ITemplateConfig) {
             }
         }
 
-        const pkg = (helper.find(data, { kind: 'package' }) || [])[0] as IPackageDoclet;
+        const pkgArray: any = helper.find(data, { kind: 'package' }) || [];
+
+        const pkg = pkgArray[0] as IPackageDoclet;
         const out = path.join(opts.destination, pkg && pkg.name ? `${pkg.name}.d.ts` : 'types.d.ts');
 
         fs.writeFileSync(out, emitter.emit());
     }
-};
+}

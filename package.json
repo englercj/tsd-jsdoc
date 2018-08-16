@@ -11,7 +11,7 @@
   },
   "scripts": {
     "clean": "rm -rf *.js *.js.map",
-    "lint": "eslint --rulesdir node_modules/@englercj/code-style *.js",
+    "lint": "tslint -c tslint.json 'src/**/*.ts'",
     "build": "tsc -p tsconfig.json",
     "watch": "tsc -w -p tsconfig.json",
     "prepare": "npm run build",

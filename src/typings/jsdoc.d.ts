@@ -1,5 +1,7 @@
+// tslint:disable
 /// <reference path='dts-jsdoc.d.ts' />
 /// <reference path='taffydb.d.ts' />
+// tslint:enable
 
 declare type TDocletDb = ITaffyInstance<TDoclet>;
 
@@ -16,9 +18,8 @@ declare module 'jsdoc/env' {
 }
 
 declare module 'jsdoc/util/templateHelper' {
-    export function find(data: TDocletDb, query: any): (TDoclet | IPackageDoclet)[];
+    export function find(data: TDocletDb, query: any): Array<(TDoclet | IPackageDoclet)>;
 }
-
 
 /**
  * Doclet Base and util types
