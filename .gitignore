@@ -32,8 +32,6 @@ node_modules/
 dist/
 docs/
 out/
-typings/
 test/_temp/
-!src/typings/
 
 yarn-error.log
