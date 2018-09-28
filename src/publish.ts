@@ -32,10 +32,13 @@ export function publish(data: TDocletDb, opts: ITemplateConfig) {
             }
         }
 
-        const pkgArray: any = helper.find(data, { kind: 'package' }) || [];
-
-        const pkg = pkgArray[0] as IPackageDoclet;
-        const out = path.join(opts.destination, pkg && pkg.name ? `${pkg.name}.d.ts` : 'types.d.ts');
+        let pkgName = env.conf.templates && env.conf.templates.jsdoc2tsd && env.conf.templates.jsdoc2tsd.name;
+        if (!pkgName) {
+            const pkgArray: any = helper.find(data, { kind: 'package' }) || [];
+            const pkg = pkgArray[0] as IPackageDoclet;
+            pkgName = pkg && pkg.name ? `${pkg.name}.d.ts` : 'types.d.ts';
+        }
+        const out = path.join(opts.destination, pkgName);
 
         fs.writeFileSync(out, emitter.emit());
     }
