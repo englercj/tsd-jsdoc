@@ -4,6 +4,7 @@ import * as path from 'path';
 import { EResolveFailure, warn, warnResolve } from './logger';
 
 const rgxArrayType = /^Array(?:\.<(.*)>)?$/;
+const rgxPromiseType = /^Promise(?:\.<(.*)>)?$/;
 const rgxObjectType = /^Object\.<(\w*),\s*\(?(.*)\)?>$/;
 const rgxJsDocHeader = /^\/\*\*\s?/;
 const rgxJsDocFooter = /\s*\*\/\s?$/;
@@ -495,6 +496,19 @@ export default class Emitter {
                     return dom.create.array(this._resolveTypeString(matches[1], doclet, obj));
                 } else {
                     return dom.create.array(dom.type.any);
+                }
+            }
+        }
+
+        // try promise type
+        if (t.startsWith('Promise')) {
+            const matches = t.match(rgxPromiseType);
+            if (matches) {
+                if (matches[1]) {
+                    return dom.create.namedTypeReference(`Promise<${matches[1]}>`);
+                }
+                else {
+                    return dom.type.any;
                 }
             }
         }
