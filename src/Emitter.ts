@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { EResolveFailure, warn, warnResolve } from './logger';
 
+const rgxPromiseType = /^Promise(?:\.<(.*)>)?$/;
 const rgxArrayType = /^Array(?:\.<(.*)>)?$/;
 const rgxObjectType = /^Object\.<(\w*),\s*\(?(.*)\)?>$/;
 const rgxJsDocHeader = /^\/\*\*\s?/;
@@ -485,11 +486,18 @@ export default class Emitter {
         if (t.endsWith(')')) {
             t = t.replace(/\)$/, '');
         }
-        if (t.includes('Promise.<')) {
-            t = t.replace('Promise.<', 'Promise<');
-        }
-        if (t.includes('Array.<')) {
-            t = t.replace('Array.<', 'Array<');
+            
+        // try promise type
+        if (t.startsWith('Promise')) {
+            const matches = t.match(rgxPromiseType);
+            if (matches) {
+                t = t.replace('Promise.<', 'Promise<');
+                if (matches[1] && matches[1].startsWith('Array.<')) {
+                    return dom.create.namedTypeReference(t.replace('Array.<', 'Array<'));
+                } else {
+                    return dom.create.namedTypeReference(t);
+                }
+            }
         }
 
         // try array type
