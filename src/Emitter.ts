@@ -485,6 +485,12 @@ export default class Emitter {
         if (t.endsWith(')')) {
             t = t.replace(/\)$/, '');
         }
+        if (t.includes('Promise.<')) {
+            t = t.replace('Promise.<', 'Promise<');
+        }
+        if (t.includes('Array.<')) {
+            t = t.replace('Array.<', 'Array<');
+        }
 
         // try array type
         if (t.startsWith('Array')) {
