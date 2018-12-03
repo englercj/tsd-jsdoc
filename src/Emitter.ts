@@ -486,7 +486,7 @@ export default class Emitter {
         if (t.endsWith(')')) {
             t = t.replace(/\)$/, '');
         }
-            
+
         // try promise type
         if (t.startsWith('Promise')) {
             const matches = t.match(rgxPromiseType);
