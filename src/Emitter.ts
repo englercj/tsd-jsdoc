@@ -487,8 +487,8 @@ export default class Emitter {
             t = t.replace(/\)$/, '');
         }
 
-        function _resolvePromiseObject(t: string): string {
-            const matches = t.match(rgxObjectType);
+        function _resolvePromiseObject(ty: string): string {
+            const matches = ty.match(rgxObjectType);
             if (matches && matches[1] && matches[2]) {
                 const indexTypeStr = matches[1].trim();
                 const valueTypeStr = matches[2].trim();
@@ -513,11 +513,11 @@ export default class Emitter {
 
                     if (rgxObjectType.test(matchesArray[1])) {
                         return dom.create.namedTypeReference(
-                            `Promise<Array<${_resolvePromiseObject(matchesArray[1])}>>`
-                        )
+                            `Promise<Array<${_resolvePromiseObject(matchesArray[1])}>>`,
+                        );
                     } else {
                         return dom.create.namedTypeReference(
-                            `Promise<Array<${matchesArray[1]}>>`
+                            `Promise<Array<${matchesArray[1]}>>`,
                         );
                     }
                 } else {
