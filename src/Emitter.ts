@@ -510,19 +510,20 @@ export default class Emitter {
                     return dom.create.namedTypeReference(_resolvePromiseObject(matches[1]));
                 } else if (matches[1].startsWith('Array')) {
                     const matchesArray = matches[1].match(rgxArrayType);
-
-                    if (rgxObjectType.test(matchesArray[1])) {
-                        return dom.create.namedTypeReference(
-                            `Promise<Array<${_resolvePromiseObject(matchesArray[1])}>>`,
-                        );
+                    if (matchesArray && matchesArray[1]) {
+                        if (rgxObjectType.test(matchesArray[1])) {
+                            return dom.create.namedTypeReference(`Promise<Array<${_resolvePromiseObject(matchesArray[1])}>>`);
+                        } else {
+                            return dom.create.namedTypeReference(`Promise<${matches[1].replace(/(\.)/g, '')}>`);
+                        }
                     } else {
-                        return dom.create.namedTypeReference(
-                            `Promise<Array<${matchesArray[1]}>>`,
-                        );
+                        return dom.create.namedTypeReference(`Promise<${matches[1].replace(/(\.)/g, '')}>`);
                     }
                 } else {
-                    return dom.create.namedTypeReference(`Promise<any>`);
+                    return dom.create.namedTypeReference(`Promise<${matches[1].replace(/(\.)/g, '')}>`);
                 }
+            } else {
+                return dom.create.namedTypeReference(`Promise<any>`);
             }
         }
 
