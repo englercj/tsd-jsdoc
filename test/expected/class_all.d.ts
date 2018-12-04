@@ -115,7 +115,7 @@ declare namespace util {
          * Gets a Promise that will resolve with an Object.
          * @return {Promise<Array<Object<string, number>>>} The Promise
          */
-        promiseMe(): Promise<Array<{ [key: string]: string }>>;
+        promiseMe(): Promise<Array<{ [key: string]: number }>>;
 
         /**
          * @param {GitGraphOptions} options - GitGraph options
