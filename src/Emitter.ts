@@ -487,15 +487,41 @@ export default class Emitter {
             t = t.replace(/\)$/, '');
         }
 
+        function _resolvePromiseObject(t: string): string {
+            const matches = t.match(rgxObjectType);
+            if (matches && matches[1] && matches[2]) {
+                const indexTypeStr = matches[1].trim();
+                const valueTypeStr = matches[2].trim();
+
+                if (indexTypeStr !== 'string' && indexTypeStr !== 'number') {
+                    warn(`Invalid object index type: "${matches[1]}", must be "string" or "number". Falling back to "Object<any, any>".`);
+                    return `Object<any, any>`;
+                }
+
+                return `{ [key: ${indexTypeStr}]: ${valueTypeStr} }`;
+            }
+        }
+
         // try promise type
-        if (t.startsWith('Promise')) {
+        if (t.startsWith('Promise.<')) {
             const matches = t.match(rgxPromiseType);
             if (matches) {
-                t = t.replace('Promise.<', 'Promise<');
-                if (matches[1] && matches[1].startsWith('Array.<')) {
-                    return dom.create.namedTypeReference(t.replace('Array.<', 'Array<'));
+                if (matches[1].startsWith('Object.<')) {
+                    return dom.create.namedTypeReference(_resolvePromiseObject(matches[1]));
+                } else if (matches[1].startsWith('Array')) {
+                    const matchesArray = matches[1].match(rgxArrayType);
+
+                    if (rgxObjectType.test(matchesArray[1])) {
+                        return dom.create.namedTypeReference(
+                            `Promise<Array<${_resolvePromiseObject(matchesArray[1])}>>`
+                        )
+                    } else {
+                        return dom.create.namedTypeReference(
+                            `Promise<Array<${matchesArray[1]}>>`
+                        );
+                    }
                 } else {
-                    return dom.create.namedTypeReference(t);
+                    return dom.create.namedTypeReference(`Promise<any>`);
                 }
             }
         }
