@@ -30,7 +30,7 @@ export function compileJsdoc(sourcePath: string) {
 }
 
 export function expectJsDoc(fileName: string) {
-    const destPath = path.join(DEST_DIR, `types.d.ts`);
+    const destPath = path.join(DEST_DIR, `fixtures/${fileName}.d.ts`);
     const dataPath = path.join(DATA_DIR, `${fileName}.js`);
     const expectPath = path.join(EXPECT_DIR, `${fileName}.d.ts`);
 

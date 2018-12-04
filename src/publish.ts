@@ -23,8 +23,13 @@ export function publish(data: TDocletDb, opts: ITemplateConfig) {
         console.log(emitter.emit());
     }
     else {
+        const pkgArray: any = helper.find(data, { kind: 'package' }) || [];
+        const file = path.parse(pkgArray[0].files[0]);
+        const dir = file.dir.split('/');
+        const dest = path.join(opts.destination, dir[dir.length - 1]);
+
         try {
-            fs.mkdirSync(opts.destination);
+            fs.mkdirSync(dest);
         }
         catch (e) {
             if (e.code !== 'EEXIST') {
@@ -32,10 +37,7 @@ export function publish(data: TDocletDb, opts: ITemplateConfig) {
             }
         }
 
-        const pkgArray: any = helper.find(data, { kind: 'package' }) || [];
-
-        const pkg = pkgArray[0] as IPackageDoclet;
-        const out = path.join(opts.destination, pkg && pkg.name ? `${pkg.name}.d.ts` : 'types.d.ts');
+        const out = path.join(dest, file && file.name ? `${file.name}.d.ts` : 'index.d.ts');
 
         fs.writeFileSync(out, emitter.emit());
     }

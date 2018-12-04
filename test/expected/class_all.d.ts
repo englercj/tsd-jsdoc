@@ -9,14 +9,17 @@ declare function doStuff(): void;
  */
 declare class OtherThing {
     copy(): void;
+
 }
 
 declare class Stuff {
     doStuff(): void;
+
 }
 
 declare class Things {
     doThings(): void;
+
 }
 
 /**
@@ -25,6 +28,7 @@ declare class Things {
  */
 declare class DeepClass1 {
     constructor();
+
 }
 
 /**
@@ -43,6 +47,7 @@ declare namespace util {
          * @type {string}
          */
         message: string;
+
     }
 
     /**
@@ -74,6 +79,7 @@ declare namespace util {
             initCommitOffsetY?: number;
             tooltipContainer?: HTMLElement;
         });
+
     }
 
     /**
@@ -136,7 +142,9 @@ declare namespace util {
         doStuff(): void;
 
         doThings(): void;
+
     }
+
 }
 
 declare module 'DeepClass1' {
@@ -146,6 +154,7 @@ declare module 'DeepClass1' {
      */
     class DeepClass2 {
         constructor();
+
     }
 
     module 'DeepClass2' {
@@ -155,6 +164,7 @@ declare module 'DeepClass1' {
          */
         class DeepClass3 {
             constructor();
+
         }
 
         module 'DeepClass3' {
@@ -164,7 +174,11 @@ declare module 'DeepClass1' {
              */
             class DeepClass4 {
                 constructor();
+
             }
+
         }
+
     }
+
 }

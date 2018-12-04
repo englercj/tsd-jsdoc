@@ -1,7 +1,8 @@
 /**
  * @this OtherThing
  */
-function doStuff() {}
+function doStuff() {
+}
 
 /**
  * @class
@@ -11,7 +12,8 @@ class OtherThing {
     /**
      *
      */
-    copy() {}
+    copy() {
+    }
 }
 
 /**
@@ -21,7 +23,8 @@ class Stuff {
     /**
      *
      */
-    doStuff() {}
+    doStuff() {
+    }
 }
 
 /**
@@ -31,7 +34,8 @@ class Things {
     /**
      *
      */
-    doThings() {}
+    doThings() {
+    }
 }
 
 /**
@@ -57,7 +61,8 @@ function DeepClass1() {
              *
              * @class
              */
-            function DeepClass4() {}
+            function DeepClass4() {
+            }
         }
     }
 }
@@ -165,13 +170,15 @@ class MyThing extends OtherThing {
      *
      * @return {Promise<Array<Object<string, number>>>} The Promise
      */
-    promiseMe() {}
+    promiseMe() {
+    }
 
     /**
      *
      * @param {GitGraphOptions} options - GitGraph options
      */
-    objParam(o) {}
+    objParam(o) {
+    }
 
     /**
      * Gets derp.
