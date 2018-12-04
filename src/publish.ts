@@ -35,7 +35,7 @@ export function publish(data: TDocletDb, opts: ITemplateConfig) {
             }
         }
 
-        const out = path.join(opts.destination, file && file.name ? `${file.name}.d.ts` : 'index.d.ts');
+        const out = path.join(opts.destination, file && file.name ? `${file.name}.d.ts` : 'types.d.ts');
 
         fs.writeFileSync(out, emitter.emit());
     }
