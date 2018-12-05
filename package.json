@@ -23,17 +23,16 @@
     "LICENSE"
   ],
   "devDependencies": {
-    "@types/chai": "^4.1.4",
+    "@types/chai": "^4.1.7",
     "@types/mocha": "^5.2.5",
-    "@types/node": "^10.7.1",
-    "chai": "^4.1.2",
-    "crawler": "^1.2.0",
+    "@types/node": "^10.12.12",
+    "chai": "^4.2.0",
     "jsdoc": "^3.5.5",
     "jsdoc-api": "^4.0.3",
     "mocha": "^5.2.0",
     "ts-node": "^7.0.1",
     "tslint": "^5.11.0",
-    "typescript": "^3.0.1"
+    "typescript": "^3.2.1"
   },
   "peerDependencies": {
     "jsdoc": "^3.5.5"
