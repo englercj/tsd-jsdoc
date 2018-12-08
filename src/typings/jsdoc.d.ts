@@ -68,7 +68,7 @@ declare interface IDocletTag {
 }
 
 declare interface IDocletBase {
-    meta: IDocletMeta;
+    meta?: IDocletMeta;
     name: string;
     scope: string;
     longname: string;
@@ -143,3 +143,5 @@ declare type TDoclet = (
     | INamespaceDoclet
     | ITypedefDoclet
 );
+
+declare type TAnyDoclet = TDoclet | IPackageDoclet;

@@ -2,7 +2,6 @@
  * Enum for tri-state values.
  * @readonly
  * @enum {number}
- * @constant
  */
 var triState = {
     /** The true value */
