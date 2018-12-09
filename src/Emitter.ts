@@ -47,7 +47,7 @@ export class Emitter
 
     // resolutionNeeded: IResolutionMap;
 
-    constructor(public config?: ITemplateConfig)
+    constructor(public readonly allowPrivate: boolean)
     { }
 
     parse(docs?: TAnyDoclet[])
@@ -128,7 +128,7 @@ export class Emitter
 
                 if (!parent)
                 {
-                    warn('Failed to find parent of doclet (memberof invalid), this is likely due to invalid JSDoc.', doclet);
+                    warn(`Failed to find parent of doclet '${doclet.longname}' using memberof '${doclet.memberof}', this is likely due to invalid JSDoc.`, doclet);
                     continue;
                 }
 
@@ -136,7 +136,7 @@ export class Emitter
                 const isParentClassLike = isClassLike(parent.doclet);
 
                 // We need to move this into a module of the same name as the parent
-                if (isObjClassLike && isParentClassLike)
+                if (isParentClassLike && (isObjClassLike || doclet.kind === 'typedef'))
                 {
                     this._moveMemberToModule(obj, parent);
                 }
@@ -229,11 +229,9 @@ export class Emitter
 
     private _ignoreDoclet(doclet: TAnyDoclet): boolean
     {
-        const allowPrivate = !this.config || this.config.private;
-
         return doclet.kind === 'package'
             || doclet.ignore
-            || (!allowPrivate && doclet.access === 'private');
+            || (!this.allowPrivate && doclet.access === 'private');
     }
 
     private _getModuleKey(longname?: string): string
@@ -250,6 +248,9 @@ export class Emitter
 
     private _getOrCreateClassModule(obj: IDocletTreeNode): IDocletTreeNode
     {
+        if (obj.doclet.kind === 'namespace')
+            return obj;
+
         const moduleKey = this._getModuleKey(obj.doclet.longname);
         let mod = this._treeNodes[moduleKey];
 
@@ -272,7 +273,7 @@ export class Emitter
 
             if (!parent)
             {
-                warn('Failed to find parent of doclet (memberof invalid), this is likely due to invalid JSDoc.', obj.doclet);
+                warn(`Failed to find parent of doclet '${obj.doclet.longname}' using memberof '${obj.doclet.memberof}', this is likely due to invalid JSDoc.`, obj.doclet);
                 return mod;
             }
 

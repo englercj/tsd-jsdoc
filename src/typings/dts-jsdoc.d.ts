@@ -1,4 +1,5 @@
 declare interface ITemplateConfig {
     destination: string;
-    private: boolean;
+    private?: boolean;
+    verbose?: boolean;
 }

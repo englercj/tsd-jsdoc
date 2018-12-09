@@ -2,6 +2,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as helper from 'jsdoc/util/templateHelper';
 import { Emitter } from './Emitter';
+import { setVerbose } from './logger';
 
 /**
  * @param {TAFFY} data - The TaffyDB containing the data that jsdoc parsed.
@@ -15,8 +16,10 @@ export function publish(data: TDocletDb, opts: ITemplateConfig)
     // get the doc list
     const docs = data().get();
 
+    setVerbose(!!opts.verbose);
+
     // create an emitter to parse the docs
-    const emitter = new Emitter(opts);
+    const emitter = new Emitter(!!opts.private);
     emitter.parse(docs);
 
     // emit the output

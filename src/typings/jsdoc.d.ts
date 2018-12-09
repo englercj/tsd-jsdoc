@@ -103,6 +103,7 @@ declare interface IClassDoclet extends IDocletBase {
 
 declare interface IFunctionDoclet extends IDocletBase {
     kind: 'function';
+    this?: string;
     params?: IDocletProp[];
     returns?: IDocletReturn[];
     override?: boolean;
@@ -125,6 +126,7 @@ declare interface ITypedefDoclet extends IDocletBase {
     type: IDocletType;
 
     // function typedef
+    this?: string;
     params?: IDocletProp[];
     returns?: IDocletReturn[];
 }

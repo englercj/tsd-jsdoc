@@ -203,7 +203,5 @@ list of the tags from CC that are supported in this template:
 # Rewrite todo
 
 - Generics
-- Function params need object literal support
 - Comb through gotchas and ensure they are correct still
-- Ensure built-in support exists. Load global.d.ts?
 - Close github issues
