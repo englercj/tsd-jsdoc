@@ -1,7 +1,3 @@
-class B {}
-
-type A = { [key: B]: string }
-
 /**
  * @namespace FoobarNS
  */

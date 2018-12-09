@@ -1,6 +1,6 @@
 /**
  *
- * @param {number} a = 10
+ * @param {number} [a=10]
  * @param {Object} input
  * @param {number} input.x
  * @param {number} input.y
