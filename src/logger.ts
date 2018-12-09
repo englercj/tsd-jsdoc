@@ -7,7 +7,7 @@ export function warn(msg: string, data?: any)
 
     console.warn(`${header} ${msg}`);
 
-    if (data)
+    if (arguments.length > 1)
     {
         const dataStr = JSON.stringify(data, null, 4);
         console.warn(`${header} ${dataStr}`);

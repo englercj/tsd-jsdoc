@@ -1,5 +1,3 @@
-import * as fs from 'fs';
-import * as path from 'path';
 import * as ts from 'typescript';
 import { Dictionary } from './Dictionary';
 import { warn } from './logger';
@@ -17,7 +15,6 @@ import {
     createTypedef,
     createEnum,
 } from './create_helpers';
-import { createECDH } from 'crypto';
 
 interface IDocletTreeNode
 {
@@ -131,7 +128,7 @@ export class Emitter
 
                 if (!parent)
                 {
-                    warn('Failed to find parent of doclet (memberof invalid), this is likely invalid JSDoc comments.', doclet);
+                    warn('Failed to find parent of doclet (memberof invalid), this is likely due to invalid JSDoc.', doclet);
                     continue;
                 }
 
@@ -241,7 +238,7 @@ export class Emitter
 
     private _getModuleKey(longname?: string): string
     {
-        return longname ? longname + '___module_helper' : '';
+        return longname ? longname + '$$module$helper' : '';
     }
 
     private _moveMemberToModule(obj: IDocletTreeNode, parent: IDocletTreeNode)
@@ -275,12 +272,13 @@ export class Emitter
 
             if (!parent)
             {
-                warn('Failed to find parent of doclet (memberof invalid), this is likely invalid JSDoc comments.', obj.doclet);
+                warn('Failed to find parent of doclet (memberof invalid), this is likely due to invalid JSDoc.', obj.doclet);
                 return mod;
             }
 
             let parentMod = this._getOrCreateClassModule(parent);
 
+            mod.doclet.memberof = parentMod.doclet.longname;
             parentMod.children.push(mod);
         }
         else

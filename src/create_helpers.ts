@@ -1,7 +1,6 @@
 import * as ts from 'typescript';
-import { resolveType, resolveOptional, resolveVariable } from './type_resolve_helpers';
 import { warn } from './logger';
-import { create } from 'domain';
+import { resolveType, resolveOptional, resolveVariable } from './type_resolve_helpers';
 
 const declareModifier = ts.createModifier(ts.SyntaxKind.DeclareKeyword);
 const constModifier = ts.createModifier(ts.SyntaxKind.ConstKeyword);
@@ -20,7 +19,7 @@ export function createClass(doclet: IClassDoclet, children?: ts.Node[]): ts.Clas
             const child = children[i];
             if (!ts.isClassElement(child))
             {
-                warn('Encountered child that is not a ClassElement, this is likely a bug.', child);
+                warn('Encountered child that is not a ClassElement, this is likely due to invalid JSDoc.', child);
                 children.splice(i, 1);
             }
         }
@@ -98,9 +97,15 @@ export function createFunction(doclet: IFunctionDoclet): ts.FunctionDeclaration
 
 export function createClassMethod(doclet: IFunctionDoclet): ts.MethodDeclaration
 {
-    const mods = doclet.memberof ? undefined : [declareModifier];
+    const mods: ts.Modifier[] = [];
     const params = createParams(doclet);
     const type = createReturnType(doclet);
+
+    if (!doclet.memberof)
+        mods.push(declareModifier);
+
+    if (doclet.scope === 'static')
+        mods.push(ts.createModifier(ts.SyntaxKind.StaticKeyword));
 
     return ts.createMethod(
         undefined,      // decorators
@@ -117,9 +122,15 @@ export function createClassMethod(doclet: IFunctionDoclet): ts.MethodDeclaration
 
 export function createInterfaceMethod(doclet: IFunctionDoclet): ts.MethodSignature
 {
-    const mods = doclet.memberof ? undefined : [declareModifier];
+    const mods: ts.Modifier[] = [];
     const params = createParams(doclet);
     const type = createReturnType(doclet);
+
+    if (!doclet.memberof)
+        mods.push(declareModifier);
+
+    if (doclet.scope === 'static')
+        mods.push(ts.createModifier(ts.SyntaxKind.StaticKeyword));
 
     return ts.createMethodSignature(
         undefined,      // typeParameters
@@ -143,7 +154,7 @@ export function createInterface(doclet: IClassDoclet, children?: ts.Node[]): ts.
             const child = children[i];
             if (!ts.isTypeElement(child))
             {
-                warn('Encountered child that is not a TypeElement, this is likely a bug.', child);
+                warn('Encountered child that is not a TypeElement, this is likely due to invalid JSDoc.', child);
                 children.splice(i, 1);
             }
         }
@@ -192,8 +203,14 @@ export function createEnum(doclet: IMemberDoclet): ts.EnumDeclaration
 
 export function createClassMember(doclet: IMemberDoclet): ts.PropertyDeclaration
 {
-    const mods = doclet.kind === 'constant' ? [readonlyModifier] : undefined;
+    const mods: ts.Modifier[] = [];
     const type = resolveType(doclet.type);
+
+    if (doclet.kind === 'constant')
+        mods.push(readonlyModifier);
+
+    if (doclet.scope === 'static')
+        mods.push(ts.createModifier(ts.SyntaxKind.StaticKeyword));
 
     return ts.createProperty(
         undefined,      // decorators
@@ -207,8 +224,14 @@ export function createClassMember(doclet: IMemberDoclet): ts.PropertyDeclaration
 
 export function createInterfaceMember(doclet: IMemberDoclet): ts.PropertySignature
 {
-    const mods = doclet.kind === 'constant' ? [readonlyModifier] : undefined;
+    const mods: ts.Modifier[] = [];
     const type = resolveType(doclet.type);
+
+    if (doclet.kind === 'constant')
+        mods.push(readonlyModifier);
+
+    if (doclet.scope === 'static')
+        mods.push(ts.createModifier(ts.SyntaxKind.StaticKeyword));
 
     return ts.createPropertySignature(
         mods,           // modifiers
@@ -241,7 +264,7 @@ export function createModule(doclet: INamespaceDoclet, nested: boolean, children
                 && !ts.isModuleDeclaration(child)
                 && !ts.isTypeAliasDeclaration(child))
             {
-                warn('Encountered child that is not a supported declaration, this is likely a bug.', child);
+                warn('Encountered child that is not a supported declaration, this is likely due to invalid JSDoc.', child);
                 children.splice(i, 1);
             }
         }
@@ -282,7 +305,7 @@ export function createNamespace(doclet: INamespaceDoclet, nested: boolean, child
                 && !ts.isModuleDeclaration(child)
                 && !ts.isTypeAliasDeclaration(child))
             {
-                warn('Encountered child that is not a supported declaration, this is likely a bug.', child);
+                warn('Encountered child that is not a supported declaration, this is likely due to invalid JSDoc.', child);
                 children.splice(i, 1);
             }
         }

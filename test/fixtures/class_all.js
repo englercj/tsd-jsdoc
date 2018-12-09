@@ -102,18 +102,17 @@ class GitGraph {
 }
 
 /**
+ * @typedef Something
+ * @type boolean
+ */
+
+/**
  * @class
  * @extends OtherThing
  * @mixes Stuff
  * @mixes Things
  */
 class MyThing extends OtherThing {
-    /**
-     * @typedef Something
-     * @type boolean
-     * @memberof MyThing
-     */
-
     /**
      * Constructs!
      * @param {...number} a - The number.
@@ -200,6 +199,7 @@ class MyThing extends OtherThing {
 }
 
 /**
- * @prop {number} Thingy
+ * @member {number}
+ * @static
  */
 MyThing.me = 10;
