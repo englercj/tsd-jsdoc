@@ -202,6 +202,5 @@ list of the tags from CC that are supported in this template:
 
 # Rewrite todo
 
-- Generics
 - Comb through gotchas and ensure they are correct still
 - Close github issues

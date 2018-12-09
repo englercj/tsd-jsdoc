@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
 import { warn } from './logger';
-import { resolveType, createFunctionParams, createFunctionReturnType } from './type_resolve_helpers';
+import { resolveType, createFunctionParams, createFunctionReturnType, resolveTypeParameters } from './type_resolve_helpers';
 
 const declareModifier = ts.createModifier(ts.SyntaxKind.DeclareKeyword);
 const constModifier = ts.createModifier(ts.SyntaxKind.ConstKeyword);
@@ -26,12 +26,13 @@ export function createClass(doclet: IClassDoclet, children?: ts.Node[]): ts.Clas
     }
 
     const members = children as ts.ClassElement[];
+    const typeParams = resolveTypeParameters(doclet);
 
     return ts.createClassDeclaration(
         undefined,      // decorators
         mods,           // modifiers
         doclet.name,    // name
-        undefined,      // typeParameters
+        typeParams,     // typeParameters
         undefined,      // heritageClauses
         members         // members
     );
@@ -42,13 +43,14 @@ export function createFunction(doclet: IFunctionDoclet): ts.FunctionDeclaration
     const mods = doclet.memberof ? undefined : [declareModifier];
     const params = createFunctionParams(doclet);
     const type = createFunctionReturnType(doclet);
+    const typeParams = resolveTypeParameters(doclet);
 
     return ts.createFunctionDeclaration(
         undefined,      // decorators
         mods,           // modifiers
         undefined,      // asteriskToken
         doclet.name,    // name
-        undefined,      // typeParameters
+        typeParams,     // typeParameters
         params,         // parameters
         type,           // type
         undefined       // body
@@ -60,6 +62,7 @@ export function createClassMethod(doclet: IFunctionDoclet): ts.MethodDeclaration
     const mods: ts.Modifier[] = [];
     const params = createFunctionParams(doclet);
     const type = createFunctionReturnType(doclet);
+    const typeParams = resolveTypeParameters(doclet);
 
     if (!doclet.memberof)
         mods.push(declareModifier);
@@ -73,7 +76,7 @@ export function createClassMethod(doclet: IFunctionDoclet): ts.MethodDeclaration
         undefined,      // asteriskToken
         doclet.name,    // name
         undefined,      // questionToken
-        undefined,      // typeParameters
+        typeParams,     // typeParameters
         params,         // parameters
         type,           // type
         undefined       // body
@@ -85,6 +88,7 @@ export function createInterfaceMethod(doclet: IFunctionDoclet): ts.MethodSignatu
     const mods: ts.Modifier[] = [];
     const params = createFunctionParams(doclet);
     const type = createFunctionReturnType(doclet);
+    const typeParams = resolveTypeParameters(doclet);
 
     if (!doclet.memberof)
         mods.push(declareModifier);
@@ -93,7 +97,7 @@ export function createInterfaceMethod(doclet: IFunctionDoclet): ts.MethodSignatu
         mods.push(ts.createModifier(ts.SyntaxKind.StaticKeyword));
 
     return ts.createMethodSignature(
-        undefined,      // typeParameters
+        typeParams,     // typeParameters
         params,         // parameters
         type,           // type
         doclet.name,    // name
@@ -121,12 +125,13 @@ export function createInterface(doclet: IClassDoclet, children?: ts.Node[]): ts.
     }
 
     const members = children as ts.TypeElement[];
+    const typeParams = resolveTypeParameters(doclet);
 
     return ts.createInterfaceDeclaration(
         undefined,      // decorators
         mods,           // modifiers
         doclet.name,    // name
-        undefined,      // typeParameters
+        typeParams,     // typeParameters
         undefined,      // heritageClauses
         members         // members
     );
@@ -288,12 +293,13 @@ export function createTypedef(doclet: ITypedefDoclet, children?: ts.Node[]): ts.
 {
     const mods = doclet.memberof ? undefined : [declareModifier];
     const type = resolveType(doclet.type, doclet);
+    const typeParams = resolveTypeParameters(doclet);
 
     return ts.createTypeAliasDeclaration(
         undefined,      // decorators
         mods,           // modifiers
         doclet.name,    // name
-        undefined,      // typeParameters
+        typeParams,     // typeParameters
         type            // type
     );
 }

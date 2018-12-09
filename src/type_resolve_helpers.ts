@@ -2,6 +2,7 @@ import * as ts from 'typescript';
 import { Dictionary } from './Dictionary';
 import { warn } from './logger';
 import { PropTree, IPropDesc } from './PropTree';
+import { type } from 'os';
 
 const rgxObjectTokenize = /<|>|,/;
 const rgxCommaAll = /,/g;
@@ -50,6 +51,40 @@ export function resolveVariable(doclet: IDocletProp): ts.Token<ts.SyntaxKind.Dot
         return ts.createToken(ts.SyntaxKind.DotDotDotToken);
 
     return undefined;
+}
+
+export function resolveTypeParameters(doclet: TDoclet): ts.TypeParameterDeclaration[]
+{
+    const typeParams: ts.TypeParameterDeclaration[] = [];
+
+    if (doclet.tags)
+    {
+        for (let i = 0; i < doclet.tags.length; ++i)
+        {
+            const tag = doclet.tags[i];
+
+            if (tag.title === 'template')
+            {
+                const types = (tag.text || 'T').split(',');
+
+                for (let x = 0; x < types.length; ++x)
+                {
+                    const name = types[x].trim();
+
+                    if (!name)
+                        continue;
+
+                    typeParams.push(ts.createTypeParameterDeclaration(
+                        name,           // name
+                        undefined,      // constraint
+                        undefined       // defaultType
+                    ));
+                }
+            }
+        }
+    }
+
+    return typeParams;
 }
 
 export type TTypedDoclet = IMemberDoclet | ITypedefDoclet | IFunctionDoclet;
@@ -212,10 +247,12 @@ export function resolveObjectType(name: string): ts.TypeNode
     // Build a tree representing the
     for (let i = 0; i < parts.length; ++i)
     {
-        if (!parts[i])
+        const partName = parts[i].trim();
+
+        if (!partName)
             continue;
 
-        const upperPart = parts[i].toUpperCase().trim();
+        const upperPart = partName.toUpperCase();
         let obj: TObjectType;
 
         if (upperPart === 'OBJECT.')
