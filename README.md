@@ -199,3 +199,11 @@ ClosureCompiler has a couple tags beyond the built-in jsdoc tags that can improv
 list of the tags from CC that are supported in this template:
 
 - [`@template`](https://github.com/google/closure-compiler/wiki/Annotating-JavaScript-for-the-Closure-Compiler#template-t) - For generics
+
+# Rewrite todo
+
+- Generics
+- Function params need object literal support
+- Comb through gotchas and ensure they are correct still
+- Ensure built-in support exists. Load global.d.ts?
+- Close github issues
