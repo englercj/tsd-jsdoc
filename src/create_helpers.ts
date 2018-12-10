@@ -6,7 +6,7 @@ const declareModifier = ts.createModifier(ts.SyntaxKind.DeclareKeyword);
 const constModifier = ts.createModifier(ts.SyntaxKind.ConstKeyword);
 const readonlyModifier = ts.createModifier(ts.SyntaxKind.ReadonlyKeyword);
 
-function validateClassChildren(children?: ts.Node[])
+function validateClassLikeChildren(children: ts.Node[] | undefined, validate: (n: ts.Node) => boolean, msg: string)
 {
     // Validate that the children array actually contains type elements.
     // This should never trigger, but is here for safety.
@@ -15,13 +15,23 @@ function validateClassChildren(children?: ts.Node[])
         for (let i = children.length - 1; i >= 0; --i)
         {
             const child = children[i];
-            if (!ts.isTypeElement(child))
+            if (!validate(child))
             {
-                warn('Encountered child that is not a TypeElement, this is likely due to invalid JSDoc.', child);
+                warn(`Encountered child that is not a ${msg}, this is likely due to invalid JSDoc.`, child);
                 children.splice(i, 1);
             }
         }
     }
+}
+
+function validateClassChildren(children: ts.Node[] | undefined)
+{
+    return validateClassLikeChildren(children, ts.isClassElement, 'ClassElement');
+}
+
+function validateInterfaceChildren(children: ts.Node[] | undefined)
+{
+    return validateClassLikeChildren(children, ts.isTypeElement, 'TypeElement');
 }
 
 function validateModuleChildren(children?: ts.Node[])
@@ -68,7 +78,7 @@ export function createClass(doclet: IClassDoclet, children?: ts.Node[]): ts.Clas
 
 export function createInterface(doclet: IClassDoclet, children?: ts.Node[]): ts.InterfaceDeclaration
 {
-    validateClassChildren(children);
+    validateInterfaceChildren(children);
 
     const mods = doclet.memberof ? undefined : [declareModifier];
     const members = children as ts.TypeElement[];
