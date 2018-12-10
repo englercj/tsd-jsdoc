@@ -23,7 +23,7 @@ To use this module, simply specify it as the template for your normal jsdoc gene
 For example, from the command-line you can do:
 
 ```
-$> jsdoc -t node_modules/tsd-jsdoc -r .
+$> jsdoc -t node_modules/tsd-jsdoc/dist -r .
 ```
 
 Or add this to your JSON configuration:
@@ -31,7 +31,7 @@ Or add this to your JSON configuration:
 ```json
 {
     "opts": {
-        "template": "./node_modules/tsd-jsdoc"
+        "template": "./node_modules/tsd-jsdoc/dist"
     }
 }
 ```
