@@ -1,20 +1,6 @@
-/**
- * Enum for tri-state values.
- * @readonly
- * @enum {number}
- * @constant
- */
-declare const enum triState {
-    /**
-     * The true value
-     */
+declare enum triState {
     TRUE,
-    /**
-     * The false value
-     */
     FALSE,
-    /**
-     * @type {boolean}
-     */
-    MAYBE,
+    MAYBE
 }
+

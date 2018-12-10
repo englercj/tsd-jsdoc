@@ -26,7 +26,7 @@ FoobarNS.Foo = function Foo() {
  * A generic method.
  * @param {FoobarNS.Foo.FCallback} f A function.
  * @param [opt_this=10] An object.
- * @param {number[]|object<number[], string>} [opt_2=10] An object.
+ * @param {number[]|object<number, string[]>} [opt_2=10] An object.
  * @template S
  */
 FoobarNS.Foo.prototype.f = function f(f, opt_this, ...rest) {

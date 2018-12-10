@@ -41,7 +41,6 @@
 
 /**
  * @typedef {Object} PatternOptions
- * @memberOf FoobarNS
  *
  * @property {Object} pattern Holds a pattern definition.
  * @property {String} pattern.image URL to an image to use as the pattern.
