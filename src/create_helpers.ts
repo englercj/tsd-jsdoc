@@ -209,6 +209,21 @@ export function createInterfaceMember(doclet: IMemberDoclet): ts.PropertySignatu
     );
 }
 
+export function createNamespaceMember(doclet: IMemberDoclet): ts.VariableStatement
+{
+    const mods = doclet.memberof ? undefined : [declareModifier];
+    const type = resolveType(doclet.type, doclet);
+
+    return ts.createVariableStatement(
+        mods,
+        [ts.createVariableDeclaration(
+            doclet.name,    // name
+            type,           // type
+            undefined       // initializer
+        )]
+    );
+}
+
 export function createModule(doclet: INamespaceDoclet, nested: boolean, children?: ts.Node[]): ts.ModuleDeclaration
 {
     const mods = doclet.memberof ? undefined : [declareModifier];
@@ -229,7 +244,8 @@ export function createModule(doclet: INamespaceDoclet, nested: boolean, children
                 && !ts.isInterfaceDeclaration(child)
                 && !ts.isEnumDeclaration(child)
                 && !ts.isModuleDeclaration(child)
-                && !ts.isTypeAliasDeclaration(child))
+                && !ts.isTypeAliasDeclaration(child)
+                && !ts.isVariableStatement(child))
             {
                 warn('Encountered child that is not a supported declaration, this is likely due to invalid JSDoc.', child);
                 children.splice(i, 1);
@@ -270,7 +286,8 @@ export function createNamespace(doclet: INamespaceDoclet, nested: boolean, child
                 && !ts.isInterfaceDeclaration(child)
                 && !ts.isEnumDeclaration(child)
                 && !ts.isModuleDeclaration(child)
-                && !ts.isTypeAliasDeclaration(child))
+                && !ts.isTypeAliasDeclaration(child)
+                && !ts.isVariableStatement(child))
             {
                 warn('Encountered child that is not a supported declaration, this is likely due to invalid JSDoc.', child);
                 children.splice(i, 1);

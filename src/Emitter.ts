@@ -10,6 +10,7 @@ import {
     createInterface,
     createClassMember,
     createInterfaceMember,
+    createNamespaceMember,
     createModule,
     createNamespace,
     createTypedef,
@@ -40,7 +41,7 @@ function isEnum(doclet: TDoclet)
 
 export class Emitter
 {
-    results: ts.NamedDeclaration[] = [];
+    results: ts.Node[] = [];
 
     private _treeRoots: IDocletTreeNode[] = [];
     private _treeNodes: Dictionary<IDocletTreeNode> = {};
@@ -169,7 +170,7 @@ export class Emitter
         }
     }
 
-    private _parseTreeNode(node: IDocletTreeNode, parent?: IDocletTreeNode): ts.NamedDeclaration
+    private _parseTreeNode(node: IDocletTreeNode, parent?: IDocletTreeNode): ts.Node
     {
         const children: ts.Node[] = [];
 
@@ -192,8 +193,10 @@ export class Emitter
                     return createEnum(node.doclet);
                 else if (parent && parent.doclet.kind === 'class')
                     return createClassMember(node.doclet);
-                else
+                else if (parent && parent.doclet.kind === 'interface')
                     return createInterfaceMember(node.doclet);
+                else
+                    return createNamespaceMember(node.doclet);
 
             case 'function':
                 if (node.doclet.memberof)
