@@ -36,127 +36,15 @@ Or add this to your JSON configuration:
 }
 ```
 
-## Gotchas
+## Validation
 
-### Validation
+This library provides very little validation beyond what JSDoc provides. Meaning if you
+have invalid JSDoc comments, this will likely output an invalid TypeScript Definition File.
 
-This library provides very little validation beyond what jsdoc provides. Meaning if you
-have invalid jsodc comments, this will likely output an invalid TypeScript Definition File.
-
-Additionally there are things that jsdoc allows, that TypeScript does not.
-One example would be a member variable marked with `@constant`. While that is valid
-jsdoc, it is not valid TS:
-
-```ts
-class MyClass {
-    const member: number; // ERROR: A class member cannot have the 'const' keyword.
-}
-```
-
-So there a few cases like this where the jsdoc is massaged into valid TS.
-
-### `module:`
-
-This syntax is used to link to another module's docs. If you use it
-to describe the code, it will be ignored.
-
-For example, this JavaScript:
-
-```js
-const Loader = require('resource-loader');
-
-/**
- * @class
- * @extends module:resource-loader/Loader
- */
-function MyClass() {
-    Loader.call(this);
-}
-
-MyClass.prototype = Object.create(Loader.prototype);
-```
-
-Will generate this declaration:
-
-```ts
-class MyClass {
-}
-```
-
-Instead you can include their jsdoc commented source or write your own jsdocs to
-describe `Loader` and then just use `@extends Loader`.
-
-### Method/Member Overrides
-
-Any method or member that has the same name as one in the parent of a child class
-will be ignored in the Child class, unless it is a method with different parameters
-that *is not* marked with the `@override` tag.
-
-For example, this JavaScript:
-
-```js
-/**
- * @class
- */
-class Parent {
-    constructor() {
-        /**
-         * A property.
-         *
-         * @member {boolean}
-         */
-        this.someprop = true;
-    }
-
-    /**
-     */
-    amethod() {}
-
-    /**
-     */
-    bmethod() {}
-}
-
-/**
- * @class
- * @extends Parent
- */
-class Child extends Parent {
-    constructor() {
-        /**
-         * The property again
-         *
-         * @member {boolean}
-         */
-        this.someprop = false;
-    }
-
-    /**
-     * @override
-     * @param {object} opt - Does stuff.
-     */
-    amethod(opt) {}
-
-    /**
-     * @param {object} opt - Does stuff.
-     */
-    bmethod(opt) {}
-}
-```
-
-Will generate this declaration:
-
-```ts
-class Parent {
-    someprop: boolean;
-
-    amethod(): void;
-}
-
-class Child extends Parent {
-    bmethod(opt): void;
-}
-```
+Additionally there are things that JSDoc allows, that TypeScript does not. This library
+tries to make these differences transparent, and translate from one to the other when
+necessary. It can't handle anything though, and you can generate invalid Typescript
+even if your JSDoc is valid.
 
 ## Unsupported Tags
 
@@ -165,12 +53,11 @@ Tags that describe the code, but support is not implemented are:
 - [`@default`](http://usejsdoc.org/tags-default.html) - No TS equivalent
 - [`@deprecated`](http://usejsdoc.org/tags-deprecated.html) - No TS equivalent ([issue](https://github.com/Microsoft/TypeScript/issues/390))
 - [`@event`](http://usejsdoc.org/tags-event.html) - No TS equivalent
-- [`@exports`](http://usejsdoc.org/tags-exports.html) - Everything is exported since it is a definition file.
-- [`@external`](http://usejsdoc.org/tags-external.html) - **Not Yet Implemented**
+- [`@exports`](http://usejsdoc.org/tags-exports.html) - Everything is exported
+- [`@external`](http://usejsdoc.org/tags-external.html) - Not sure what behavior would be expected
 - [`@fires`](http://usejsdoc.org/tags-fires.html) - No TS equivalent
 - [`@listens`](http://usejsdoc.org/tags-listens.html) - No TS equivalent
 - [`@override`](http://usejsdoc.org/tags-override.html) - No TS equivalent ([issue](https://github.com/Microsoft/TypeScript/issues/2000))
-- [`@this`](http://usejsdoc.org/tags-this.html) - **Not Yet Implemented**
 - [`@throws`](http://usejsdoc.org/tags-throws.html) - No TS equivalent
 
 Additionally, tags that are just metadata and don't actually describe
