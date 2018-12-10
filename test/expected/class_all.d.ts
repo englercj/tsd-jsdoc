@@ -35,6 +35,8 @@ declare module util {
     class GitGraph {
     }
     type Something = boolean;
+    interface MyThing extends Stuff, Things {
+    }
     class MyThing extends OtherThing implements Stuff, Things {
         derp: string;
         map: {
