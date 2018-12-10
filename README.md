@@ -1,9 +1,9 @@
-# jsdoc2tsd
+# tsd-jsdoc
 
-This library's goal is to be able to take as input a jsdoc annotated source JavaScript
+This library's goal is to be able to take as input a JSDoc annotated source JavaScript
 file (or many files) and output a single TypeScript Declaration File (.d.ts).
 
-It is distributed as a JSDoc3 template. Running jsdoc with this as the template should
+It is distributed as a JSDoc3 template. Running JSDoc with this as the template should
 result in a TypeScript Definition File.
 
 ## Installation
@@ -16,7 +16,7 @@ $> npm install tsd-jsdoc
 
 ## Usage
 
-To use this module, simply specify it as the template for your normal jsdoc generation.
+To use this module, simply specify it as the template for your normal JSDoc generation.
 
 For example, from the command-line you can do:
 
@@ -76,11 +76,11 @@ the code are ignored. These are:
 - [`@tutorial`](http://usejsdoc.org/tags-tutorial.html)
 - [`@version`](http://usejsdoc.org/tags-version.html)
 
-All other jsdoc tags should work fine.
+All other JSDoc tags should work fine.
 
 ## Supported ClosureCompiler Tags
 
-ClosureCompiler has a couple tags beyond the built-in jsdoc tags that can improve your TypeScript output. Here is a complete
+ClosureCompiler has a couple tags beyond the built-in JSDoc tags that can improve your TypeScript output. Here is a complete
 list of the tags from CC that are supported in this template:
 
 - [`@template`](https://github.com/google/closure-compiler/wiki/Annotating-JavaScript-for-the-Closure-Compiler#template-t) - For generics
