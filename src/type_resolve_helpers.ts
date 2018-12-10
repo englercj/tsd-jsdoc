@@ -333,7 +333,9 @@ function resolveGenericTypeTree(bottom: IGenericContainer)
     {
         if (parent.kind === 'generic')
         {
-            if (parent.name.toUpperCase() === 'OBJECT')
+            const upperName = parent.name.toUpperCase();
+
+            if (upperName === 'OBJECT')
             {
                 let keyType = parent.types[0];
 
@@ -382,7 +384,7 @@ function resolveGenericTypeTree(bottom: IGenericContainer)
 
                 lastType = parent.resolved = ts.createTypeLiteralNode([indexSignature]);
             }
-            else if (parent.name.toUpperCase() === 'ARRAY')
+            else if (upperName === 'ARRAY')
             {
                 let valType = parent.types[0];
 
