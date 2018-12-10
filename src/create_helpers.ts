@@ -6,30 +6,76 @@ const declareModifier = ts.createModifier(ts.SyntaxKind.DeclareKeyword);
 const constModifier = ts.createModifier(ts.SyntaxKind.ConstKeyword);
 const readonlyModifier = ts.createModifier(ts.SyntaxKind.ReadonlyKeyword);
 
-export function createClass(doclet: IClassDoclet, children?: ts.Node[]): ts.ClassDeclaration
+function validateClassChildren(children?: ts.Node[])
 {
-    const mods = doclet.memberof ? undefined : [declareModifier];
-
-    // Validate that the children array actually contains class elements.
+    // Validate that the children array actually contains type elements.
     // This should never trigger, but is here for safety.
     if (children)
     {
         for (let i = children.length - 1; i >= 0; --i)
         {
             const child = children[i];
-            if (!ts.isClassElement(child))
+            if (!ts.isTypeElement(child))
             {
-                warn('Encountered child that is not a ClassElement, this is likely due to invalid JSDoc.', child);
+                warn('Encountered child that is not a TypeElement, this is likely due to invalid JSDoc.', child);
                 children.splice(i, 1);
             }
         }
     }
+}
 
+function validateModuleChildren(children?: ts.Node[])
+{
+    // Validate that the children array actually contains declaration elements.
+    // This should never trigger, but is here for safety.
+    if (children)
+    {
+        for (let i = children.length - 1; i >= 0; --i)
+        {
+            const child = children[i];
+            if (!ts.isClassDeclaration(child)
+                && !ts.isInterfaceDeclaration(child)
+                && !ts.isEnumDeclaration(child)
+                && !ts.isModuleDeclaration(child)
+                && !ts.isTypeAliasDeclaration(child)
+                && !ts.isVariableStatement(child))
+            {
+                warn('Encountered child that is not a supported declaration, this is likely due to invalid JSDoc.', child);
+                children.splice(i, 1);
+            }
+        }
+    }
+}
+
+export function createClass(doclet: IClassDoclet, children?: ts.Node[]): ts.ClassDeclaration
+{
+    validateClassChildren(children);
+
+    const mods = doclet.memberof ? undefined : [declareModifier];
     const members = children as ts.ClassElement[];
     const typeParams = resolveTypeParameters(doclet);
     const heritageClauses = resolveHeritageClauses(doclet);
 
     return ts.createClassDeclaration(
+        undefined,      // decorators
+        mods,           // modifiers
+        doclet.name,    // name
+        typeParams,     // typeParameters
+        heritageClauses,// heritageClauses
+        members         // members
+    );
+}
+
+export function createInterface(doclet: IClassDoclet, children?: ts.Node[]): ts.InterfaceDeclaration
+{
+    validateClassChildren(children);
+
+    const mods = doclet.memberof ? undefined : [declareModifier];
+    const members = children as ts.TypeElement[];
+    const typeParams = resolveTypeParameters(doclet);
+    const heritageClauses = resolveHeritageClauses(doclet);
+
+    return ts.createInterfaceDeclaration(
         undefined,      // decorators
         mods,           // modifiers
         doclet.name,    // name
@@ -103,39 +149,6 @@ export function createInterfaceMethod(doclet: IFunctionDoclet): ts.MethodSignatu
         type,           // type
         doclet.name,    // name
         undefined       // questionToken
-    );
-}
-
-export function createInterface(doclet: IClassDoclet, children?: ts.Node[]): ts.InterfaceDeclaration
-{
-    const mods = doclet.memberof ? undefined : [declareModifier];
-
-    // Validate that the children array actually contains type elements.
-    // This should never trigger, but is here for safety.
-    if (children)
-    {
-        for (let i = children.length - 1; i >= 0; --i)
-        {
-            const child = children[i];
-            if (!ts.isTypeElement(child))
-            {
-                warn('Encountered child that is not a TypeElement, this is likely due to invalid JSDoc.', child);
-                children.splice(i, 1);
-            }
-        }
-    }
-
-    const members = children as ts.TypeElement[];
-    const typeParams = resolveTypeParameters(doclet);
-    const heritageClauses = resolveHeritageClauses(doclet);
-
-    return ts.createInterfaceDeclaration(
-        undefined,      // decorators
-        mods,           // modifiers
-        doclet.name,    // name
-        typeParams,     // typeParameters
-        heritageClauses,// heritageClauses
-        members         // members
     );
 }
 
@@ -226,6 +239,8 @@ export function createNamespaceMember(doclet: IMemberDoclet): ts.VariableStateme
 
 export function createModule(doclet: INamespaceDoclet, nested: boolean, children?: ts.Node[]): ts.ModuleDeclaration
 {
+    validateModuleChildren(children);
+
     const mods = doclet.memberof ? undefined : [declareModifier];
     let body: ts.ModuleBlock | undefined = undefined;
     let flags = ts.NodeFlags.None;
@@ -233,25 +248,8 @@ export function createModule(doclet: INamespaceDoclet, nested: boolean, children
     if (nested)
         flags |= ts.NodeFlags.NestedNamespace;
 
-    // Validate that the children array actually contains declaration elements.
-    // This should never trigger, but is here for safety.
     if (children)
     {
-        for (let i = children.length - 1; i >= 0; --i)
-        {
-            const child = children[i];
-            if (!ts.isClassDeclaration(child)
-                && !ts.isInterfaceDeclaration(child)
-                && !ts.isEnumDeclaration(child)
-                && !ts.isModuleDeclaration(child)
-                && !ts.isTypeAliasDeclaration(child)
-                && !ts.isVariableStatement(child))
-            {
-                warn('Encountered child that is not a supported declaration, this is likely due to invalid JSDoc.', child);
-                children.splice(i, 1);
-            }
-        }
-
         body = ts.createModuleBlock(children as ts.Statement[]);
     }
 
@@ -268,6 +266,8 @@ export function createModule(doclet: INamespaceDoclet, nested: boolean, children
 
 export function createNamespace(doclet: INamespaceDoclet, nested: boolean, children?: ts.Node[]): ts.ModuleDeclaration
 {
+    validateModuleChildren(children);
+
     const mods = doclet.memberof ? undefined : [declareModifier];
     let body: ts.ModuleBlock | undefined = undefined;
     let flags = ts.NodeFlags.Namespace;
@@ -275,25 +275,8 @@ export function createNamespace(doclet: INamespaceDoclet, nested: boolean, child
     if (nested)
         flags |= ts.NodeFlags.NestedNamespace;
 
-    // Validate that the children array actually contains declaration elements.
-    // This should never trigger, but is here for safety.
     if (children)
     {
-        for (let i = children.length - 1; i >= 0; --i)
-        {
-            const child = children[i];
-            if (!ts.isClassDeclaration(child)
-                && !ts.isInterfaceDeclaration(child)
-                && !ts.isEnumDeclaration(child)
-                && !ts.isModuleDeclaration(child)
-                && !ts.isTypeAliasDeclaration(child)
-                && !ts.isVariableStatement(child))
-            {
-                warn('Encountered child that is not a supported declaration, this is likely due to invalid JSDoc.', child);
-                children.splice(i, 1);
-            }
-        }
-
         body = ts.createModuleBlock(children as ts.Statement[]);
     }
 
