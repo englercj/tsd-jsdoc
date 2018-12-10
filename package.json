@@ -34,7 +34,6 @@
     "jsdoc": "^3.5.5"
   },
   "dependencies": {
-    "ts-simple-ast": "^19.1.0",
     "typescript": "^3.2.1"
   }
 }
