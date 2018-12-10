@@ -134,9 +134,16 @@ export function resolveType(t: IDocletType, doclet?: TTypedDoclet): ts.TypeNode
         if (doclet && doclet.properties)
             return resolveTypeName('object', doclet);
 
-        const name = doclet ? doclet.longname || doclet.name : '"Unkown Name"';
+        if (doclet)
+        {
+            warn(`Unable to resolve type for ${doclet.longname || doclet.name}, none specified in JSDoc. Defaulting to \`any\`.`, doclet);
+        }
+        else
+        {
+            warn(`Unable to resolve type for an unnamed item, this is likely due to invalid JSDoc.` +
+                ` Often this is caused by invalid JSDoc on a parameter. Defaulting to \`any\`.`, doclet);
+        }
 
-        warn(`Unable to resolve type for ${name}, none specified in jsdoc. Defaulting to \`any\`.`, doclet);
         return anyTypeNode;
     }
 
