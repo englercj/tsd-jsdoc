@@ -4,10 +4,15 @@ import { warn } from './logger';
 import { PropTree, IPropDesc } from './PropTree';
 import { type } from 'os';
 
-const rgxObjectTokenize = /<|>|,/;
+const rgxObjectTokenize = /(<|>|,)/;
 const rgxCommaAll = /,/g;
+const rgxParensAll = /\(|\)/g;
 
 const anyTypeNode = ts.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword);
+const strTypeNode = ts.createKeywordTypeNode(ts.SyntaxKind.StringKeyword);
+
+const anyGeneric: IGenericType = { kind: 'type', name: 'any', resolved: anyTypeNode };
+const strGeneric: IGenericType = { kind: 'type', name: 'string', resolved: strTypeNode };
 
 export function toKeywordTypeKind(k: string): ts.KeywordTypeNode['kind'] | null
 {
@@ -163,75 +168,49 @@ export function resolveTypeName(name: string, doclet?: TTypedDoclet): ts.TypeNod
         );
     }
 
-    if (upperName.startsWith('ARRAY.') || upperName.startsWith('OBJECT.'))
-        return resolveObjectType(name);
+    if (upperName.indexOf('.<') !== -1)
+    {
+        return resolveGenericType(name);
+    }
 
-    // TODO: Type parameters for type references
+    if (name.indexOf('|') !== -1)
+    {
+        const nameParts = name.split('|');
+        const types: ts.TypeNode[] = [];
+
+        for (let i = 0; i < nameParts.length; ++i)
+        {
+            const subName = nameParts[i].replace(rgxParensAll, '').trim();
+            types.push(resolveTypeName(subName, doclet));
+        }
+
+        return ts.createUnionTypeNode(types);
+    }
+
     return ts.createTypeReferenceNode(name, undefined);
 }
 
-interface IObjectType_Object
+interface IGenericBase
 {
-    kind: 'object';
-    parent?: TObjectTypeParent;
-    keyType?: IObjectType_Type;
-    valType?: TObjectType;
+    name: string;
+    parent?: IGenericContainer;
+    resolved?: ts.TypeNode;
 }
 
-interface IObjectType_Array
+interface IGenericContainer extends IGenericBase
 {
-    kind: 'array';
-    parent?: TObjectTypeParent;
-    valType?: TObjectType;
+    kind: 'generic';
+    types: TGeneric[];
 }
 
-interface IObjectType_Type
+interface IGenericType extends IGenericBase
 {
     kind: 'type';
-    parent?: TObjectTypeParent;
-    type: string;
 }
 
-type TObjectTypeParent = IObjectType_Object | IObjectType_Array;
-type TObjectType = TObjectTypeParent | IObjectType_Type;
+type TGeneric = (IGenericContainer | IGenericType);
 
-function addToObjectTypeParentStack(obj: TObjectType, parentStack: TObjectTypeParent[])
-{
-    const parent = parentStack[parentStack.length - 1];
-
-    if (parent)
-    {
-        obj.parent = parent;
-
-        if (parent.kind === 'object')
-        {
-            if (parent.keyType)
-            {
-                parent.valType = obj;
-                parentStack.pop();
-            }
-            else if (obj.kind === 'type')
-            {
-                parent.keyType = obj;
-            }
-            else
-            {
-                warn(`Invalid object key type. It must be \`string\` or \`number\`, but got: ${obj.kind}. Defaulting to \`string\`.`);
-                parent.keyType = { kind: 'type', type: 'string' };
-            }
-        }
-        else
-        {
-            parent.valType = obj;
-            parentStack.pop();
-        }
-    }
-
-    if (obj.kind === 'object' || obj.kind === 'array')
-        parentStack.push(obj);
-}
-
-export function resolveObjectType(name: string): ts.TypeNode
+export function resolveGenericType(name: string): ts.TypeNode
 {
     const parts = name.split(rgxObjectTokenize);
 
@@ -241,29 +220,59 @@ export function resolveObjectType(name: string): ts.TypeNode
         return anyTypeNode;
     }
 
-    let lastObj: TObjectType | null = null;
-    let parentStack: TObjectTypeParent[] = [];
+    let lastObj: TGeneric | null = null;
+    let parentStack: IGenericContainer[] = [];
 
-    // Build a tree representing the
+    // Build a tree representing the generic
     for (let i = 0; i < parts.length; ++i)
     {
         const partName = parts[i].trim();
 
-        if (!partName)
+        if (!partName || partName === ',')
             continue;
 
-        const upperPart = partName.toUpperCase();
-        let obj: TObjectType;
+        if (partName.endsWith('.'))
+        {
+            const parent = parentStack[parentStack.length - 1];
 
-        if (upperPart === 'OBJECT.')
-            obj = { kind: 'object' };
-        else if (upperPart === 'ARRAY.')
-            obj = { kind: 'array' };
+            lastObj = {
+                kind: 'generic',
+                name: partName.substr(0, partName.length - 1),
+                parent,
+                types: [],
+            };
+
+            if (parent)
+                parent.types.push(lastObj);
+        }
+        else if (partName === '<')
+        {
+            if (lastObj && lastObj.kind === 'generic')
+                parentStack.push(lastObj);
+        }
+        else if (partName === '>')
+        {
+            parentStack.pop();
+        }
         else
-            obj = { kind: 'type', type: parts[i].trim() };
+        {
+            const parent = parentStack[parentStack.length - 1];
 
-        addToObjectTypeParentStack(obj, parentStack);
-        lastObj = obj;
+            if (!parent)
+            {
+                warn(`Invalid generic format encountered when parsing type: ${name}`);
+                continue;
+            }
+
+            lastObj = {
+                kind: 'type',
+                name: partName,
+                parent,
+                resolved: resolveTypeName(partName),
+            };
+
+            parent.types.push(lastObj);
+        }
     }
 
     if (!lastObj || !lastObj.parent)
@@ -272,91 +281,109 @@ export function resolveObjectType(name: string): ts.TypeNode
         return anyTypeNode;
     }
 
-    return resolveObjectTypeTree(lastObj.parent);
+    return resolveGenericTypeTree(lastObj.parent);
 }
 
-function resolveObjectTypeTree(bottom: TObjectTypeParent)
+function resolveGenericTypeTree(bottom: IGenericContainer)
 {
     let lastType: ts.TypeNode | null = null;
-    let parent: TObjectTypeParent | undefined = bottom;
+    let parent: IGenericContainer | undefined = bottom;
 
     while (parent)
     {
-        if (parent.kind === 'object')
+        if (parent.kind === 'generic')
         {
-            if (!parent.keyType)
+            if (parent.name.toUpperCase() === 'OBJECT')
             {
-                warn(`Unable to resolve object key type, this is likely due to invalid JSDoc. Defaulting to \`string\`.`);
-                parent.keyType = { kind: 'type', type: 'string' };
+                let keyType = parent.types[0];
+
+                if (!keyType)
+                {
+                    warn(`Unable to resolve object key type, this is likely due to invalid JSDoc. Defaulting to \`string\`.`);
+                    keyType = strGeneric;
+                }
+                else if (keyType.kind !== 'type'
+                    || (keyType.name !== 'string' && keyType.name !== 'number'))
+                {
+                    warn(`Invalid object key type. It must be \`string\` or \`number\`, but got: ${keyType.name}. Defaulting to \`string\`.`);
+                    keyType = strGeneric;
+                }
+
+                let valType = parent.types[1];
+
+                if (!valType)
+                {
+                    warn('Unable to resolve object value type, this is likely due to invalid JSDoc. Defaulting to \`any\`.', parent);
+                    valType = anyGeneric;
+                }
+
+                const indexParam = ts.createParameter(
+                    undefined,          // decorators
+                    undefined,          // modifiers
+                    undefined,          // dotDotDotToken
+                    'key',              // name
+                    undefined,          // questionToken
+                    keyType.resolved,   // type
+                    undefined           // initializer
+                );
+
+                if (!valType.resolved)
+                {
+                    warn('Unable to resolve object value type, this is likely a bug. Defaulting to \`any\`.', parent);
+                    valType.resolved = anyTypeNode;
+                }
+
+                const indexSignature = ts.createIndexSignature(
+                    undefined,          // decorators
+                    undefined,          // modifiers
+                    [indexParam],       // parameters
+                    valType.resolved,   // type
+                );
+
+                lastType = parent.resolved = ts.createTypeLiteralNode([indexSignature]);
             }
-            else if (parent.keyType.type !== 'string' && parent.keyType.type !== 'number')
+            else if (parent.name.toUpperCase() === 'ARRAY')
             {
-                const name = parent.keyType.kind === 'type' ? parent.keyType.type : parent.keyType.kind;
-                warn(`Invalid object key type. It must be \`string\` or \`number\`, but got: ${name}. Defaulting to \`string\`.`);
-                parent.keyType = { kind: 'type', type: 'string' };
-            }
-
-            if (!parent.valType)
-            {
-                warn('Unable to resolve object value type, this is likely due to invalid JSDoc. Defaulting to \`any\`.', parent);
-                parent.valType = { kind: 'type', type: 'any' };
-            }
-
-            let keyTypeKind = toKeywordTypeKind(parent.keyType.type);
-
-            if (keyTypeKind !== ts.SyntaxKind.StringKeyword
-                && keyTypeKind !== ts.SyntaxKind.NumberKeyword)
-            {
-                warn(`Invalid object key type. It must be \`string\` or \`number\`, but got: ${name}. Defaulting to \`string\`.`);
-                keyTypeKind = ts.SyntaxKind.StringKeyword;
-            }
-
-            const indexParam = ts.createParameter(
-                undefined,
-                undefined,
-                undefined,
-                'key',
-                undefined,
-                ts.createKeywordTypeNode(keyTypeKind),
-                undefined
-            );
-
-            let valType = parent.valType.kind === 'type' ? resolveTypeName(parent.valType.type) : lastType;
-
-            if (!valType)
-            {
-                warn('Unable to resolve object value type, this is likely a bug. Defaulting to \`any\`.', parent);
-                valType = anyTypeNode;
-            }
-
-            const indexSignature = ts.createIndexSignature(
-                undefined,
-                undefined,
-                [indexParam],
-                valType
-            );
-
-            lastType = ts.createTypeLiteralNode([indexSignature]);
-        }
-        else if (parent.kind === 'array')
-        {
-            if (!parent.valType)
-            {
-                warn('Unable to resolve array value type, defaulting to \`any\`.', parent);
-                lastType = ts.createArrayTypeNode(anyTypeNode);
-            }
-            else
-            {
-                const val = parent.valType;
-                let valType = val.kind === 'type' ? resolveTypeName(val.type) : lastType;
+                let valType = parent.types[0];
 
                 if (!valType)
                 {
                     warn('Unable to resolve array value type, defaulting to \`any\`.', parent);
-                    valType = anyTypeNode;
+                    valType = anyGeneric;
                 }
 
-                lastType = ts.createArrayTypeNode(valType);
+                if (!valType.resolved)
+                {
+                    warn('Unable to resolve array value type, defaulting to \`any\`.', parent);
+                    valType.resolved = anyTypeNode;
+                }
+
+                lastType = parent.resolved = ts.createArrayTypeNode(valType.resolved);
+            }
+            else
+            {
+                const typeNodes: ts.TypeNode[] = [];
+
+                for (let i = 0; i < parent.types.length; ++i)
+                {
+                    let valType = parent.types[i];
+
+                    if (!valType)
+                    {
+                        warn('Unable to resolve generic type parameter, defaulting to \`any\`.', parent);
+                        valType = anyGeneric;
+                    }
+
+                    if (!valType.resolved)
+                    {
+                        warn('Unable to resolve generic type parameter, defaulting to \`any\`.', parent);
+                        valType.resolved = anyTypeNode;
+                    }
+
+                    typeNodes.push(valType.resolved);
+                }
+
+                lastType = parent.resolved = ts.createTypeReferenceNode(parent.name, typeNodes);
             }
         }
 

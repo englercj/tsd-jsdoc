@@ -16,7 +16,6 @@ export function warn(msg: string, data?: any)
 
     if (isVerbose && arguments.length > 1)
     {
-        const dataStr = JSON.stringify(data, null, 4);
-        console.warn(`${header} ${dataStr}`);
+        console.warn(data);
     }
 }
