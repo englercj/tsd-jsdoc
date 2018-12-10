@@ -44,7 +44,17 @@ tries to make these differences transparent, and translate from one to the other
 necessary. It can't handle anything though, and you can generate invalid Typescript
 even if your JSDoc is valid.
 
-## Unsupported Tags
+## Unsupported Features
+
+### Default exports
+
+JSDoc [has a bug](https://github.com/jsdoc3/jsdoc/issues/1464) that prevents it from
+correctly parsing `export default class Name {}`. The workaround is to use named exports
+(`export class Name {}`) or utilize the
+[jsdoc-export-default-interop](https://www.npmjs.com/package/jsdoc-export-default-interop) plugin.
+
+
+### Tags with no support
 
 Tags that describe the code, but support is not implemented are:
 
@@ -58,7 +68,9 @@ Tags that describe the code, but support is not implemented are:
 - [`@override`](http://usejsdoc.org/tags-override.html) - No TS equivalent ([issue](https://github.com/Microsoft/TypeScript/issues/2000))
 - [`@throws`](http://usejsdoc.org/tags-throws.html) - No TS equivalent
 
-Additionally, tags that are just metadata and don't actually describe
+### Ignored tags
+
+Tags that are just metadata and don't actually describe
 the code are ignored. These are:
 
 - [`@author`](http://usejsdoc.org/tags-author.html)
