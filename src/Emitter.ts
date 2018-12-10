@@ -161,10 +161,11 @@ export class Emitter
                 }
 
                 const isObjClassLike = isClassLike(doclet);
+                const isObjModuleLike = isModuleLike(doclet);
                 const isParentClassLike = isClassLike(parent.doclet);
 
                 // We need to move this into a module of the same name as the parent
-                if (isParentClassLike && (isObjClassLike || doclet.kind === 'typedef'))
+                if (isParentClassLike && (isObjClassLike || isObjModuleLike || doclet.kind === 'typedef'))
                 {
                     const mod = this._getOrCreateClassModule(parent);
 
