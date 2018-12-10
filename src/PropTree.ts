@@ -19,6 +19,13 @@ export class PropTree
         for (let i = 0; i < props.length; ++i)
         {
             const prop = props[i];
+
+            if (!prop || !prop.name)
+            {
+                warn('Encountered a property with no name, this is likely due to invalid JSDoc. Skipping.');
+                continue;
+            }
+
             const parts = prop.name.split('.');
 
             this.nodes[prop.name] = {
@@ -32,6 +39,10 @@ export class PropTree
         for (let i = 0; i < props.length; ++i)
         {
             const prop = props[i];
+
+            if (!prop || !prop.name)
+                continue;
+
             const parts = prop.name.split('.');
 
             const obj = this.nodes[prop.name];
