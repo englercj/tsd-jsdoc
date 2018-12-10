@@ -39,6 +39,14 @@ function isEnum(doclet: TDoclet)
     return doclet.kind === 'member' || doclet.kind === 'constant' && doclet.isEnum;
 }
 
+function shouldMoveOutOfClass(doclet: TDoclet)
+{
+    return isClassLike(doclet)
+        || isModuleLike(doclet)
+        || isEnum(doclet)
+        || doclet.kind === 'typedef';
+}
+
 export class Emitter
 {
     results: ts.Node[] = [];
@@ -160,12 +168,10 @@ export class Emitter
                     continue;
                 }
 
-                const isObjClassLike = isClassLike(doclet);
-                const isObjModuleLike = isModuleLike(doclet);
                 const isParentClassLike = isClassLike(parent.doclet);
 
                 // We need to move this into a module of the same name as the parent
-                if (isParentClassLike && (isObjClassLike || isObjModuleLike || doclet.kind === 'typedef'))
+                if (isParentClassLike && shouldMoveOutOfClass(doclet))
                 {
                     const mod = this._getOrCreateClassModule(parent);
 
