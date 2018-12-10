@@ -1,7 +1,5 @@
 # jsdoc2tsd
 
-## Warning: Highly Experimental
-
 This library's goal is to be able to take as input a jsdoc annotated source JavaScript
 file (or many files) and output a single TypeScript Declaration File (.d.ts).
 
