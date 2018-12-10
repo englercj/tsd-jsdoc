@@ -204,7 +204,7 @@ export function resolveTypeName(name: string, doclet?: TTypedDoclet): ts.TypeNod
 
     const upperName = name.toUpperCase();
 
-    if (upperName === 'FUNCTION')
+    if (upperName === 'FUNCTION' || upperName === 'FUNCTION()')
     {
         if (doclet && doclet.kind === 'typedef')
         {
