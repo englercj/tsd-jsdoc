@@ -131,6 +131,13 @@ export function createClassMethod(doclet: IFunctionDoclet): ts.MethodDeclaration
     if (doclet.scope === 'static')
         mods.push(ts.createModifier(ts.SyntaxKind.StaticKeyword));
 
+    if (doclet.access === 'private')
+        mods.push(ts.createModifier(ts.SyntaxKind.PrivateKeyword));
+    else if (doclet.access === 'protected')
+        mods.push(ts.createModifier(ts.SyntaxKind.ProtectedKeyword));
+    else if (doclet.access === 'public')
+        mods.push(ts.createModifier(ts.SyntaxKind.PublicKeyword));
+
     if (doclet.name.startsWith('exports.'))
         doclet.name = doclet.name.replace('exports.', '');
 
@@ -211,6 +218,13 @@ export function createClassMember(doclet: IMemberDoclet): ts.PropertyDeclaration
 
     if (doclet.scope === 'static')
         mods.push(ts.createModifier(ts.SyntaxKind.StaticKeyword));
+
+    if (doclet.access === 'private')
+        mods.push(ts.createModifier(ts.SyntaxKind.PrivateKeyword));
+    else if (doclet.access === 'protected')
+        mods.push(ts.createModifier(ts.SyntaxKind.ProtectedKeyword));
+    else if (doclet.access === 'public')
+        mods.push(ts.createModifier(ts.SyntaxKind.PublicKeyword));
 
     return ts.createProperty(
         undefined,      // decorators
