@@ -45,6 +45,7 @@ function validateModuleChildren(children?: ts.Node[])
             const child = children[i];
             if (!ts.isClassDeclaration(child)
                 && !ts.isInterfaceDeclaration(child)
+                && !ts.isFunctionDeclaration(child)
                 && !ts.isEnumDeclaration(child)
                 && !ts.isModuleDeclaration(child)
                 && !ts.isTypeAliasDeclaration(child)
