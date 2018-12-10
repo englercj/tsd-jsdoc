@@ -36,7 +36,7 @@ function isModuleLike(doclet: TDoclet)
 
 function isEnum(doclet: TDoclet)
 {
-    return doclet.kind === 'member' || doclet.kind === 'constant' && doclet.isEnum;
+    return (doclet.kind === 'member' || doclet.kind === 'constant') && doclet.isEnum;
 }
 
 function shouldMoveOutOfClass(doclet: TDoclet)
