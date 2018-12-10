@@ -103,6 +103,9 @@ export function createFunction(doclet: IFunctionDoclet): ts.FunctionDeclaration
     const type = createFunctionReturnType(doclet);
     const typeParams = resolveTypeParameters(doclet);
 
+    if (doclet.name.startsWith('exports.'))
+        doclet.name = doclet.name.replace('exports.', '');
+
     return ts.createFunctionDeclaration(
         undefined,      // decorators
         mods,           // modifiers
@@ -127,6 +130,9 @@ export function createClassMethod(doclet: IFunctionDoclet): ts.MethodDeclaration
 
     if (doclet.scope === 'static')
         mods.push(ts.createModifier(ts.SyntaxKind.StaticKeyword));
+
+    if (doclet.name.startsWith('exports.'))
+        doclet.name = doclet.name.replace('exports.', '');
 
     return ts.createMethod(
         undefined,      // decorators
@@ -153,6 +159,9 @@ export function createInterfaceMethod(doclet: IFunctionDoclet): ts.MethodSignatu
 
     if (doclet.scope === 'static')
         mods.push(ts.createModifier(ts.SyntaxKind.StaticKeyword));
+
+    if (doclet.name.startsWith('exports.'))
+        doclet.name = doclet.name.replace('exports.', '');
 
     return ts.createMethodSignature(
         typeParams,     // typeParameters
