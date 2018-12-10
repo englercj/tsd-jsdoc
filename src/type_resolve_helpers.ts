@@ -58,6 +58,39 @@ export function resolveVariable(doclet: IDocletProp): ts.Token<ts.SyntaxKind.Dot
     return undefined;
 }
 
+function getExprWithTypeArgs(identifier: string)
+{
+    const expr = ts.createIdentifier(identifier);
+    return ts.createExpressionWithTypeArguments(undefined, expr);
+}
+
+export function resolveHeritageClauses(doclet: IClassDoclet): ts.HeritageClause[]
+{
+    const clauses: ts.HeritageClause[] = [];
+
+    if (doclet.augments && doclet.augments.length)
+    {
+        clauses.push(ts.createHeritageClause(
+            ts.SyntaxKind.ExtendsKeyword,
+            doclet.augments.map(getExprWithTypeArgs),
+        ));
+    }
+
+    const impls = doclet.implements || [];
+    const mixes = doclet.mixes || [];
+    const extras = impls.concat(mixes);
+
+    if (extras.length)
+    {
+        clauses.push(ts.createHeritageClause(
+            ts.SyntaxKind.ImplementsKeyword,
+            extras.map(getExprWithTypeArgs),
+        ));
+    }
+
+    return clauses;
+}
+
 export function resolveTypeParameters(doclet: TDoclet): ts.TypeParameterDeclaration[]
 {
     const typeParams: ts.TypeParameterDeclaration[] = [];

@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
 import { warn } from './logger';
-import { resolveType, createFunctionParams, createFunctionReturnType, resolveTypeParameters } from './type_resolve_helpers';
+import { resolveType, createFunctionParams, createFunctionReturnType, resolveTypeParameters, resolveHeritageClauses } from './type_resolve_helpers';
 
 const declareModifier = ts.createModifier(ts.SyntaxKind.DeclareKeyword);
 const constModifier = ts.createModifier(ts.SyntaxKind.ConstKeyword);
@@ -27,13 +27,14 @@ export function createClass(doclet: IClassDoclet, children?: ts.Node[]): ts.Clas
 
     const members = children as ts.ClassElement[];
     const typeParams = resolveTypeParameters(doclet);
+    const heritageClauses = resolveHeritageClauses(doclet);
 
     return ts.createClassDeclaration(
         undefined,      // decorators
         mods,           // modifiers
         doclet.name,    // name
         typeParams,     // typeParameters
-        undefined,      // heritageClauses
+        heritageClauses,// heritageClauses
         members         // members
     );
 }
@@ -126,13 +127,14 @@ export function createInterface(doclet: IClassDoclet, children?: ts.Node[]): ts.
 
     const members = children as ts.TypeElement[];
     const typeParams = resolveTypeParameters(doclet);
+    const heritageClauses = resolveHeritageClauses(doclet);
 
     return ts.createInterfaceDeclaration(
         undefined,      // decorators
         mods,           // modifiers
         doclet.name,    // name
         typeParams,     // typeParameters
-        undefined,      // heritageClauses
+        heritageClauses,// heritageClauses
         members         // members
     );
 }
