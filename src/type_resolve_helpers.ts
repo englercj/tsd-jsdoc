@@ -204,16 +204,39 @@ export function resolveTypeName(name: string, doclet?: TTypedDoclet): ts.TypeNod
 
     const upperName = name.toUpperCase();
 
-    if (upperName === 'FUNCTION' && doclet && doclet.kind === 'typedef')
+    if (upperName === 'FUNCTION')
     {
-        const params = createFunctionParams(doclet);
-        const type = createFunctionReturnType(doclet);
+        if (doclet && doclet.kind === 'typedef')
+        {
+            const params = createFunctionParams(doclet);
+            const type = createFunctionReturnType(doclet);
 
-        return ts.createFunctionTypeNode(
-            undefined,      // typeParameters
-            params,         // parameters
-            type            // type
-        );
+            return ts.createFunctionTypeNode(
+                undefined,      // typeParameters
+                params,         // parameters
+                type            // type
+            );
+        }
+        else
+        {
+            const anyArray = ts.createArrayTypeNode(anyTypeNode);
+            const dotDotDot = ts.createToken(ts.SyntaxKind.DotDotDotToken);
+            const param = ts.createParameter(
+                undefined,          // decorators
+                undefined,          // modifiers
+                dotDotDot,          // dotDotDotToken
+                'params',           // name
+                undefined,          // questionToken
+                anyArray,           // type
+                undefined           // initializer
+            );
+
+            return ts.createFunctionTypeNode(
+                undefined,      // typeParameters
+                [param],        // parameters
+                anyTypeNode     // type
+            );
+        }
     }
 
     if (upperName.indexOf('.<') !== -1)
