@@ -64,27 +64,35 @@ function getExprWithTypeArgs(identifier: string)
     return ts.createExpressionWithTypeArguments(undefined, expr);
 }
 
-export function resolveHeritageClauses(doclet: IClassDoclet): ts.HeritageClause[]
+export function resolveHeritageClauses(doclet: IClassDoclet, onlyExtend: boolean): ts.HeritageClause[]
 {
     const clauses: ts.HeritageClause[] = [];
+    let extensions: string[] = doclet.augments || [];
 
-    if (doclet.augments && doclet.augments.length)
+    if (onlyExtend)
+    {
+        extensions = extensions.concat(doclet.implements || []);
+        extensions = extensions.concat(doclet.mixes || []);
+    }
+
+    if (extensions.length)
     {
         clauses.push(ts.createHeritageClause(
             ts.SyntaxKind.ExtendsKeyword,
-            doclet.augments.map(getExprWithTypeArgs),
+            extensions.map(getExprWithTypeArgs),
         ));
     }
 
-    const impls = doclet.implements || [];
-    const mixes = doclet.mixes || [];
-    const extras = impls.concat(mixes);
+    if (onlyExtend)
+        return clauses;
 
-    if (extras.length)
+    let implementations = (doclet.implements || []).concat(doclet.mixes || []);
+
+    if (implementations.length)
     {
         clauses.push(ts.createHeritageClause(
             ts.SyntaxKind.ImplementsKeyword,
-            extras.map(getExprWithTypeArgs),
+            implementations.map(getExprWithTypeArgs),
         ));
     }
 

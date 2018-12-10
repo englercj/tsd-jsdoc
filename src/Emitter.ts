@@ -123,6 +123,33 @@ export class Emitter
                 continue;
             }
 
+            const interfaceLongname = this._getInterfaceKey(doclet.longname);
+            let interfaceMerge: IDocletTreeNode | null = null;
+
+            // Generate an interface of the same name as the class to perform
+            // a namespace merge.
+            if (doclet.kind === 'class')
+            {
+                const impls = doclet.implements || [];
+                const mixes = doclet.mixes || [];
+                const extras = impls.concat(mixes);
+
+                if (extras.length)
+                {
+                    interfaceMerge = this._treeNodes[interfaceLongname] = {
+                        doclet: {
+                            kind: 'interface',
+                            name: doclet.name,
+                            scope: doclet.scope,
+                            longname: interfaceLongname,
+                            augments: extras,
+                            memberof: doclet.memberof,
+                        },
+                        children: [],
+                    };
+                }
+            }
+
             if (doclet.memberof)
             {
                 const parent = this._treeNodes[doclet.memberof];
@@ -139,7 +166,12 @@ export class Emitter
                 // We need to move this into a module of the same name as the parent
                 if (isParentClassLike && (isObjClassLike || doclet.kind === 'typedef'))
                 {
-                    this._moveMemberToModule(obj, parent);
+                    const mod = this._getOrCreateClassModule(parent);
+
+                    if (interfaceMerge)
+                        mod.children.push(interfaceMerge);
+
+                    mod.children.push(obj);
                 }
                 else
                 {
@@ -152,11 +184,19 @@ export class Emitter
                     const isParentEnum = isEnum(parent.doclet);
 
                     if (!isParentEnum)
+                    {
+                        if (interfaceMerge)
+                            parent.children.push(interfaceMerge);
+
                         parent.children.push(obj);
+                    }
                 }
             }
             else
             {
+                if (interfaceMerge)
+                    this._treeRoots.push(interfaceMerge);
+
                 this._treeRoots.push(obj);
             }
         }
@@ -237,16 +277,14 @@ export class Emitter
             || (!this.allowPrivate && doclet.access === 'private');
     }
 
+    private _getInterfaceKey(longname?: string): string
+    {
+        return longname ? longname + '$$interface$helper' : '';
+    }
+
     private _getModuleKey(longname?: string): string
     {
         return longname ? longname + '$$module$helper' : '';
-    }
-
-    private _moveMemberToModule(obj: IDocletTreeNode, parent: IDocletTreeNode)
-    {
-        const mod = this._getOrCreateClassModule(parent);
-
-        mod.children.push(obj);
     }
 
     private _getOrCreateClassModule(obj: IDocletTreeNode): IDocletTreeNode

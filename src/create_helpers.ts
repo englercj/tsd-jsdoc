@@ -54,7 +54,7 @@ export function createClass(doclet: IClassDoclet, children?: ts.Node[]): ts.Clas
     const mods = doclet.memberof ? undefined : [declareModifier];
     const members = children as ts.ClassElement[];
     const typeParams = resolveTypeParameters(doclet);
-    const heritageClauses = resolveHeritageClauses(doclet);
+    const heritageClauses = resolveHeritageClauses(doclet, false);
 
     return ts.createClassDeclaration(
         undefined,      // decorators
@@ -73,7 +73,7 @@ export function createInterface(doclet: IClassDoclet, children?: ts.Node[]): ts.
     const mods = doclet.memberof ? undefined : [declareModifier];
     const members = children as ts.TypeElement[];
     const typeParams = resolveTypeParameters(doclet);
-    const heritageClauses = resolveHeritageClauses(doclet);
+    const heritageClauses = resolveHeritageClauses(doclet, true);
 
     return ts.createInterfaceDeclaration(
         undefined,      // decorators
