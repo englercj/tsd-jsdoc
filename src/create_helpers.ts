@@ -67,6 +67,9 @@ export function createClass(doclet: IClassDoclet, children?: ts.Node[]): ts.Clas
     const typeParams = resolveTypeParameters(doclet);
     const heritageClauses = resolveHeritageClauses(doclet, false);
 
+    if (doclet.name.startsWith('exports.'))
+        doclet.name = doclet.name.replace('exports.', '');
+
     return ts.createClassDeclaration(
         undefined,      // decorators
         mods,           // modifiers
@@ -85,6 +88,9 @@ export function createInterface(doclet: IClassDoclet, children?: ts.Node[]): ts.
     const members = children as ts.TypeElement[];
     const typeParams = resolveTypeParameters(doclet);
     const heritageClauses = resolveHeritageClauses(doclet, true);
+
+    if (doclet.name.startsWith('exports.'))
+        doclet.name = doclet.name.replace('exports.', '');
 
     return ts.createInterfaceDeclaration(
         undefined,      // decorators
@@ -261,6 +267,9 @@ export function createNamespaceMember(doclet: IMemberDoclet): ts.VariableStateme
     const mods = doclet.memberof ? undefined : [declareModifier];
     const type = resolveType(doclet.type, doclet);
 
+    if (doclet.name.startsWith('exports.'))
+        doclet.name = doclet.name.replace('exports.', '');
+
     return ts.createVariableStatement(
         mods,
         [ts.createVariableDeclaration(
@@ -278,6 +287,9 @@ export function createModule(doclet: INamespaceDoclet, nested: boolean, children
     const mods = doclet.memberof ? undefined : [declareModifier];
     let body: ts.ModuleBlock | undefined = undefined;
     let flags = ts.NodeFlags.None;
+
+    if (doclet.name.startsWith('exports.'))
+        doclet.name = doclet.name.replace('exports.', '');
 
     if (nested)
         flags |= ts.NodeFlags.NestedNamespace;
@@ -306,6 +318,9 @@ export function createNamespace(doclet: INamespaceDoclet, nested: boolean, child
     let body: ts.ModuleBlock | undefined = undefined;
     let flags = ts.NodeFlags.Namespace;
 
+    if (doclet.name.startsWith('exports.'))
+        doclet.name = doclet.name.replace('exports.', '');
+
     if (nested)
         flags |= ts.NodeFlags.NestedNamespace;
 
@@ -330,6 +345,9 @@ export function createTypedef(doclet: ITypedefDoclet, children?: ts.Node[]): ts.
     const mods = doclet.memberof ? undefined : [declareModifier];
     const type = resolveType(doclet.type, doclet);
     const typeParams = resolveTypeParameters(doclet);
+
+    if (doclet.name.startsWith('exports.'))
+        doclet.name = doclet.name.replace('exports.', '');
 
     return ts.createTypeAliasDeclaration(
         undefined,      // decorators
