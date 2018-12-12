@@ -501,7 +501,7 @@ export function createTypeLiteral(nodes: IPropDesc[]): ts.TypeLiteralNode
     return ts.createTypeLiteralNode(members);
 }
 
-export function createFunctionParams(doclet: IFunctionDoclet | ITypedefDoclet): ts.ParameterDeclaration[]
+export function createFunctionParams(doclet: IFunctionDoclet | ITypedefDoclet | IClassDoclet): ts.ParameterDeclaration[]
 {
     if (!doclet.params || !doclet.params.length)
         return [];
@@ -509,7 +509,7 @@ export function createFunctionParams(doclet: IFunctionDoclet | ITypedefDoclet): 
     const params: ts.ParameterDeclaration[] = [];
     const tree = new PropTree(doclet.params);
 
-    if (doclet.this)
+    if ((doclet.kind === 'function' || doclet.kind === 'typedef') && doclet.this)
     {
         const type = resolveType({ names: [ doclet.this ] }, doclet);
 

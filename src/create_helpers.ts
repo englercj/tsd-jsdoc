@@ -63,12 +63,26 @@ export function createClass(doclet: IClassDoclet, children?: ts.Node[]): ts.Clas
     validateClassChildren(children);
 
     const mods = doclet.memberof ? undefined : [declareModifier];
-    const members = children as ts.ClassElement[];
+    const members = children as ts.ClassElement[] || [];
     const typeParams = resolveTypeParameters(doclet);
     const heritageClauses = resolveHeritageClauses(doclet, false);
 
     if (doclet.name.startsWith('exports.'))
         doclet.name = doclet.name.replace('exports.', '');
+
+    if (doclet.params)
+    {
+        const params = createFunctionParams(doclet);
+
+        members.unshift(
+            ts.createConstructor(
+                undefined,  // decorators
+                undefined,  // modifiers
+                params,     // parameters
+                undefined   // body
+            )
+        );
+    }
 
     return ts.createClassDeclaration(
         undefined,      // decorators
