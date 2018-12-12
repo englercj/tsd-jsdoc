@@ -26,7 +26,7 @@ interface IDocletTreeNode
 
 function isClassLike(doclet: TDoclet)
 {
-    return doclet.kind === 'class' || doclet.kind === 'interface';
+    return doclet.kind === 'class' || doclet.kind === 'interface' || doclet.kind === 'mixin';
 }
 
 function isModuleLike(doclet: TDoclet)
@@ -131,7 +131,6 @@ export class Emitter
                 continue;
             }
 
-            const interfaceLongname = this._getInterfaceKey(doclet.longname);
             let interfaceMerge: IDocletTreeNode | null = null;
 
             // Generate an interface of the same name as the class to perform
@@ -144,6 +143,7 @@ export class Emitter
 
                 if (extras.length)
                 {
+                    const interfaceLongname = this._getInterfaceKey(doclet.longname);
                     interfaceMerge = this._treeNodes[interfaceLongname] = {
                         doclet: {
                             kind: 'interface',
