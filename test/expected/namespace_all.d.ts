@@ -14,6 +14,7 @@ declare namespace FoobarNS {
         radius: number;
     }
     class Circle {
+        constructor(opt_options?: FoobarNS.CircleOptions);
     }
 }
 
