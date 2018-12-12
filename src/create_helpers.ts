@@ -213,7 +213,7 @@ export function createClassMember(doclet: IMemberDoclet): ts.PropertyDeclaration
     const mods: ts.Modifier[] = [];
     const type = resolveType(doclet.type, doclet);
 
-    if (doclet.kind === 'constant')
+    if (doclet.kind === 'constant' || doclet.readonly)
         mods.push(readonlyModifier);
 
     if (doclet.scope === 'static')
