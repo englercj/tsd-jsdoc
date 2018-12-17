@@ -433,6 +433,24 @@ function resolveGenericTypeTree(bottom: IGenericContainer)
 
                 lastType = parent.resolved = ts.createArrayTypeNode(valType.resolved);
             }
+            else if (upperName === 'CLASS')
+            {
+                let valType = parent.types[0];
+
+                if (!valType)
+                {
+                    warn('Unable to resolve array value type, defaulting to \`any\`.', parent);
+                    valType = anyGeneric;
+                }
+
+                if (!valType.resolved)
+                {
+                    warn('Unable to resolve array value type, defaulting to \`any\`.', parent);
+                    valType.resolved = anyTypeNode;
+                }
+
+                lastType = parent.resolved = ts.createTypeQueryNode(ts.createIdentifier(valType.name));
+            }
             else
             {
                 const typeNodes: ts.TypeNode[] = [];

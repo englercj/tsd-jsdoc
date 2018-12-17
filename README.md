@@ -96,3 +96,10 @@ ClosureCompiler has a couple tags beyond the built-in JSDoc tags that can improv
 list of the tags from CC that are supported in this template:
 
 - [`@template`](https://github.com/google/closure-compiler/wiki/Annotating-JavaScript-for-the-Closure-Compiler#template-t) - For generics
+
+## Extended support for TS features
+
+JSDoc doesn't have a way to express all the features of typescript so we treat some syntax as special case to
+create better Typescript.
+
+- `Class<T>` - If we encounter a type that is `Class<T>` we will treat it as `typeof T`.
