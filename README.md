@@ -102,4 +102,4 @@ list of the tags from CC that are supported in this template:
 JSDoc doesn't have a way to express all the features of typescript so we treat some syntax as special case to
 create better Typescript.
 
-- `Class<T>` - If we encounter a type that is `Class<T>` we will treat it as `typeof T`. See jsdoc3/jsdoc#1349.
+- `Class<T>` - If we encounter a type that is `Class<T>` we will treat it as `typeof T`. See [jsdoc3/jsdoc#1349](https://github.com/jsdoc3/jsdoc/issues/1349)
