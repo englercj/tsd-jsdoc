@@ -545,9 +545,14 @@ export function createFunctionParams(doclet: IFunctionDoclet | ITypedefDoclet | 
     for (let i = 0; i < tree.roots.length; ++i)
     {
         const node = tree.roots[i];
-        const type = node.children.length ? createTypeLiteral(node.children) : resolveType(node.prop.type);
         const opt = resolveOptional(node.prop);
         const dots = resolveVariable(node.prop);
+        let type = node.children.length ? createTypeLiteral(node.children) : resolveType(node.prop.type);
+
+        if (dots)
+        {
+            type = ts.createArrayTypeNode(type);
+        }
 
         params.push(ts.createParameter(
             undefined,          // decorators
