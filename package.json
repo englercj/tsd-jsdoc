@@ -1,6 +1,6 @@
 {
   "name": "tsd-jsdoc",
-  "version": "2.0.5",
+  "version": "2.1.0",
   "description": "Compiles JSDoc annotated javascript into a Typescript Declaration File (.d.ts).",
   "main": "dist/publish.js",
   "author": "Chad Engler <chad@pantherdev.com>",
