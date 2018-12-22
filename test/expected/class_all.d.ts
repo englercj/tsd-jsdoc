@@ -65,7 +65,6 @@ declare module util {
         promiseMe(): Promise<any>;
         objParam(options: GitGraphOptions): void;
         D: string;
-        D: string;
         static me: number;
         copy(): void;
     }

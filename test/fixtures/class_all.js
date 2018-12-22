@@ -188,11 +188,6 @@ class MyThing extends OtherThing {
         return this.derp;
     }
 
-    /**
-     * Sets derp
-     *
-     * @param {string} v - The value to set to.
-     */
     set D(v) {
         this.derp = v;
     }
