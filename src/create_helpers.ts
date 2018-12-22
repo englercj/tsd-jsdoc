@@ -58,6 +58,29 @@ function validateModuleChildren(children?: ts.Node[])
     }
 }
 
+function handleComment<T extends ts.Node>(doclet: IDocletBase, node: T): T
+{
+    if (doclet.comment && doclet.comment.length > 4)
+    {
+        let comment = doclet.comment;
+
+        // remove '/*' and '*/'
+        comment = comment.substring(2, doclet.comment.length - 2);
+
+        // remove '          *' leading spaces
+        comment = comment.replace(/[ \t]+\*/g, ' *');
+
+        // remove trailing spaces
+        comment = comment.trim() + '\n ';
+
+        const kind = ts.SyntaxKind.MultiLineCommentTrivia;
+
+        ts.addSyntheticLeadingComment(node, kind, comment, true);
+    }
+
+    return node;
+}
+
 export function createClass(doclet: IClassDoclet, children?: ts.Node[]): ts.ClassDeclaration
 {
     validateClassChildren(children);
@@ -84,14 +107,14 @@ export function createClass(doclet: IClassDoclet, children?: ts.Node[]): ts.Clas
         );
     }
 
-    return ts.createClassDeclaration(
+    return handleComment(doclet, ts.createClassDeclaration(
         undefined,      // decorators
         mods,           // modifiers
         doclet.name,    // name
         typeParams,     // typeParameters
         heritageClauses,// heritageClauses
         members         // members
-    );
+    ));
 }
 
 export function createInterface(doclet: IClassDoclet, children?: ts.Node[]): ts.InterfaceDeclaration
@@ -106,14 +129,14 @@ export function createInterface(doclet: IClassDoclet, children?: ts.Node[]): ts.
     if (doclet.name.startsWith('exports.'))
         doclet.name = doclet.name.replace('exports.', '');
 
-    return ts.createInterfaceDeclaration(
+    return handleComment(doclet, ts.createInterfaceDeclaration(
         undefined,      // decorators
         mods,           // modifiers
         doclet.name,    // name
         typeParams,     // typeParameters
         heritageClauses,// heritageClauses
         members         // members
-    );
+    ));
 }
 
 export function createFunction(doclet: IFunctionDoclet): ts.FunctionDeclaration
@@ -126,7 +149,7 @@ export function createFunction(doclet: IFunctionDoclet): ts.FunctionDeclaration
     if (doclet.name.startsWith('exports.'))
         doclet.name = doclet.name.replace('exports.', '');
 
-    return ts.createFunctionDeclaration(
+    return handleComment(doclet, ts.createFunctionDeclaration(
         undefined,      // decorators
         mods,           // modifiers
         undefined,      // asteriskToken
@@ -135,7 +158,7 @@ export function createFunction(doclet: IFunctionDoclet): ts.FunctionDeclaration
         params,         // parameters
         type,           // type
         undefined       // body
-    );
+    ));
 }
 
 export function createClassMethod(doclet: IFunctionDoclet): ts.MethodDeclaration
@@ -161,7 +184,7 @@ export function createClassMethod(doclet: IFunctionDoclet): ts.MethodDeclaration
     if (doclet.name.startsWith('exports.'))
         doclet.name = doclet.name.replace('exports.', '');
 
-    return ts.createMethod(
+    return handleComment(doclet, ts.createMethod(
         undefined,      // decorators
         mods,           // modifiers
         undefined,      // asteriskToken
@@ -171,7 +194,7 @@ export function createClassMethod(doclet: IFunctionDoclet): ts.MethodDeclaration
         params,         // parameters
         type,           // type
         undefined       // body
-    );
+    ));
 }
 
 export function createInterfaceMethod(doclet: IFunctionDoclet): ts.MethodSignature
@@ -190,13 +213,13 @@ export function createInterfaceMethod(doclet: IFunctionDoclet): ts.MethodSignatu
     if (doclet.name.startsWith('exports.'))
         doclet.name = doclet.name.replace('exports.', '');
 
-    return ts.createMethodSignature(
+    return handleComment(doclet, ts.createMethodSignature(
         typeParams,     // typeParameters
         params,         // parameters
         type,           // type
         doclet.name,    // name
         undefined       // questionToken
-    );
+    ));
 }
 
 export function createEnum(doclet: IMemberDoclet): ts.EnumDeclaration
@@ -220,12 +243,12 @@ export function createEnum(doclet: IMemberDoclet): ts.EnumDeclaration
         }
     }
 
-    return ts.createEnumDeclaration(
+    return handleComment(doclet, ts.createEnumDeclaration(
         undefined,
         mods,
         doclet.name,
         props,
-    );
+    ));
 }
 
 export function createClassMember(doclet: IMemberDoclet): ts.PropertyDeclaration
@@ -246,14 +269,14 @@ export function createClassMember(doclet: IMemberDoclet): ts.PropertyDeclaration
     else if (doclet.access === 'public')
         mods.push(ts.createModifier(ts.SyntaxKind.PublicKeyword));
 
-    return ts.createProperty(
+    return handleComment(doclet, ts.createProperty(
         undefined,      // decorators
         mods,           // modifiers
         doclet.name,    // name
         undefined,      // questionToken
         type,           // type
         undefined       // initializer
-    );
+    ));
 }
 
 export function createInterfaceMember(doclet: IMemberDoclet): ts.PropertySignature
@@ -267,13 +290,13 @@ export function createInterfaceMember(doclet: IMemberDoclet): ts.PropertySignatu
     if (doclet.scope === 'static')
         mods.push(ts.createModifier(ts.SyntaxKind.StaticKeyword));
 
-    return ts.createPropertySignature(
+    return handleComment(doclet, ts.createPropertySignature(
         mods,           // modifiers
         doclet.name,    // name
         undefined,      // questionToken
         type,           // type
         undefined       // initializer
-    );
+    ));
 }
 
 export function createNamespaceMember(doclet: IMemberDoclet): ts.VariableStatement
@@ -284,14 +307,14 @@ export function createNamespaceMember(doclet: IMemberDoclet): ts.VariableStateme
     if (doclet.name.startsWith('exports.'))
         doclet.name = doclet.name.replace('exports.', '');
 
-    return ts.createVariableStatement(
+    return handleComment(doclet, ts.createVariableStatement(
         mods,
         [ts.createVariableDeclaration(
             doclet.name,    // name
             type,           // type
             undefined       // initializer
         )]
-    );
+    ));
 }
 
 export function createModule(doclet: INamespaceDoclet, nested: boolean, children?: ts.Node[]): ts.ModuleDeclaration
@@ -315,13 +338,13 @@ export function createModule(doclet: INamespaceDoclet, nested: boolean, children
 
     const name = ts.createIdentifier(doclet.name);
 
-    return ts.createModuleDeclaration(
+    return handleComment(doclet, ts.createModuleDeclaration(
         undefined,      // decorators
         mods,           // modifiers
         name,           // name
         body,           // body
         flags           // flags
-    );
+    ));
 }
 
 export function createNamespace(doclet: INamespaceDoclet, nested: boolean, children?: ts.Node[]): ts.ModuleDeclaration
@@ -345,13 +368,13 @@ export function createNamespace(doclet: INamespaceDoclet, nested: boolean, child
 
     const name = ts.createIdentifier(doclet.name);
 
-    return ts.createModuleDeclaration(
+    return handleComment(doclet, ts.createModuleDeclaration(
         undefined,      // decorators
         mods,           // modifiers
         name,           // name
         body,           // body
         flags           // flags
-    );
+    ));
 }
 
 export function createTypedef(doclet: ITypedefDoclet, children?: ts.Node[]): ts.TypeAliasDeclaration
@@ -363,11 +386,11 @@ export function createTypedef(doclet: ITypedefDoclet, children?: ts.Node[]): ts.
     if (doclet.name.startsWith('exports.'))
         doclet.name = doclet.name.replace('exports.', '');
 
-    return ts.createTypeAliasDeclaration(
+    return handleComment(doclet, ts.createTypeAliasDeclaration(
         undefined,      // decorators
         mods,           // modifiers
         doclet.name,    // name
         typeParams,     // typeParameters
         type            // type
-    );
+    ));
 }
