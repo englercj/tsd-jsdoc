@@ -70,7 +70,7 @@ function handleComment<T extends ts.Node>(doclet: IDocletBase, node: T): T
         // remove '          *' leading spaces
         comment = comment.replace(/[ \t]+\*/g, ' *');
 
-        // remove trailing spaces
+        // remove trailing spacesgit dif
         comment = comment.trim() + '\n ';
 
         const kind = ts.SyntaxKind.MultiLineCommentTrivia;
