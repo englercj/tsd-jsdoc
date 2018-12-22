@@ -55,7 +55,7 @@ declare module util {
     interface MyThing extends Stuff, Things {
     }
     class MyThing extends OtherThing implements Stuff, Things {
-        constructor(...a: number);
+        constructor(...a: number[]);
         readonly derp: string;
         map: {
             [key: string]: (number | string)[];
