@@ -213,11 +213,14 @@ export class Emitter
     {
         for (let i = 0; i < this._treeRoots.length; ++i)
         {
-            this.results.push(this._parseTreeNode(this._treeRoots[i]));
+            const node = this._parseTreeNode(this._treeRoots[i]);
+
+            if (node)
+                this.results.push(node);
         }
     }
 
-    private _parseTreeNode(node: IDocletTreeNode, parent?: IDocletTreeNode): ts.Node
+    private _parseTreeNode(node: IDocletTreeNode, parent?: IDocletTreeNode): ts.Node | null
     {
         const children: ts.Node[] = [];
 
@@ -225,7 +228,10 @@ export class Emitter
         {
             for (let i = 0; i < node.children.length; ++i)
             {
-                children.push(this._parseTreeNode(node.children[i], node));
+                const childNode = this._parseTreeNode(node.children[i], node);
+
+                if (childNode)
+                    children.push(childNode);
             }
         }
 
@@ -271,6 +277,10 @@ export class Emitter
 
             case 'typedef':
                 return createTypedef(node.doclet, children);
+
+            case 'event':
+                // TODO: Handle Events.
+                return null;
 
             default:
                 return assertNever(node.doclet);

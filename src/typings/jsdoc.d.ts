@@ -85,6 +85,7 @@ declare interface IDocletBase {
     ignore?: boolean;
     undocumented?: boolean;
     properties?: IDocletProp[];
+    inherits?: string;
     inherited?: boolean;
 }
 
@@ -99,6 +100,11 @@ declare interface IClassDoclet extends IDocletBase {
     mixes?: string[];
     virtual?: boolean;
     classdesc?: string;
+}
+
+declare interface IEventDoclet extends IDocletBase {
+    kind: 'event';
+    params?: IDocletProp[];
 }
 
 declare interface IFunctionDoclet extends IDocletBase {
@@ -140,6 +146,7 @@ declare interface IPackageDoclet {
 
 declare type TDoclet = (
     IClassDoclet
+    | IEventDoclet
     | IFunctionDoclet
     | IMemberDoclet
     | INamespaceDoclet
