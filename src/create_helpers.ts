@@ -171,15 +171,15 @@ export function createClassMethod(doclet: IFunctionDoclet): ts.MethodDeclaration
     if (!doclet.memberof)
         mods.push(declareModifier);
 
-    if (doclet.scope === 'static')
-        mods.push(ts.createModifier(ts.SyntaxKind.StaticKeyword));
-
     if (doclet.access === 'private')
         mods.push(ts.createModifier(ts.SyntaxKind.PrivateKeyword));
     else if (doclet.access === 'protected')
         mods.push(ts.createModifier(ts.SyntaxKind.ProtectedKeyword));
     else if (doclet.access === 'public')
         mods.push(ts.createModifier(ts.SyntaxKind.PublicKeyword));
+
+    if (doclet.scope === 'static')
+        mods.push(ts.createModifier(ts.SyntaxKind.StaticKeyword));
 
     if (doclet.name.startsWith('exports.'))
         doclet.name = doclet.name.replace('exports.', '');
