@@ -256,9 +256,6 @@ export function createClassMember(doclet: IMemberDoclet): ts.PropertyDeclaration
     const mods: ts.Modifier[] = [];
     const type = resolveType(doclet.type, doclet);
 
-    if (doclet.kind === 'constant' || doclet.readonly)
-        mods.push(readonlyModifier);
-
     if (doclet.scope === 'static')
         mods.push(ts.createModifier(ts.SyntaxKind.StaticKeyword));
 
@@ -268,6 +265,9 @@ export function createClassMember(doclet: IMemberDoclet): ts.PropertyDeclaration
         mods.push(ts.createModifier(ts.SyntaxKind.ProtectedKeyword));
     else if (doclet.access === 'public')
         mods.push(ts.createModifier(ts.SyntaxKind.PublicKeyword));
+
+    if (doclet.kind === 'constant' || doclet.readonly)
+        mods.push(readonlyModifier);
 
     return handleComment(doclet, ts.createProperty(
         undefined,      // decorators
