@@ -171,15 +171,15 @@ export function createClassMethod(doclet: IFunctionDoclet): ts.MethodDeclaration
     if (!doclet.memberof)
         mods.push(declareModifier);
 
-    if (doclet.scope === 'static')
-        mods.push(ts.createModifier(ts.SyntaxKind.StaticKeyword));
-
     if (doclet.access === 'private')
         mods.push(ts.createModifier(ts.SyntaxKind.PrivateKeyword));
     else if (doclet.access === 'protected')
         mods.push(ts.createModifier(ts.SyntaxKind.ProtectedKeyword));
     else if (doclet.access === 'public')
         mods.push(ts.createModifier(ts.SyntaxKind.PublicKeyword));
+
+    if (doclet.scope === 'static')
+        mods.push(ts.createModifier(ts.SyntaxKind.StaticKeyword));
 
     if (doclet.name.startsWith('exports.'))
         doclet.name = doclet.name.replace('exports.', '');
@@ -256,18 +256,18 @@ export function createClassMember(doclet: IMemberDoclet): ts.PropertyDeclaration
     const mods: ts.Modifier[] = [];
     const type = resolveType(doclet.type, doclet);
 
-    if (doclet.kind === 'constant' || doclet.readonly)
-        mods.push(readonlyModifier);
-
-    if (doclet.scope === 'static')
-        mods.push(ts.createModifier(ts.SyntaxKind.StaticKeyword));
-
     if (doclet.access === 'private')
         mods.push(ts.createModifier(ts.SyntaxKind.PrivateKeyword));
     else if (doclet.access === 'protected')
         mods.push(ts.createModifier(ts.SyntaxKind.ProtectedKeyword));
     else if (doclet.access === 'public')
         mods.push(ts.createModifier(ts.SyntaxKind.PublicKeyword));
+
+    if (doclet.scope === 'static')
+        mods.push(ts.createModifier(ts.SyntaxKind.StaticKeyword));
+
+    if (doclet.kind === 'constant' || doclet.readonly)
+        mods.push(readonlyModifier);
 
     return handleComment(doclet, ts.createProperty(
         undefined,      // decorators
