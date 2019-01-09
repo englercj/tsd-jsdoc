@@ -43,7 +43,7 @@ export function publish(data: TDocletDb, opts: ITemplateConfig)
 
         const pkgArray: any = helper.find(data, { kind: 'package' }) || [];
         const pkg = pkgArray[0] as IPackageDoclet;
-        const out = path.join(opts.destination, pkg && pkg.name ? `${pkg.name}.d.ts` : 'types.d.ts');
+        const out = path.join(opts.destination, opts.outFile || pkg && pkg.name ? `${pkg.name}.d.ts` : 'types.d.ts');
 
         fs.writeFileSync(out, emitter.emit());
     }
