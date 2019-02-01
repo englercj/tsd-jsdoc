@@ -16,9 +16,7 @@
     "test": "mocha --ui tdd -r ts-node/register test/specs/**.ts"
   },
   "files": [
-    "dist/*",
-    "README.md",
-    "LICENSE"
+    "dist/*"
   ],
   "devDependencies": {
     "@types/chai": "^4.1.7",
