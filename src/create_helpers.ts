@@ -317,6 +317,14 @@ export function createNamespaceMember(doclet: IMemberDoclet): ts.VariableStateme
     ));
 }
 
+function createModuleIdentifier(name: string): ts.Identifier
+{
+    if (name.length > 214) {
+        throw new Error(`Module name "${name}" is too long. See https://docs.npmjs.com/files/package.json#name`);
+    }
+    return ts.createIdentifier(`'${name}'`)
+}
+
 export function createModule(doclet: INamespaceDoclet, nested: boolean, children?: ts.Node[]): ts.ModuleDeclaration
 {
     validateModuleChildren(children);
@@ -336,7 +344,7 @@ export function createModule(doclet: INamespaceDoclet, nested: boolean, children
         body = ts.createModuleBlock(children as ts.Statement[]);
     }
 
-    const name = ts.createIdentifier(doclet.name);
+    const name = createModuleIdentifier(doclet.name);
 
     return handleComment(doclet, ts.createModuleDeclaration(
         undefined,      // decorators

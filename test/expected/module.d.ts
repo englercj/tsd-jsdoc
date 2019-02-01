@@ -1,6 +1,6 @@
 /** @module array-to-object-keys
  */
-declare module "array-to-object-keys" {
+declare module 'array-to-object-keys' {
     /**
      * @typedef valueGenerator
      * @type {function}
