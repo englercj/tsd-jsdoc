@@ -43,7 +43,7 @@ declare class DeepClass1 {
     constructor();
 }
 
-declare module DeepClass1 {
+declare module 'DeepClass1' {
     /**
      * Deep class #2
      *
@@ -52,7 +52,7 @@ declare module DeepClass1 {
     class DeepClass2 {
         constructor();
     }
-    module DeepClass2 {
+    module 'DeepClass2' {
         /**
          * Deep class #3
          *
@@ -61,7 +61,7 @@ declare module DeepClass1 {
         class DeepClass3 {
             constructor();
         }
-        module DeepClass3 {
+        module 'DeepClass3' {
             /**
              * Deep class #4
              *
@@ -76,7 +76,7 @@ declare module DeepClass1 {
 
 /** @module util
  */
-declare module util {
+declare module 'util' {
     /**
      * @class MyClass
      * @param {string} message
