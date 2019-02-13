@@ -173,7 +173,7 @@ export class Emitter
                 // We need to move this into a module of the same name as the parent
                 if (isParentClassLike && shouldMoveOutOfClass(doclet))
                 {
-                    const mod = this._getOrCreateClassModule(parent);
+                    const mod = this._getOrCreateClassNamespace(parent);
 
                     if (interfaceMerge)
                         mod.children.push(interfaceMerge);
@@ -299,28 +299,28 @@ export class Emitter
         return longname ? longname + '$$interface$helper' : '';
     }
 
-    private _getModuleKey(longname?: string): string
+    private _getNamespaceKey(longname?: string): string
     {
-        return longname ? longname + '$$module$helper' : '';
+        return longname ? longname + '$$namespace$helper' : '';
     }
 
-    private _getOrCreateClassModule(obj: IDocletTreeNode): IDocletTreeNode
+    private _getOrCreateClassNamespace(obj: IDocletTreeNode): IDocletTreeNode
     {
         if (obj.doclet.kind === 'namespace')
             return obj;
 
-        const moduleKey = this._getModuleKey(obj.doclet.longname);
-        let mod = this._treeNodes[moduleKey];
+        const namespaceKey = this._getNamespaceKey(obj.doclet.longname);
+        let mod = this._treeNodes[namespaceKey];
 
         if (mod)
             return mod;
 
-        mod = this._treeNodes[moduleKey] = {
+        mod = this._treeNodes[namespaceKey] = {
             doclet: {
-                kind: 'module',
+                kind: 'namespace',
                 name: obj.doclet.name,
                 scope: 'static',
-                longname: moduleKey,
+                longname: namespaceKey,
             },
             children: [],
         };
@@ -335,7 +335,7 @@ export class Emitter
                 return mod;
             }
 
-            let parentMod = this._getOrCreateClassModule(parent);
+            let parentMod = this._getOrCreateClassNamespace(parent);
 
             mod.doclet.memberof = parentMod.doclet.longname;
             parentMod.children.push(mod);

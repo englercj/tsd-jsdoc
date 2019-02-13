@@ -6,48 +6,6 @@ const declareModifier = ts.createModifier(ts.SyntaxKind.DeclareKeyword);
 const constModifier = ts.createModifier(ts.SyntaxKind.ConstKeyword);
 const readonlyModifier = ts.createModifier(ts.SyntaxKind.ReadonlyKeyword);
 
-// A simplified version of the rules found at:
-// https://www.ecma-international.org/ecma-262/5.1/#sec-7.6
-//
-// Here, an identifier is defined as:
-// - Must only contain: `a-z`, `A-Z`, `0-9`, `$`, and `_`
-// - Must not start with a number.
-// - Must not match a reserved word.
-//
-const rgxIdentifier = /^[a-zA-Z\$_][a-zA-Z0-9\$_]+$/;
-const reservedWords = [
-    // Keywords
-    'break', 'do', 'instanceof', 'typeof',
-    'case', 'else', 'new', 'var',
-    'catch', 'finally', 'return', 'void',
-    'continue', 'for', 'switch', 'while',
-    'debugger', 'function', 'this', 'with',
-    'default', 'if', 'throw',
-    'delete', 'in', 'try',
-
-    // Future Reserved Words
-    'class', 'enum', 'extends', 'super',
-    'const', 'export', 'import',
-
-    // Future Reserved Words (strict mode)
-    'implements', 'let', 'private', 'public', 'yield',
-    'interface', 'package', 'protected', 'static',
-
-    // Null & Boolean literals
-    'null', 'true', 'false',
-];
-
-function isValidIdentifier(name: string)
-{
-    if (!name || !rgxIdentifier.test(name))
-        return false;
-
-    if (reservedWords.indexOf(name) !== -1)
-        return false;
-
-    return true;
-}
-
 function validateClassLikeChildren(children: ts.Node[] | undefined, validate: (n: ts.Node) => boolean, msg: string)
 {
     // Validate that the children array actually contains type elements.
@@ -374,16 +332,9 @@ export function createModule(doclet: INamespaceDoclet, nested: boolean, children
         flags |= ts.NodeFlags.NestedNamespace;
 
     if (children)
-    {
         body = ts.createModuleBlock(children as ts.Statement[]);
-    }
 
-    let name;
-
-    if (isValidIdentifier(doclet.name))
-        name = ts.createIdentifier(doclet.name)
-    else
-        name = ts.createStringLiteral(doclet.name);
+    const name = ts.createStringLiteral(doclet.name);
 
     return handleComment(doclet, ts.createModuleDeclaration(
         undefined,      // decorators

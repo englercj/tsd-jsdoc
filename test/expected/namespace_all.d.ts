@@ -21,7 +21,7 @@ declare namespace FoobarNS {
             [key: number]: string[];
         }): void;
     }
-    module Foo {
+    namespace Foo {
         /**
          * @callback FCallback
          * @this S
