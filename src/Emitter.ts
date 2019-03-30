@@ -251,6 +251,7 @@ export class Emitter
                 else
                     return createNamespaceMember(node.doclet);
 
+            case 'callback':
             case 'function':
                 if (node.doclet.memberof)
                 {
@@ -277,6 +278,9 @@ export class Emitter
 
             case 'typedef':
                 return createTypedef(node.doclet, children);
+
+            case 'file':
+                return null;
 
             case 'event':
                 // TODO: Handle Events.

@@ -102,13 +102,18 @@ declare interface IClassDoclet extends IDocletBase {
     classdesc?: string;
 }
 
+declare interface IFileDoclet extends IDocletBase {
+    kind: 'file';
+    params?: IDocletProp[];
+}
+
 declare interface IEventDoclet extends IDocletBase {
     kind: 'event';
     params?: IDocletProp[];
 }
 
 declare interface IFunctionDoclet extends IDocletBase {
-    kind: 'function';
+    kind: 'function' | 'callback';
     this?: string;
     params?: IDocletProp[];
     returns?: IDocletReturn[];
@@ -147,6 +152,7 @@ declare interface IPackageDoclet {
 declare type TDoclet = (
     IClassDoclet
     | IEventDoclet
+    | IFileDoclet
     | IFunctionDoclet
     | IMemberDoclet
     | INamespaceDoclet
