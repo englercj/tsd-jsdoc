@@ -165,11 +165,27 @@ class MyThing extends OtherThing {
     }
 
     /**
-     * Gets a Promise that will resolve with an Object.
+     * Gets a Promise that will resolve with an Object, or reject with OtherThing
      *
-     * @return {Promise<Object>} The Promise
+     * @return {Promise<Object, OtherThing>} The Promise
      */
     promiseMe() {
+    }
+
+    /**
+     * Gets a Promise that will resolve with an array of OtherThings
+     *
+     * @return {Promise<Array.<OtherThing>>} The Promise
+     */
+    promiseYou() {
+    }
+
+    /**
+     * Gets a Promise that will resolve with a bunch of possible types
+     *
+     * @return {Promise<Array.<*>|Object|number|string>} The Promise
+     */
+    promiseFoo() {
     }
 
     /**
