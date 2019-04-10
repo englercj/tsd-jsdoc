@@ -176,6 +176,12 @@ declare module "util" {
          */
         promiseFoo(): Promise<any[] | object | number | string>;
         /**
+         * Gets a Promise that will resolve with an object with complex properties
+         *
+         * @return {Promise<{newChannels: Channel[], foo: Bar}>} The Promise
+         */
+        promiseBar(): Promise<{ newChannels: Channel[]; foo: Bar; }>;
+        /**
          *
          * @param {GitGraphOptions} options - GitGraph options
          */

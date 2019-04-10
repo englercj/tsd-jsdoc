@@ -189,6 +189,14 @@ class MyThing extends OtherThing {
     }
 
     /**
+     * Gets a Promise that will resolve with an object with complex properties
+     *
+     * @return {Promise<{newChannels: Channel[], foo: Bar}>} The Promise
+     */
+    promiseBar() {
+    }
+
+    /**
      *
      * @param {GitGraphOptions} options - GitGraph options
      */
