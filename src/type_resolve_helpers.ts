@@ -4,7 +4,7 @@ import { warn } from './logger';
 import { PropTree, IPropDesc } from './PropTree';
 import { type } from 'os';
 
-const rgxObjectTokenize = /(<|>|,|\(|\)|\|)/;
+const rgxObjectTokenize = /(<|>|,|\(|\)|\||\{|\}|:)/;
 const rgxCommaAll = /,/g;
 const rgxParensAll = /\(|\)/g;
 
@@ -17,6 +17,7 @@ enum ENodeType {
     FUNCTION,   // function()   has arguments for children
     TUPLE,      // [a,b]        has types for children
     TYPE,       // string, X    has no children
+    OBJECT,     // {a:b, c:d}   has name value pairs for children
 }
 class StringTreeNode {
     children: StringTreeNode[] = [];
@@ -45,6 +46,8 @@ class StringTreeNode {
                 return 'TUPLE';
             case ENodeType.TYPE:
                 return 'TYPE';
+            case ENodeType.OBJECT:
+                return 'OBJECT';
             default:
                 return 'UNKNOWN'
         }
@@ -86,7 +89,7 @@ function generateTree(name: string, parent: StringTreeNode | null = null) : Stri
             const matchingIndex = findMatchingBracket(parts, i + 1, '<', '>');
             if (matchingIndex === -1)
             {
-                warn(`error`);
+                warn(`Unable to find matching '<', '>' brackets in '${part}', defaulting to \`any\``, name);
                 return anyNode;
             }
 
@@ -107,11 +110,31 @@ function generateTree(name: string, parent: StringTreeNode | null = null) : Stri
             const matchingIndex = findMatchingBracket(parts, i, '(', ')');
             if (matchingIndex === -1)
             {
-                warn(`error`);
+                warn(`Unable to find matching '(', ')' brackets in '${part}', defaulting to \`any\``, name);
                 return anyNode;
             }
 
             const node = new StringTreeNode('Union', ENodeType.UNION, parent);
+            generateTree(parts.slice(i + 1, matchingIndex).join(''), node);
+            if (!parent)
+                return node;
+
+            parent.children.push(node);
+            i = matchingIndex + 1;
+            continue;
+        }
+
+        // Object
+        if (part === '{')
+        {
+            const matchingIndex = findMatchingBracket(parts, i, '{', '}');
+            if (matchingIndex === -1)
+            {
+                warn(`Unable to find matching '{', '}' brackets in '${part}', defaulting to \`any\``, name);
+                return anyNode;
+            }
+
+            const node = new StringTreeNode('Object', ENodeType.OBJECT, parent);
             generateTree(parts.slice(i + 1, matchingIndex).join(''), node);
             if (!parent)
                 return node;
@@ -126,7 +149,7 @@ function generateTree(name: string, parent: StringTreeNode | null = null) : Stri
         // TODO: Tuples?
 
         // skip separators, our handling below takes them into account
-        if (part === '|' || part === ',' )
+        if (part === '|' || part === ',' || part === ':')
         {
             continue;
         }
@@ -181,6 +204,37 @@ function resolveTree(node: StringTreeNode, parentTypes: ts.TypeNode[] | null = n
     // resolve our type, do this for our parent (add our type to its children), or return our type if we have no parent (we are the root)
     switch (node.type)
     {
+        case ENodeType.OBJECT:
+            const objectProperties: ts.TypeElement[] = [];
+
+            for (var i = 0; i < node.children.length; i = i + 2)
+            {
+                let valType = childTypes[i + 1];
+                if (!valType)
+                {
+                    warn('Unable to resolve object value type, this is likely due to invalid JSDoc. Defaulting to \`any\`.', node);
+                    valType = anyTypeNode;
+                }
+
+                const property = ts.createPropertySignature(
+                    undefined,              //modifiers
+                    ts.createIdentifier(node.children[i].name),
+                    undefined,              //question token
+                    valType,
+                    undefined               //initializer
+                )
+
+                objectProperties.push(property);
+            }
+
+            const objectNode = ts.createTypeLiteralNode(objectProperties);
+            ts.setEmitFlags(objectNode, ts.EmitFlags.SingleLine);
+
+            if (!parentTypes)
+                return objectNode;
+
+            parentTypes.push(objectNode);
+            break;
         case ENodeType.GENERIC:
             let genericNode: ts.TypeNode;
             if (upperName === 'OBJECT')
@@ -229,7 +283,7 @@ function resolveTree(node: StringTreeNode, parentTypes: ts.TypeNode[] | null = n
 
                 if (!valType)
                 {
-                    warn('Unable to resolve array value type, defaulting to \`any\`.', parent);
+                    warn('Unable to resolve array value type, defaulting to \`any\`.', node);
                     valType = anyTypeNode;
                 }
 
@@ -241,7 +295,7 @@ function resolveTree(node: StringTreeNode, parentTypes: ts.TypeNode[] | null = n
 
                 if (!valType)
                 {
-                    warn('Unable to resolve class value type, defaulting to \`any\`.', parent);
+                    warn('Unable to resolve class value type, defaulting to \`any\`.', node);
                     valType = anyTypeNode;
                 }
 
@@ -252,7 +306,7 @@ function resolveTree(node: StringTreeNode, parentTypes: ts.TypeNode[] | null = n
             {
                 if (childTypes.length === 0 )
                 {
-                    warn('Unable to resolve generic type, defaulting to \`any\`.', parent);
+                    warn('Unable to resolve generic type, defaulting to \`any\`.', node);
                     childTypes.push(anyTypeNode);
                 }
 
@@ -276,7 +330,7 @@ function resolveTree(node: StringTreeNode, parentTypes: ts.TypeNode[] | null = n
         case ENodeType.UNION:
             if (childTypes.length === 0 )
             {
-                warn('Unable to resolve any types for union, defaulting to \`any\`.', parent);
+                warn('Unable to resolve any types for union, defaulting to \`any\`.', node);
                 childTypes.push(anyTypeNode);
             }
 
