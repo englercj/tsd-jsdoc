@@ -1,6 +1,15 @@
 import * as ts from 'typescript';
 import { warn } from './logger';
-import { resolveType, createFunctionParams, createFunctionReturnType, resolveTypeParameters, resolveHeritageClauses } from './type_resolve_helpers';
+import {
+    resolveType,
+    createFunctionParams,
+    createFunctionReturnType,
+    resolveTypeParameters,
+    resolveHeritageClauses,
+    createTypeLiteral
+} from './type_resolve_helpers';
+import {PropTree} from "./PropTree";
+import {tmpdir} from "os";
 
 const declareModifier = ts.createModifier(ts.SyntaxKind.DeclareKeyword);
 const constModifier = ts.createModifier(ts.SyntaxKind.ConstKeyword);
@@ -105,6 +114,28 @@ export function createClass(doclet: IClassDoclet, children?: ts.Node[]): ts.Clas
                 undefined   // body
             )
         );
+    }
+
+    if (doclet.properties)
+    {
+        const nodes = (new PropTree(doclet.properties)).roots;
+
+        for (let i = 0; i < nodes.length; ++i)
+        {
+            const node = nodes[i];
+            const opt = node.prop.optional ? ts.createToken(ts.SyntaxKind.QuestionToken) : undefined;
+            const t = node.children.length ? createTypeLiteral(node.children) : resolveType(node.prop.type);
+
+            const property = ts.createProperty(
+                undefined,
+                undefined,
+                node.name,
+                opt,
+                t,
+                undefined
+            );
+            members.push(property);
+        }
     }
 
     return handleComment(doclet, ts.createClassDeclaration(
