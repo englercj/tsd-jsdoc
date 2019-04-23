@@ -1,15 +1,14 @@
 import * as ts from 'typescript';
-import { warn } from './logger';
+import {warn} from './logger';
 import {
-    resolveType,
     createFunctionParams,
     createFunctionReturnType,
-    resolveTypeParameters,
+    createTypeLiteral,
     resolveHeritageClauses,
-    createTypeLiteral
+    resolveType,
+    resolveTypeParameters
 } from './type_resolve_helpers';
 import {PropTree} from "./PropTree";
-import {tmpdir} from "os";
 
 const declareModifier = ts.createModifier(ts.SyntaxKind.DeclareKeyword);
 const constModifier = ts.createModifier(ts.SyntaxKind.ConstKeyword);
@@ -134,6 +133,12 @@ export function createClass(doclet: IClassDoclet, children?: ts.Node[]): ts.Clas
                 t,
                 undefined
             );
+
+            if (node.prop.description) {
+                let comment = `*\n * ${node.prop.description.split(/\r\s*/).join("\n * ")}\n`;
+                ts.addSyntheticLeadingComment(property, ts.SyntaxKind.MultiLineCommentTrivia, comment, true)
+            }
+
             members.push(property);
         }
     }
