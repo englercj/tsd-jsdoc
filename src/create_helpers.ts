@@ -253,15 +253,9 @@ export function createEnum(doclet: IMemberDoclet): ts.EnumDeclaration
 
 export function createClassMember(doclet: IMemberDoclet): ts.PropertyDeclaration
 {
-    const mods: ts.Modifier[] = [];
     const type = resolveType(doclet.type, doclet);
 
-    if (doclet.access === 'private')
-        mods.push(ts.createModifier(ts.SyntaxKind.PrivateKeyword));
-    else if (doclet.access === 'protected')
-        mods.push(ts.createModifier(ts.SyntaxKind.ProtectedKeyword));
-    else if (doclet.access === 'public')
-        mods.push(ts.createModifier(ts.SyntaxKind.PublicKeyword));
+    const mods: ts.Modifier[] = getAccessModifiers(doclet);
 
     if (doclet.scope === 'static')
         mods.push(ts.createModifier(ts.SyntaxKind.StaticKeyword));
@@ -277,6 +271,29 @@ export function createClassMember(doclet: IMemberDoclet): ts.PropertyDeclaration
         type,           // type
         undefined       // initializer
     ));
+}
+
+function getAccessModifiers(doclet: IMemberDoclet | IClassDoclet) {
+    const mods: ts.Modifier[] = [];
+
+    if (doclet.access === 'private' || doclet.access === 'package')
+        mods.push(ts.createModifier(ts.SyntaxKind.PrivateKeyword));
+    else if (doclet.access === 'protected')
+        mods.push(ts.createModifier(ts.SyntaxKind.ProtectedKeyword));
+    else if (doclet.access === 'public')
+        mods.push(ts.createModifier(ts.SyntaxKind.PublicKeyword));
+
+    return mods
+}
+
+export function createConstructor(doclet: IClassDoclet) {
+    const params = createFunctionParams(doclet);
+    return handleComment(doclet, ts.createConstructor(
+        undefined,  // decorators
+        getAccessModifiers(doclet),  // modifiers
+        params,     // parameters
+        undefined   // body
+    ))
 }
 
 export function createInterfaceMember(doclet: IMemberDoclet): ts.PropertySignature

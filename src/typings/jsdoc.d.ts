@@ -76,7 +76,7 @@ declare interface IDocletBase {
     tags?: IDocletTag[];
     memberof?: string;
     see?: string;
-    access?: ('public' | 'private' | 'protected');
+    access?: ('public' | 'private' | 'protected' | 'package');
     examples?: string;
     deprecated?: string;
     defaultvalue?: string;
