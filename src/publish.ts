@@ -19,7 +19,7 @@ export function publish(data: TDocletDb, opts: ITemplateConfig)
     setVerbose(!!opts.verbose);
 
     // create an emitter to parse the docs
-    const emitter = new Emitter(!!opts.private);
+    const emitter = new Emitter(opts);
     emitter.parse(docs);
 
     // emit the output
