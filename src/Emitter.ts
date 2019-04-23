@@ -56,7 +56,7 @@ export class Emitter
 
     // resolutionNeeded: IResolutionMap;
 
-    constructor(public readonly allowPrivate: boolean)
+    constructor(public readonly options: ITemplateConfig)
     { }
 
     parse(docs?: TAnyDoclet[])
@@ -293,9 +293,18 @@ export class Emitter
 
     private _ignoreDoclet(doclet: TAnyDoclet): boolean
     {
-        return doclet.kind === 'package'
+        if (doclet.kind === 'package'
             || doclet.ignore
-            || (!this.allowPrivate && doclet.access === 'private');
+            || (!this.options.private && doclet.access === 'private')) {
+            return true
+        }
+
+        if (doclet.access === undefined) {
+            return false
+        }
+
+        const accessLevels = ["private", "package", "protected", "public"];
+        return accessLevels.indexOf(doclet.access.toString()) < accessLevels.indexOf(this.options.access || "package")
     }
 
     private _getInterfaceKey(longname?: string): string
