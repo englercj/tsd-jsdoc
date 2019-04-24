@@ -1,11 +1,12 @@
 import * as ts from 'typescript';
-import {Dictionary} from './Dictionary';
-import {warn} from './logger';
-import {assertNever} from './assert_never';
+import { Dictionary } from './Dictionary';
+import { warn } from './logger';
+import { assertNever } from './assert_never';
 import {
     createClass,
     createClassMember,
-    createClassMethod, createConstructor,
+    createClassMethod,
+    createConstructor,
     createEnum,
     createFunction,
     createInterface,
@@ -16,7 +17,6 @@ import {
     createNamespaceMember,
     createTypedef,
 } from './create_helpers';
-import {createFunctionParams} from "./type_resolve_helpers";
 
 interface IDocletTreeNode
 {
@@ -49,7 +49,8 @@ function shouldMoveOutOfClass(doclet: TDoclet)
         || doclet.kind === 'typedef');
 }
 
-function isConstructor(doclet: TDoclet) {
+function isConstructor(doclet: TDoclet)
+{
     return doclet.kind === "class" && doclet.name === doclet.memberof
 }
 
