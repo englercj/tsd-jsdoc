@@ -100,6 +100,11 @@ declare type NumberLike = number | string;
  *    `color: "url(#pattern-id)"`.
  * @property {Object|Boolean} animation Animation options for the image pattern
  *  loading.
+ * Note: doesn't matter what I put, a @property only gets "FUNCTION" from jsdoc
+ * @property {function(number): void} rotate Rotates the pattern by degrees
+ * @property {function} wiggle Wiggles the pattern (default function)
+ * @property {function(string, number): Promise<number>} wobble Wobbles the pattern
+ *  (complex function)
  */
 declare type PatternOptions = {
     pattern: {
@@ -115,6 +120,9 @@ declare type PatternOptions = {
         id: string;
     };
     animation: any | boolean;
+    rotate: (...params: any[]) => any;
+    wiggle: (...params: any[]) => any;
+    wobble: (...params: any[]) => any;
 };
 
 
