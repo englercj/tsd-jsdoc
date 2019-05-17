@@ -197,6 +197,57 @@ class MyThing extends OtherThing {
     }
 
     /**
+     * Gets a Promise that will resolve with a generic function
+     *
+     * @return {Promise<Function>} The Promise
+     */
+    promiseGenericFunc() {
+    }
+
+    /**
+     * Gets a Promise that will resolve with a function with no arguments
+     * that returns a string.
+     *
+     * @return {Promise<Function(): string>} The Promise
+     */
+    promiseStringFunc() {
+    }
+
+    /**
+     * Gets a Promise that will resolve with a function with lots of arguments
+     * that returns an object.
+     *
+     * @return {Promise<Function(Array.<OtherThing>, object, number, string): object>} The Promise
+     */
+    promiseLotsArgsFunc() {
+    }
+
+    /**
+     * Gets a Promise that will resolve with a function with lots of arguments
+     * that returns the default type.
+     *
+     * @return {Promise<Function(Array.<OtherThing>, object, number, string)>} The Promise
+     */
+    promiseDefaultRetFunc() {
+    }
+
+    /**
+     * A param that is a function
+     * Note: doesn't matter what I put, a @param only gets "FUNCTION" from jsdoc
+     * @param {function(number): object}
+     */
+    takeFuncParam(f) {
+    }
+
+    /**
+     * A param that is a complex function
+     * Note: doesn't matter what I put, a @param only gets "FUNCTION" from jsdoc
+     * @param {function(Array.<OtherThing>, object, number): object}
+     */
+    takeFuncParamComplex(f) {
+    }
+
+    /**
      *
      * @param {GitGraphOptions} options - GitGraph options
      */

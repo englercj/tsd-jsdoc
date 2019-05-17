@@ -9,12 +9,13 @@ const rgxCommaAll = /,/g;
 const rgxParensAll = /\(|\)/g;
 
 const anyTypeNode = ts.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword);
+const voidTypeNode = ts.createKeywordTypeNode(ts.SyntaxKind.VoidKeyword);
 const strTypeNode = ts.createKeywordTypeNode(ts.SyntaxKind.StringKeyword);
 
 enum ENodeType {
     GENERIC,    // Foo.<X,Y>    has types for children
     UNION,      // (a|b|c)      has types for children
-    FUNCTION,   // function()   has arguments for children
+    FUNCTION,   // function(a) : returnType     has arguments for children, and last child is return type
     TUPLE,      // [a,b]        has types for children
     TYPE,       // string, X    has no children
     OBJECT,     // {a:b, c:d}   has name value pairs for children
@@ -57,7 +58,7 @@ class StringTreeNode {
 export function resolveComplexTypeName(name: string, doclet?: TTypedDoclet): ts.TypeNode
 {
     // parse the string into a tree of tsNodeType's
-    const root= generateTree(name);
+    const root = generateTree(name);
     if (!root)
     {
         warn(`failed to generate tree for ${name}, defaulting to any`);
@@ -71,17 +72,15 @@ export function resolveComplexTypeName(name: string, doclet?: TTypedDoclet): ts.
 
 function generateTree(name: string, parent: StringTreeNode | null = null) : StringTreeNode | null
 {
-    const anyNode = new StringTreeNode('Any', ENodeType.TYPE, parent);
-    const parts = name.split(rgxObjectTokenize);
+    const anyNode = new StringTreeNode('any', ENodeType.TYPE, parent);
+    const parts = name.split(rgxObjectTokenize).filter(function (e) {
+        return e.trim() !== '';
+    });
+
     for (let i = 0; i < parts.length; ++i)
     {
         const part = parts[i].trim();
         const partUpper = part.toUpperCase();
-
-        if (part === '')
-        {
-            continue;
-        }
 
         // Generic
         if (part.endsWith('.'))
@@ -144,7 +143,41 @@ function generateTree(name: string, parent: StringTreeNode | null = null) : Stri
             continue;
         }
 
-        // TODO: Function?
+        // Function
+        if (partUpper === 'FUNCTION')
+        {
+            const node = new StringTreeNode(part, ENodeType.FUNCTION, parent);
+
+            let matchingIndex = findMatchingBracket(parts, i + 1, '(', ')');
+            if (matchingIndex === -1)
+            {
+                warn(`Unable to find matching '(', ')' brackets in '${part}', defaulting to \`any\``, name);
+                return anyNode;
+            }
+
+            // only get children types if there is something between the brackets
+            if (matchingIndex > i + 2)
+                generateTree(parts.slice(i + 2, matchingIndex).join(''), node);
+
+            // check if there is a return type specified
+            if (parts.length > matchingIndex + 2 && parts[matchingIndex + 1] === ':')
+            {
+                generateTree(parts[matchingIndex + 2], node);
+                matchingIndex += 2;
+            }
+            else
+            {
+                // else use void for the return type
+                node.children.push(new StringTreeNode('void', ENodeType.TYPE, node));
+            }
+
+            if (!parent)
+                return node;
+
+            parent.children.push(node);
+            i = matchingIndex + 1;
+            continue;
+        }
 
         // TODO: Tuples?
 
@@ -313,9 +346,10 @@ function resolveTree(node: StringTreeNode, parentTypes: ts.TypeNode[] | null = n
                 // it can be nice to document promises in the form of @return Promise<resolveType, rejectType>
                 // however this causes issues in typescript which only specifies the resolveType
                 // we'll remove the rejectType in this case
-                if (upperName === 'PROMISE' && childTypes.length === 2)
+                if (upperName === 'PROMISE')
                 {
-                    childTypes.pop();
+                    while(childTypes.length > 1)
+                        childTypes.pop();
                 }
 
                 genericNode = ts.createTypeReferenceNode(node.name, childTypes);
@@ -343,7 +377,50 @@ function resolveTree(node: StringTreeNode, parentTypes: ts.TypeNode[] | null = n
             break;
 
         case ENodeType.FUNCTION:
-            const functionNode = ts.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword);
+            const funcParameters: ts.ParameterDeclaration[] = [];
+
+            if (childTypes.length === 0 || childTypes.length === 1)
+            {
+                // default params is ...params: any[]
+                const anyArray = ts.createArrayTypeNode(anyTypeNode);
+                const dotDotDot = ts.createToken(ts.SyntaxKind.DotDotDotToken);
+                funcParameters.push(ts.createParameter(
+                    undefined,          // decorators
+                    undefined,          // modifiers
+                    dotDotDot,          // dotDotDotToken
+                    'params',           // name
+                    undefined,          // questionToken
+                    anyArray,           // type
+                    undefined           // initializer
+                ));
+
+                // default return type is void
+                if (childTypes.length === 0)
+                    childTypes.push(voidTypeNode);
+            }
+
+            // last child is the return type
+            console.log(`childTypes nodes: ${childTypes.length}`);
+            for (var i = 0; i < node.children.length - 1; ++i)
+            {
+                const param = ts.createParameter(
+                    undefined,          // decorators
+                    undefined,          // modifiers
+                    undefined,          // dotDotDotToken
+                    'arg' + i,          // name, we have to name the types, so use generic names, similar to typescripts transformJSDocFunctionType
+                    undefined,          // questionToken
+                    childTypes[i],      // type
+                    undefined           // initializer
+                );
+
+                funcParameters.push(param);
+            }
+
+            const functionNode = ts.createFunctionTypeNode(
+                undefined,                          // typeParameters
+                funcParameters,                     // parameters
+                childTypes[childTypes.length - 1]   // return type
+            );
 
             if (!parentTypes)
                 return functionNode;
@@ -563,7 +640,6 @@ export function resolveTypeName(name: string, doclet?: TTypedDoclet): ts.TypeNod
         {
             const params = createFunctionParams(doclet);
             const type = createFunctionReturnType(doclet);
-
             return ts.createFunctionTypeNode(
                 undefined,      // typeParameters
                 params,         // parameters
@@ -583,7 +659,6 @@ export function resolveTypeName(name: string, doclet?: TTypedDoclet): ts.TypeNod
                 anyArray,           // type
                 undefined           // initializer
             );
-
             return ts.createFunctionTypeNode(
                 undefined,      // typeParameters
                 [param],        // parameters

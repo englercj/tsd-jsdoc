@@ -69,4 +69,9 @@
  *    `color: "url(#pattern-id)"`.
  * @property {Object|Boolean} animation Animation options for the image pattern
  *  loading.
+ * Note: doesn't matter what I put, a @property only gets "FUNCTION" from jsdoc
+ * @property {function(number): void} rotate Rotates the pattern by degrees
+ * @property {function} wiggle Wiggles the pattern (default function)
+ * @property {function(string, number): Promise<number>} wobble Wobbles the pattern
+ *  (complex function)
  */
