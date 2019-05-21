@@ -238,8 +238,9 @@ export function createEnum(doclet: IMemberDoclet): ts.EnumDeclaration
         for (let i = 0; i < doclet.properties.length; ++i)
         {
             const p = doclet.properties[i];
+            const l = p.defaultvalue !== undefined ? ts.createLiteral(p.defaultvalue) : undefined;
 
-            props.push(ts.createEnumMember(p.name, undefined));
+            props.push(ts.createEnumMember(p.name, l));
         }
     }
 

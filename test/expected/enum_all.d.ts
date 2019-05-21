@@ -4,9 +4,9 @@
  * @enum {number}
  */
 declare enum triState {
-    TRUE,
-    FALSE,
-    MAYBE
+    TRUE = 1,
+    FALSE = -1,
+    MAYBE = true
 }
 
 
