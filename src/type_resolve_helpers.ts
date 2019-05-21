@@ -400,7 +400,6 @@ function resolveTree(node: StringTreeNode, parentTypes: ts.TypeNode[] | null = n
             }
 
             // last child is the return type
-            console.log(`childTypes nodes: ${childTypes.length}`);
             for (var i = 0; i < node.children.length - 1; ++i)
             {
                 const param = ts.createParameter(
