@@ -10,6 +10,8 @@
     "url": "git@github.com:englercj/jsdoc2tsd.git"
   },
   "scripts": {
+    "checkFormat": "prettier --list-different '**/*.{js,jsx,ts,tsx,html,vue,css,less,scss,graphql,yaml,yml,json,md,mdx}' ",
+    "format": "prettier --write '**/*.{js,jsx,ts,tsx,html,vue,css,less,scss,graphql,yaml,yml,json,md,mdx}' ",
     "build": "tsc -p tsconfig.json",
     "watch": "tsc -w -p tsconfig.json",
     "prepare": "npm run build",
@@ -25,9 +27,12 @@
     "@types/mocha": "^5.2.5",
     "@types/node": "^10.12.12",
     "chai": "^4.2.0",
+    "husky": "^3.0.0",
     "jsdoc": "^3.5.5",
     "jsdoc-api": "^4.0.3",
+    "lint-staged": "^9.0.2",
     "mocha": "^5.2.0",
+    "prettier": "^1.18.2",
     "ts-node": "^7.0.1"
   },
   "peerDependencies": {
@@ -35,5 +40,15 @@
   },
   "dependencies": {
     "typescript": "^3.2.1"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,html,vue,css,less,scss,graphql,yaml,yml,json,md,mdx}": [
+      "prettier --list-different"
+    ]
   }
 }
