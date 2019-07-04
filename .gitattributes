@@ -20,3 +20,7 @@
 # Exclude the `.htaccess` file from GitHub's language statistics
 # https://github.com/github/linguist#using-gitattributes
 dist/.htaccess linguist-vendored
+
+# This is a generated file by npm and it's generally not useful to
+# see in the diffs. To override use `git diff --text`
+package-lock.json -diff
