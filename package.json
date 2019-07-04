@@ -30,6 +30,7 @@
     "@types/node": "^10.12.12",
     "@typescript-eslint/eslint-plugin": "^1.11.0",
     "@typescript-eslint/parser": "^1.11.0",
+    "@types/prettier": "^1.16.4",
     "chai": "^4.2.0",
     "eslint": "^6.0.1",
     "husky": "^3.0.0",
@@ -37,13 +38,13 @@
     "jsdoc-api": "^4.0.3",
     "lint-staged": "^9.0.2",
     "mocha": "^5.2.0",
-    "prettier": "^1.18.2",
     "ts-node": "^7.0.1"
   },
   "peerDependencies": {
     "jsdoc": "^3.5.5"
   },
   "dependencies": {
+    "prettier": "^1.18.2",
     "typescript": "^3.2.1"
   },
   "husky": {

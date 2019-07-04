@@ -1,4 +1,5 @@
 import * as ts from 'typescript';
+import * as prettier from 'prettier';
 import { Dictionary } from './Dictionary';
 import { warn } from './logger';
 import { assertNever } from './assert_never';
@@ -86,7 +87,15 @@ export class Emitter {
             out2 += '\n\n';
         }
 
-        return out2;
+        const formattedResult = prettier.format(out2, {
+            parser: 'typescript',
+            // Need these to match the project settings
+            trailingComma: 'all',
+            singleQuote: true,
+            tabWidth: 4,
+            printWidth: 100,
+        });
+        return formattedResult;
     }
 
     private _createTreeNodes(docs: TAnyDoclet[]) {
