@@ -15,5 +15,3 @@ function Color() {}
 Color.prototype.rgb = function() {
     throw new Error('not implemented');
 };
-
-

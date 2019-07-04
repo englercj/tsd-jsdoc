@@ -23,7 +23,6 @@
  * @param {valueGenerator|*} [valueGenerator=null] Optional function that sets the object values based on key and index
  * @returns {Object<string, *>} A generated object based on the array input
  */
-const arrayToObjectKeys = (array, valueGenerator = null) => {
-}
+const arrayToObjectKeys = (array, valueGenerator = null) => {};
 
-export default arrayToObjectKeys
+export default arrayToObjectKeys;

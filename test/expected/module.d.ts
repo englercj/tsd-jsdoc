@@ -1,6 +1,6 @@
 /** @module array-to-object-keys
  */
-declare module "array-to-object-keys" {
+declare module 'array-to-object-keys' {
     /**
      * @typedef valueGenerator
      * @type {function}
@@ -24,7 +24,10 @@ declare module "array-to-object-keys" {
      * @param {valueGenerator|*} [valueGenerator=null] Optional function that sets the object values based on key and index
      * @returns {Object<string, *>} A generated object based on the array input
      */
-    function arrayToObjectKeys(array: string[], valueGenerator?: valueGenerator | any): {
+    function arrayToObjectKeys(
+        array: string[],
+        valueGenerator?: valueGenerator | any,
+    ): {
         [key: string]: any;
     };
 }

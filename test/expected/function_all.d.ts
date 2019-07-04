@@ -5,10 +5,13 @@
  * @param {number} input.x
  * @param {number} input.y
  */
-declare function test1(a?: number, input: {
-    x: number;
-    y: number;
-}): void;
+declare function test1(
+    a?: number,
+    input: {
+        x: number;
+        y: number;
+    },
+): void;
 
 /**
  * @class
@@ -31,5 +34,3 @@ declare class Test12345 {
      */
     static f(key: string): number;
 }
-
-

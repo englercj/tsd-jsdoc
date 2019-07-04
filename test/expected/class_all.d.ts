@@ -76,7 +76,7 @@ declare namespace DeepClass1 {
 
 /** @module util
  */
-declare module "util" {
+declare module 'util' {
     /**
      * @class MyClass
      * @param {string} message
@@ -123,8 +123,7 @@ declare module "util" {
      * @type boolean
      */
     type Something = boolean;
-    interface MyThing extends Stuff, Things {
-    }
+    interface MyThing extends Stuff, Things {}
     /**
      * @class
      * @extends OtherThing
@@ -180,7 +179,7 @@ declare module "util" {
          *
          * @return {Promise<{newChannels: Channel[], foo: Bar}>} The Promise
          */
-        promiseBar(): Promise<{ newChannels: Channel[]; foo: Bar; }>;
+        promiseBar(): Promise<{ newChannels: Channel[]; foo: Bar }>;
         /**
          * Gets a Promise that will resolve with a generic function
          *
@@ -200,14 +199,18 @@ declare module "util" {
          *
          * @return {Promise<Function(Array.<OtherThing>, object, number, string): object>} The Promise
          */
-        promiseLotsArgsFunc(): Promise<(arg0: OtherThing[], arg1: object, arg2: number, arg3: string) => object>;
+        promiseLotsArgsFunc(): Promise<
+            (arg0: OtherThing[], arg1: object, arg2: number, arg3: string) => object
+        >;
         /**
          * Gets a Promise that will resolve with a function with lots of arguments
          * that returns the default type.
          *
          * @return {Promise<Function(Array.<OtherThing>, object, number, string)>} The Promise
          */
-        promiseDefaultRetFunc(): Promise<(arg0: OtherThing[], arg1: object, arg2: number, arg3: string) => void>;
+        promiseDefaultRetFunc(): Promise<
+            (arg0: OtherThing[], arg1: object, arg2: number, arg3: string) => void
+        >;
         /**
          * A param that is a function
          * Note: doesn't matter what I put, a @param only gets "FUNCTION" from jsdoc
@@ -242,5 +245,3 @@ declare module "util" {
         copy(): void;
     }
 }
-
-

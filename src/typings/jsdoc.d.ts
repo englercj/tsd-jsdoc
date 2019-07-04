@@ -18,7 +18,7 @@ declare module 'jsdoc/env' {
 }
 
 declare module 'jsdoc/util/templateHelper' {
-    export function find(data: TDocletDb, query: any): Array<(TDoclet | IPackageDoclet)>;
+    export function find(data: TDocletDb, query: any): Array<TDoclet | IPackageDoclet>;
 }
 
 /**
@@ -76,7 +76,7 @@ declare interface IDocletBase {
     tags?: IDocletTag[];
     memberof?: string;
     see?: string;
-    access?: ('public' | 'private' | 'protected');
+    access?: 'public' | 'private' | 'protected';
     examples?: string;
     deprecated?: string;
     defaultvalue?: string;
@@ -149,14 +149,13 @@ declare interface IPackageDoclet {
     name?: string;
 }
 
-declare type TDoclet = (
-    IClassDoclet
+declare type TDoclet =
+    | IClassDoclet
     | IEventDoclet
     | IFileDoclet
     | IFunctionDoclet
     | IMemberDoclet
     | INamespaceDoclet
-    | ITypedefDoclet
-);
+    | ITypedefDoclet;
 
 declare type TAnyDoclet = TDoclet | IPackageDoclet;

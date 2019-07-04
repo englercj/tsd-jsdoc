@@ -1,8 +1,7 @@
 /**
  * @this OtherThing
  */
-function doStuff() {
-}
+function doStuff() {}
 
 /**
  * @class
@@ -12,8 +11,7 @@ class OtherThing {
     /**
      *
      */
-    copy() {
-    }
+    copy() {}
 }
 
 /**
@@ -23,8 +21,7 @@ class Stuff {
     /**
      *
      */
-    doStuff() {
-    }
+    doStuff() {}
 }
 
 /**
@@ -34,8 +31,7 @@ class Things {
     /**
      *
      */
-    doThings() {
-    }
+    doThings() {}
 }
 
 /**
@@ -61,8 +57,7 @@ function DeepClass1() {
              *
              * @class
              */
-            function DeepClass4() {
-            }
+            function DeepClass4() {}
         }
     }
 }
@@ -169,40 +164,35 @@ class MyThing extends OtherThing {
      *
      * @return {Promise<Object, OtherThing>} The Promise
      */
-    promiseMe() {
-    }
+    promiseMe() {}
 
     /**
      * Gets a Promise that will resolve with an array of OtherThings
      *
      * @return {Promise<Array.<OtherThing>>} The Promise
      */
-    promiseYou() {
-    }
+    promiseYou() {}
 
     /**
      * Gets a Promise that will resolve with a bunch of possible types
      *
      * @return {Promise<Array.<*>|Object|number|string>} The Promise
      */
-    promiseFoo() {
-    }
+    promiseFoo() {}
 
     /**
      * Gets a Promise that will resolve with an object with complex properties
      *
      * @return {Promise<{newChannels: Channel[], foo: Bar}>} The Promise
      */
-    promiseBar() {
-    }
+    promiseBar() {}
 
     /**
      * Gets a Promise that will resolve with a generic function
      *
      * @return {Promise<Function>} The Promise
      */
-    promiseGenericFunc() {
-    }
+    promiseGenericFunc() {}
 
     /**
      * Gets a Promise that will resolve with a function with no arguments
@@ -210,8 +200,7 @@ class MyThing extends OtherThing {
      *
      * @return {Promise<Function(): string>} The Promise
      */
-    promiseStringFunc() {
-    }
+    promiseStringFunc() {}
 
     /**
      * Gets a Promise that will resolve with a function with lots of arguments
@@ -219,8 +208,7 @@ class MyThing extends OtherThing {
      *
      * @return {Promise<Function(Array.<OtherThing>, object, number, string): object>} The Promise
      */
-    promiseLotsArgsFunc() {
-    }
+    promiseLotsArgsFunc() {}
 
     /**
      * Gets a Promise that will resolve with a function with lots of arguments
@@ -228,31 +216,27 @@ class MyThing extends OtherThing {
      *
      * @return {Promise<Function(Array.<OtherThing>, object, number, string)>} The Promise
      */
-    promiseDefaultRetFunc() {
-    }
+    promiseDefaultRetFunc() {}
 
     /**
      * A param that is a function
      * Note: doesn't matter what I put, a @param only gets "FUNCTION" from jsdoc
      * @param {function(number): object}
      */
-    takeFuncParam(f) {
-    }
+    takeFuncParam(f) {}
 
     /**
      * A param that is a complex function
      * Note: doesn't matter what I put, a @param only gets "FUNCTION" from jsdoc
      * @param {function(Array.<OtherThing>, object, number): object}
      */
-    takeFuncParamComplex(f) {
-    }
+    takeFuncParamComplex(f) {}
 
     /**
      *
      * @param {GitGraphOptions} options - GitGraph options
      */
-    objParam(o) {
-    }
+    objParam(o) {}
 
     /**
      * Gets derp.

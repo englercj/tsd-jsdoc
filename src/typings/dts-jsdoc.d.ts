@@ -3,5 +3,5 @@ declare interface ITemplateConfig {
     outFile: string;
     private?: boolean;
     verbose?: boolean;
-    access?: ("public" | "private" | "protected" | "package")
+    access?: 'public' | 'private' | 'protected' | 'package';
 }

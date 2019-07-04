@@ -1,28 +1,25 @@
 import { Dictionary } from './Dictionary';
 import { warn } from './logger';
 
-export interface IPropDesc
-{
+export interface IPropDesc {
     prop: IDocletProp;
     name: string;
     children: IPropDesc[];
 }
 
-export class PropTree
-{
+export class PropTree {
     roots: IPropDesc[] = [];
     nodes: Dictionary<IPropDesc> = {};
 
-    constructor(props: IDocletProp[])
-    {
+    constructor(props: IDocletProp[]) {
         // create all node for each property
-        for (let i = 0; i < props.length; ++i)
-        {
+        for (let i = 0; i < props.length; ++i) {
             const prop = props[i];
 
-            if (!prop || !prop.name)
-            {
-                warn('Encountered a property with no name, this is likely due to invalid JSDoc. Skipping.');
+            if (!prop || !prop.name) {
+                warn(
+                    'Encountered a property with no name, this is likely due to invalid JSDoc. Skipping.',
+                );
                 continue;
             }
 
@@ -36,40 +33,35 @@ export class PropTree
         }
 
         // build the tree of props
-        for (let i = 0; i < props.length; ++i)
-        {
+        for (let i = 0; i < props.length; ++i) {
             const prop = props[i];
 
-            if (!prop || !prop.name)
+            if (!prop || !prop.name) {
                 continue;
+            }
 
             const parts = prop.name.split('.');
 
             const obj = this.nodes[prop.name];
 
-            if (!obj)
-            {
+            if (!obj) {
                 warn('Failed to find dot-notation property in map. This is likely a bug.');
                 continue;
             }
 
-            if (parts.length > 1)
-            {
+            if (parts.length > 1) {
                 parts.pop();
                 const parentName = parts.join('.');
                 const parent = this.nodes[parentName];
 
-                if (!parent)
-                {
+                if (!parent) {
                     // TODO LOG WARNING
                     continue;
                 }
 
                 parent.children.push(obj);
-            }
-            else
-            {
-                this.roots.push(obj)
+            } else {
+                this.roots.push(obj);
             }
         }
     }

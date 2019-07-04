@@ -16,7 +16,9 @@ before(() => {
     // create the temp dir to store types in
     try {
         fs.mkdirSync(DEST_DIR);
-    } catch (e) { /* Do Nothing */ }
+    } catch (e) {
+        /* Do Nothing */
+    }
 });
 
 export function compileJsdoc(sourcePath: string) {

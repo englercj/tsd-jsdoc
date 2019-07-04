@@ -5,8 +5,7 @@
  * @param {number} input.x
  * @param {number} input.y
  */
-function test1(input) {
-}
+function test1(input) {}
 
 /**
  * @class
@@ -18,7 +17,6 @@ class Test12345 {
      * @name f
      * @return {number[]}
      */
-
     /**
      * @function
      * @memberof Test12345

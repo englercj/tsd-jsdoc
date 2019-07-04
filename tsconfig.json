@@ -10,8 +10,5 @@
         "sourceMap": true,
         "strict": true
     },
-    "include": [
-        "src/typings/**/*.d.ts",
-        "src/**/*.ts"
-    ]
+    "include": ["src/typings/**/*.d.ts", "src/**/*.ts"]
 }

@@ -124,5 +124,3 @@ declare type PatternOptions = {
     wiggle: (...params: any[]) => any;
     wobble: (...params: any[]) => any;
 };
-
-

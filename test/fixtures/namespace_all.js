@@ -9,8 +9,7 @@
  * @constructor
  * @template T
  */
-FoobarNS.Foo = function Foo() {
-};
+FoobarNS.Foo = function Foo() {};
 
 /**
  * @callback FCallback
@@ -29,8 +28,7 @@ FoobarNS.Foo = function Foo() {
  * @param {number[]|object<number, string[]>} [opt_2=10] An object.
  * @template S
  */
-FoobarNS.Foo.prototype.f = function f(f, opt_this, ...rest) {
-};
+FoobarNS.Foo.prototype.f = function f(f, opt_this, ...rest) {};
 
 /**
  * @classdesc
@@ -39,20 +37,17 @@ FoobarNS.Foo.prototype.f = function f(f, opt_this, ...rest) {
  * @constructor
  * @extends FoobarNS.Foo
  */
-FoobarNS.Bar = function Bar() {
-}
+FoobarNS.Bar = function Bar() {};
 
 /**
  * A method.
  */
-FoobarNS.Bar.prototype.f = function f() {
-};
+FoobarNS.Bar.prototype.f = function f() {};
 
 /**
  * @interface
  */
 FoobarNS.CircleOptions;
-
 
 /**
  * Circle radius.
@@ -67,5 +62,4 @@ FoobarNS.CircleOptions.prototype.radius;
  * @constructor
  * @param {FoobarNS.CircleOptions=} opt_options Options.
  */
-FoobarNS.Circle = function Circle(opt_options) {
-}
+FoobarNS.Circle = function Circle(opt_options) {};

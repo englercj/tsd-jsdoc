@@ -8,8 +8,7 @@ import { setVerbose } from './logger';
  * @param {TAFFY} data - The TaffyDB containing the data that jsdoc parsed.
  * @param {*} opts - Options passed into jsdoc.
  */
-export function publish(data: TDocletDb, opts: ITemplateConfig)
-{
+export function publish(data: TDocletDb, opts: ITemplateConfig) {
     // remove undocumented stuff.
     data({ undocumented: true }).remove();
 
@@ -23,20 +22,13 @@ export function publish(data: TDocletDb, opts: ITemplateConfig)
     emitter.parse(docs);
 
     // emit the output
-    if (opts.destination === 'console')
-    {
+    if (opts.destination === 'console') {
         console.log(emitter.emit());
-    }
-    else
-    {
-        try
-        {
+    } else {
+        try {
             fs.mkdirSync(opts.destination);
-        }
-        catch (e)
-        {
-            if (e.code !== 'EEXIST')
-            {
+        } catch (e) {
+            if (e.code !== 'EEXIST') {
                 throw e;
             }
         }
@@ -45,7 +37,7 @@ export function publish(data: TDocletDb, opts: ITemplateConfig)
         const pkg = pkgArray[0] as IPackageDoclet;
         let definitionName: string = 'types';
         if (pkg && pkg.name) {
-          definitionName = pkg.name.split('/').pop() || definitionName;
+            definitionName = pkg.name.split('/').pop() || definitionName;
         }
         const out = path.join(opts.destination, opts.outFile || `${definitionName}.d.ts`);
 

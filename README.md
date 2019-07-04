@@ -28,9 +28,9 @@ Or add this to your JSON configuration:
 
 ```json
 {
-    "opts": {
-        "template": "./node_modules/tsd-jsdoc/dist"
-    }
+  "opts": {
+    "template": "./node_modules/tsd-jsdoc/dist"
+  }
 }
 ```
 
@@ -52,7 +52,6 @@ JSDoc [has a bug](https://github.com/jsdoc3/jsdoc/issues/1464) that prevents it 
 correctly parsing `export default class Name {}`. The workaround is to use named exports
 (`export class Name {}`) or utilize the
 [jsdoc-export-default-interop](https://www.npmjs.com/package/jsdoc-export-default-interop) plugin.
-
 
 ### Tags with no support
 

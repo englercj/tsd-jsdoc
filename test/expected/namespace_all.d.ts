@@ -17,9 +17,15 @@ declare namespace FoobarNS {
          * @param {number[]|object<number, string[]>} [opt_2=10] An object.
          * @template S
          */
-        f<S>(f: FoobarNS.Foo.FCallback, opt_this?: any, opt_2?: number[] | {
-            [key: number]: string[];
-        }): void;
+        f<S>(
+            f: FoobarNS.Foo.FCallback,
+            opt_this?: any,
+            opt_2?:
+                | number[]
+                | {
+                      [key: number]: string[];
+                  },
+        ): void;
     }
     namespace Foo {
         /**
@@ -67,5 +73,3 @@ declare namespace FoobarNS {
         constructor(opt_options?: FoobarNS.CircleOptions);
     }
 }
-
-

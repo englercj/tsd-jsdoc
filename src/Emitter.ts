@@ -17,38 +17,31 @@ import {
     createEnum,
 } from './create_helpers';
 
-interface IDocletTreeNode
-{
+interface IDocletTreeNode {
     doclet: TDoclet;
     children: IDocletTreeNode[];
     isNested?: boolean;
 }
 
-function isClassLike(doclet: TDoclet)
-{
+function isClassLike(doclet: TDoclet) {
     return doclet.kind === 'class' || doclet.kind === 'interface' || doclet.kind === 'mixin';
 }
 
-function isModuleLike(doclet: TDoclet)
-{
+function isModuleLike(doclet: TDoclet) {
     return doclet.kind === 'module' || doclet.kind === 'namespace';
 }
 
-function isEnum(doclet: TDoclet)
-{
+function isEnum(doclet: TDoclet) {
     return (doclet.kind === 'member' || doclet.kind === 'constant') && doclet.isEnum;
 }
 
-function shouldMoveOutOfClass(doclet: TDoclet)
-{
-    return isClassLike(doclet)
-        || isModuleLike(doclet)
-        || isEnum(doclet)
-        || doclet.kind === 'typedef';
+function shouldMoveOutOfClass(doclet: TDoclet) {
+    return (
+        isClassLike(doclet) || isModuleLike(doclet) || isEnum(doclet) || doclet.kind === 'typedef'
+    );
 }
 
-export class Emitter
-{
+export class Emitter {
     results: ts.Node[] = [];
 
     private _treeRoots: IDocletTreeNode[] = [];
@@ -56,31 +49,30 @@ export class Emitter
 
     // resolutionNeeded: IResolutionMap;
 
-    constructor(public readonly options: ITemplateConfig)
-    { }
+    constructor(public readonly options: ITemplateConfig) {}
 
-    parse(docs?: TAnyDoclet[])
-    {
+    parse(docs?: TAnyDoclet[]) {
         this.results = [];
         this._treeRoots = [];
         this._treeNodes = {};
 
-        if (!docs)
+        if (!docs) {
             return;
+        }
 
         this._createTreeNodes(docs);
         this._buildTree(docs);
         this._parseTree();
     }
 
-    emit()
-    {
+    emit() {
         const resultFile = ts.createSourceFile(
             'types.d.ts',
             '',
             ts.ScriptTarget.Latest,
             false,
-            ts.ScriptKind.TS);
+            ts.ScriptKind.TS,
+        );
 
         const printer = ts.createPrinter({
             removeComments: false,
@@ -89,8 +81,7 @@ export class Emitter
 
         let out2 = '';
 
-        for (let i = 0; i < this.results.length; ++i)
-        {
+        for (let i = 0; i < this.results.length; ++i) {
             out2 += printer.printNode(ts.EmitHint.Unspecified, this.results[i], resultFile);
             out2 += '\n\n';
         }
@@ -98,36 +89,35 @@ export class Emitter
         return out2;
     }
 
-    private _createTreeNodes(docs: TAnyDoclet[])
-    {
-        for (let i = 0; i < docs.length; ++i)
-        {
+    private _createTreeNodes(docs: TAnyDoclet[]) {
+        for (let i = 0; i < docs.length; ++i) {
             const doclet = docs[i];
 
-            if (doclet.kind === 'package' || this._ignoreDoclet(doclet))
+            if (doclet.kind === 'package' || this._ignoreDoclet(doclet)) {
                 continue;
+            }
 
-            if (!this._treeNodes[doclet.longname])
-            {
+            if (!this._treeNodes[doclet.longname]) {
                 this._treeNodes[doclet.longname] = { doclet, children: [] };
             }
         }
     }
 
-    private _buildTree(docs: TAnyDoclet[])
-    {
-        for (let i = 0; i < docs.length; ++i)
-        {
+    private _buildTree(docs: TAnyDoclet[]) {
+        for (let i = 0; i < docs.length; ++i) {
             const doclet = docs[i];
 
-            if (doclet.kind === 'package' || this._ignoreDoclet(doclet))
+            if (doclet.kind === 'package' || this._ignoreDoclet(doclet)) {
                 continue;
+            }
 
             const obj = this._treeNodes[doclet.longname];
 
-            if (!obj)
-            {
-                warn('Failed to find doclet node when building tree, this is likely a bug.', doclet);
+            if (!obj) {
+                warn(
+                    'Failed to find doclet node when building tree, this is likely a bug.',
+                    doclet,
+                );
                 continue;
             }
 
@@ -135,14 +125,12 @@ export class Emitter
 
             // Generate an interface of the same name as the class to perform
             // a namespace merge.
-            if (doclet.kind === 'class')
-            {
+            if (doclet.kind === 'class') {
                 const impls = doclet.implements || [];
                 const mixes = doclet.mixes || [];
                 const extras = impls.concat(mixes);
 
-                if (extras.length)
-                {
+                if (extras.length) {
                     const interfaceLongname = this._getInterfaceKey(doclet.longname);
                     interfaceMerge = this._treeNodes[interfaceLongname] = {
                         doclet: {
@@ -158,109 +146,105 @@ export class Emitter
                 }
             }
 
-            if (doclet.memberof)
-            {
+            if (doclet.memberof) {
                 const parent = this._treeNodes[doclet.memberof];
 
-                if (!parent)
-                {
-                    warn(`Failed to find parent of doclet '${doclet.longname}' using memberof '${doclet.memberof}', this is likely due to invalid JSDoc.`, doclet);
+                if (!parent) {
+                    warn(
+                        `Failed to find parent of doclet '${doclet.longname}' using memberof '${doclet.memberof}', this is likely due to invalid JSDoc.`,
+                        doclet,
+                    );
                     continue;
                 }
 
                 const isParentClassLike = isClassLike(parent.doclet);
 
                 // We need to move this into a module of the same name as the parent
-                if (isParentClassLike && shouldMoveOutOfClass(doclet))
-                {
+                if (isParentClassLike && shouldMoveOutOfClass(doclet)) {
                     const mod = this._getOrCreateClassNamespace(parent);
 
-                    if (interfaceMerge)
+                    if (interfaceMerge) {
                         mod.children.push(interfaceMerge);
+                    }
 
                     mod.children.push(obj);
-                }
-                else
-                {
+                } else {
                     const isObjModuleLike = isModuleLike(doclet);
                     const isParentModuleLike = isModuleLike(parent.doclet);
 
-                    if (isObjModuleLike && isParentModuleLike)
+                    if (isObjModuleLike && isParentModuleLike) {
                         obj.isNested = true;
+                    }
 
                     const isParentEnum = isEnum(parent.doclet);
 
-                    if (!isParentEnum)
-                    {
-                        if (interfaceMerge)
+                    if (!isParentEnum) {
+                        if (interfaceMerge) {
                             parent.children.push(interfaceMerge);
+                        }
 
                         parent.children.push(obj);
                     }
                 }
-            }
-            else
-            {
-                if (interfaceMerge)
+            } else {
+                if (interfaceMerge) {
                     this._treeRoots.push(interfaceMerge);
+                }
 
                 this._treeRoots.push(obj);
             }
         }
     }
 
-    private _parseTree()
-    {
-        for (let i = 0; i < this._treeRoots.length; ++i)
-        {
+    private _parseTree() {
+        for (let i = 0; i < this._treeRoots.length; ++i) {
             const node = this._parseTreeNode(this._treeRoots[i]);
 
-            if (node)
+            if (node) {
                 this.results.push(node);
+            }
         }
     }
 
-    private _parseTreeNode(node: IDocletTreeNode, parent?: IDocletTreeNode): ts.Node | null
-    {
+    private _parseTreeNode(node: IDocletTreeNode, parent?: IDocletTreeNode): ts.Node | null {
         const children: ts.Node[] = [];
 
-        if (children)
-        {
-            for (let i = 0; i < node.children.length; ++i)
-            {
+        if (children) {
+            for (let i = 0; i < node.children.length; ++i) {
                 const childNode = this._parseTreeNode(node.children[i], node);
 
-                if (childNode)
+                if (childNode) {
                     children.push(childNode);
+                }
             }
         }
 
-        switch (node.doclet.kind)
-        {
+        switch (node.doclet.kind) {
             case 'class':
                 return createClass(node.doclet, children);
 
             case 'constant':
             case 'member':
-                if (node.doclet.isEnum)
+                if (node.doclet.isEnum) {
                     return createEnum(node.doclet);
-                else if (parent && parent.doclet.kind === 'class')
+                } else if (parent && parent.doclet.kind === 'class') {
                     return createClassMember(node.doclet);
-                else if (parent && parent.doclet.kind === 'interface')
+                } else if (parent && parent.doclet.kind === 'interface') {
                     return createInterfaceMember(node.doclet);
-                else
+                } else {
                     return createNamespaceMember(node.doclet);
+                }
 
             case 'callback':
             case 'function':
-                if (node.doclet.memberof)
-                {
+                if (node.doclet.memberof) {
                     const parent = this._treeNodes[node.doclet.memberof];
 
-                    if (parent && parent.doclet.kind === 'class')
+                    if (parent && parent.doclet.kind === 'class') {
                         return createClassMethod(node.doclet);
-                    else if (parent && parent.doclet.kind === 'interface')
+                    } else if (parent && parent.doclet.kind === 'interface') {
                         return createInterfaceMethod(node.doclet);
+                    }
                 }
                 return createFunction(node.doclet);
 
@@ -291,42 +275,45 @@ export class Emitter
         }
     }
 
-    private _ignoreDoclet(doclet: TAnyDoclet): boolean
-    {
-        if (doclet.kind === 'package'
-            || doclet.ignore
-            || (!this.options.private && doclet.access === 'private')) {
-            return true
+    private _ignoreDoclet(doclet: TAnyDoclet): boolean {
+        if (
+            doclet.kind === 'package' ||
+            doclet.ignore ||
+            (!this.options.private && doclet.access === 'private')
+        ) {
+            return true;
         }
 
         if (doclet.access === undefined) {
-            return false
+            return false;
         }
 
-        const accessLevels = ["private", "package", "protected", "public"];
-        return accessLevels.indexOf(doclet.access.toString()) < accessLevels.indexOf(this.options.access || "package")
+        const accessLevels = ['private', 'package', 'protected', 'public'];
+        return (
+            accessLevels.indexOf(doclet.access.toString()) <
+            accessLevels.indexOf(this.options.access || 'package')
+        );
     }
 
-    private _getInterfaceKey(longname?: string): string
-    {
+    private _getInterfaceKey(longname?: string): string {
         return longname ? longname + '$$interface$helper' : '';
     }
 
-    private _getNamespaceKey(longname?: string): string
-    {
+    private _getNamespaceKey(longname?: string): string {
         return longname ? longname + '$$namespace$helper' : '';
     }
 
-    private _getOrCreateClassNamespace(obj: IDocletTreeNode): IDocletTreeNode
-    {
-        if (obj.doclet.kind === 'namespace')
+    private _getOrCreateClassNamespace(obj: IDocletTreeNode): IDocletTreeNode {
+        if (obj.doclet.kind === 'namespace') {
             return obj;
+        }
 
         const namespaceKey = this._getNamespaceKey(obj.doclet.longname);
         let mod = this._treeNodes[namespaceKey];
 
-        if (mod)
+        if (mod) {
             return mod;
+        }
 
         mod = this._treeNodes[namespaceKey] = {
             doclet: {
@@ -338,13 +325,14 @@ export class Emitter
             children: [],
         };
 
-        if (obj.doclet.memberof)
-        {
+        if (obj.doclet.memberof) {
             const parent = this._treeNodes[obj.doclet.memberof];
 
-            if (!parent)
-            {
-                warn(`Failed to find parent of doclet '${obj.doclet.longname}' using memberof '${obj.doclet.memberof}', this is likely due to invalid JSDoc.`, obj.doclet);
+            if (!parent) {
+                warn(
+                    `Failed to find parent of doclet '${obj.doclet.longname}' using memberof '${obj.doclet.memberof}', this is likely due to invalid JSDoc.`,
+                    obj.doclet,
+                );
                 return mod;
             }
 
@@ -352,9 +340,7 @@ export class Emitter
 
             mod.doclet.memberof = parentMod.doclet.longname;
             parentMod.children.push(mod);
-        }
-        else
-        {
+        } else {
             this._treeRoots.push(mod);
         }
 
