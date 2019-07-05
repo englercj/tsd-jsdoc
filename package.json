@@ -12,6 +12,8 @@
   "scripts": {
     "checkFormat": "prettier --list-different '**/*.{js,jsx,ts,tsx,html,vue,css,less,scss,graphql,yaml,yml,json,md,mdx}' ",
     "format": "prettier --write '**/*.{js,jsx,ts,tsx,html,vue,css,less,scss,graphql,yaml,yml,json,md,mdx}' ",
+    "lint": "eslint --ext .js,.ts .",
+    "fix": "eslint --fix --ext .js,.ts .",
     "build": "tsc -p tsconfig.json",
     "watch": "tsc -w -p tsconfig.json",
     "prepare": "npm run build",
@@ -26,7 +28,10 @@
     "@types/chai": "^4.1.7",
     "@types/mocha": "^5.2.5",
     "@types/node": "^10.12.12",
+    "@typescript-eslint/eslint-plugin": "^1.11.0",
+    "@typescript-eslint/parser": "^1.11.0",
     "chai": "^4.2.0",
+    "eslint": "^6.0.1",
     "husky": "^3.0.0",
     "jsdoc": "^3.5.5",
     "jsdoc-api": "^4.0.3",
@@ -47,7 +52,11 @@
     }
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx,html,vue,css,less,scss,graphql,yaml,yml,json,md,mdx}": [
+    "*.{js,ts}": [
+      "prettier --list-different",
+      "eslint --ext .js,.ts"
+    ],
+    "*.{jsx,tsx,html,vue,css,less,scss,graphql,yaml,yml,json,md,mdx}": [
       "prettier --list-different"
     ]
   }
