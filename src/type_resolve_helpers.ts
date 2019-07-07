@@ -287,7 +287,7 @@ function resolveTree(node: StringTreeNode, parentTypes: ts.TypeNode[] | null = n
                 let valType = childTypes[1];
                 if (!valType)
                 {
-                    warn('Unable to resolve object value type, this is likely due to invalid JSDoc. Defaulting to \`any\`.', parent);
+                    warn('Unable to resolve object value type, this is likely due to invalid JSDoc. Defaulting to \`any\`.', node);
                     valType = anyTypeNode;
                 }
 
