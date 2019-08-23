@@ -1,6 +1,14 @@
 import * as ts from 'typescript';
 import { warn } from './logger';
-import { resolveType, createFunctionParams, createFunctionReturnType, resolveTypeParameters, resolveHeritageClauses } from './type_resolve_helpers';
+import {
+    createFunctionParams,
+    createFunctionReturnType,
+    createTypeLiteral,
+    resolveHeritageClauses,
+    resolveType,
+    resolveTypeParameters
+} from './type_resolve_helpers';
+import { PropTree } from "./PropTree";
 
 const declareModifier = ts.createModifier(ts.SyntaxKind.DeclareKeyword);
 const constModifier = ts.createModifier(ts.SyntaxKind.ConstKeyword);
@@ -105,6 +113,35 @@ export function createClass(doclet: IClassDoclet, children?: ts.Node[]): ts.Clas
                 undefined   // body
             )
         );
+    }
+
+    if (doclet.properties)
+    {
+        const tree = new PropTree(doclet.properties);
+
+        for (let i = 0; i < tree.roots.length; ++i)
+        {
+            const node = tree.roots[i];
+            const opt = node.prop.optional ? ts.createToken(ts.SyntaxKind.QuestionToken) : undefined;
+            const t = node.children.length ? createTypeLiteral(node.children) : resolveType(node.prop.type);
+
+            const property = ts.createProperty(
+                undefined,
+                undefined,
+                node.name,
+                opt,
+                t,
+                undefined
+            );
+
+            if (node.prop.description)
+            {
+                let comment = `*\n * ${node.prop.description.split(/\r\s*/).join("\n * ")}\n`;
+                ts.addSyntheticLeadingComment(property, ts.SyntaxKind.MultiLineCommentTrivia, comment, true)
+            }
+
+            members.push(property);
+        }
     }
 
     return handleComment(doclet, ts.createClassDeclaration(
