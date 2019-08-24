@@ -9,6 +9,15 @@ function test1(input) {
 }
 
 /**
+ *
+ * @param {Array<*>} x
+ * @param {Array.<*>} y
+ * @param {Array} z
+ */
+function test2(x, y, z, w) {
+}
+
+/**
  * @class
  */
 class Test12345 {
