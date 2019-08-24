@@ -33,6 +33,12 @@ declare class PropTest3 {
      * @description duplicate
      */
     myProp: boolean;
+    /**
+     * @name PropTest3#myProp
+     * @type {Boolean}
+     * @description duplicate
+     */
+    myProp: boolean;
     myProp: boolean;
 }
 
@@ -68,6 +74,12 @@ declare class PropTest5 {
  */
 declare class PropTest6 {
     constructor();
+    /**
+     * @name PropTest6#myProp
+     * @type {Boolean}
+     * @description duplicate
+     */
+    myProp: boolean;
     /**
      * @name PropTest6#myProp
      * @type {Boolean}

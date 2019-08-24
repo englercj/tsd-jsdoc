@@ -29,6 +29,12 @@ class PropTest3 {
      * @description duplicate
      */
     myProp = true;
+    /**
+     * @name PropTest3#myProp
+     * @type {Boolean}
+     * @description duplicate
+     */
+    myProp = true;
 }
 
 /**
@@ -55,6 +61,12 @@ var PropTest5 = function() {
  * @property {Boolean} myProp
  */
 var PropTest6 = function() {
+    /**
+     * @name PropTest6#myProp
+     * @type {Boolean}
+     * @description duplicate
+     */
+    this.myProp = true;
     /**
      * @name PropTest6#myProp
      * @type {Boolean}
