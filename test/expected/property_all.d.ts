@@ -1,8 +1,11 @@
 /**
  * @class
- * @property {String} myProp
+ * @property {String} myProp foobar
  */
 declare class PropTest1 {
+    /**
+     * foobar
+    */
     myProp: string;
 }
 
@@ -35,10 +38,13 @@ declare class PropTest3 {
 
 /**
  * @constructor
- * @property {String} myProp
+ * @property {String} myProp foobar
  */
 declare class PropTest4 {
     constructor();
+    /**
+     * foobar
+    */
     myProp: string;
 }
 

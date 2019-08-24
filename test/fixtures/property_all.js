@@ -1,7 +1,7 @@
 
 /**
  * @class
- * @property {String} myProp
+ * @property {String} myProp foobar
  */
 class PropTest1 {
 }
@@ -33,7 +33,7 @@ class PropTest3 {
 
 /**
  * @constructor
- * @property {String} myProp
+ * @property {String} myProp foobar
  */
 var PropTest4 = function() {
 }
