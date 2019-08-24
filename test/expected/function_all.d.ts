@@ -11,6 +11,15 @@ declare function test1(a?: number, input: {
 }): void;
 
 /**
+ *
+ * @param {Array<*>} x
+ * @param {Array.<*>} y
+ * @param {Array} z
+ * @param {Array<Array>} w
+ */
+declare function test2(x: any[], y: any[], z: any[], w: any[][]): void;
+
+/**
  * @class
  */
 declare class Test12345 {

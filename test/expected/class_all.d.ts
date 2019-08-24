@@ -151,6 +151,10 @@ declare module "util" {
          */
         superArray: string[][][][][];
         /**
+         * @member {Array}
+         */
+        simpleArray: any[];
+        /**
          * Creates a new thing.
          *
          * @param {!FoobarNS.CircleOptions} opts - Namespace test!
