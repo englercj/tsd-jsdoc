@@ -13,6 +13,7 @@ function test1(input) {
  * @param {Array<*>} x
  * @param {Array.<*>} y
  * @param {Array} z
+ * @param {Array<Array>} w
  */
 function test2(x, y, z, w) {
 }
