@@ -17,7 +17,7 @@ declare function test1(a?: number, input: {
  * @param {Array} z
  * @param {Array<Array>} w
  */
-declare function test2(x: any[], y: any[], z: [], w: [][]): void;
+declare function test2(x: any[], y: any[], z: any[], w: any[][]): void;
 
 /**
  * @class

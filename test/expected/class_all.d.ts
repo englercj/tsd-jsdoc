@@ -153,7 +153,7 @@ declare module "util" {
         /**
          * @member {Array}
          */
-        simpleArray: [];
+        simpleArray: any[];
         /**
          * Creates a new thing.
          *

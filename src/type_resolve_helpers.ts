@@ -194,7 +194,7 @@ function generateTree(name: string, parent: StringTreeNode | null = null) : Stri
         else if (partUpper === 'OBJECT')
             node.name = 'object';
         else if (partUpper === 'ARRAY')
-            node.name = '[]';
+            node.name = 'any[]';
 
         if (!parent)
             return node;
