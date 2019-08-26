@@ -479,6 +479,19 @@ export function resolveOptional(doclet: IDocletProp): ts.Token<ts.SyntaxKind.Que
     return undefined;
 }
 
+export function resolveOptionalFromName(doclet: IDocletBase): [ string, ts.Token<ts.SyntaxKind.QuestionToken> | undefined ]
+{
+    let questionToken = undefined;
+    let name = doclet.name;
+
+    if (name.startsWith('[') && name.endsWith(']')) {
+        name = name.substring(1, name.length - 1);
+        questionToken = ts.createToken(ts.SyntaxKind.QuestionToken);
+    }
+
+    return [ name, questionToken ];
+}
+
 export function resolveVariable(doclet: IDocletProp): ts.Token<ts.SyntaxKind.DotDotDotToken> | undefined
 {
     if (doclet.variable)
