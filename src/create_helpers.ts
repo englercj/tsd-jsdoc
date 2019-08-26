@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
 import { warn } from './logger';
-import { resolveType, createFunctionParams, createFunctionReturnType, resolveTypeParameters, resolveHeritageClauses } from './type_resolve_helpers';
+import { resolveType, createFunctionParams, createFunctionReturnType, resolveTypeParameters, resolveHeritageClauses, resolveOptionalFromName } from './type_resolve_helpers';
 
 const declareModifier = ts.createModifier(ts.SyntaxKind.DeclareKeyword);
 const constModifier = ts.createModifier(ts.SyntaxKind.ConstKeyword);
@@ -184,12 +184,13 @@ export function createClassMethod(doclet: IFunctionDoclet): ts.MethodDeclaration
     if (doclet.name.startsWith('exports.'))
         doclet.name = doclet.name.replace('exports.', '');
 
+    var [ name, questionToken ] = resolveOptionalFromName(doclet);
     return handleComment(doclet, ts.createMethod(
         undefined,      // decorators
         mods,           // modifiers
         undefined,      // asteriskToken
-        doclet.name,    // name
-        undefined,      // questionToken
+        name,           // name
+        questionToken,  // questionToken
         typeParams,     // typeParameters
         params,         // parameters
         type,           // type
@@ -207,12 +208,13 @@ export function createInterfaceMethod(doclet: IFunctionDoclet): ts.MethodSignatu
     if (doclet.name.startsWith('exports.'))
         doclet.name = doclet.name.replace('exports.', '');
 
+    var [ name, questionToken ] = resolveOptionalFromName(doclet);
     return handleComment(doclet, ts.createMethodSignature(
         typeParams,     // typeParameters
         params,         // parameters
         type,           // type
-        doclet.name,    // name
-        undefined       // questionToken
+        name,           // name
+        questionToken,  // questionToken
     ));
 }
 
@@ -264,11 +266,12 @@ export function createClassMember(doclet: IMemberDoclet): ts.PropertyDeclaration
     if (doclet.kind === 'constant' || doclet.readonly)
         mods.push(readonlyModifier);
 
+    var [ name, questionToken ] = resolveOptionalFromName(doclet);
     return handleComment(doclet, ts.createProperty(
         undefined,      // decorators
         mods,           // modifiers
-        doclet.name,    // name
-        undefined,      // questionToken
+        name,           // name
+        questionToken,  // questionToken
         type,           // type
         undefined       // initializer
     ));
@@ -285,10 +288,11 @@ export function createInterfaceMember(doclet: IMemberDoclet): ts.PropertySignatu
     if (doclet.scope === 'static')
         mods.push(ts.createModifier(ts.SyntaxKind.StaticKeyword));
 
+    var [ name, questionToken ] = resolveOptionalFromName(doclet);
     return handleComment(doclet, ts.createPropertySignature(
         mods,           // modifiers
-        doclet.name,    // name
-        undefined,      // questionToken
+        name,           // name
+        questionToken,  // questionToken
         type,           // type
         undefined       // initializer
     ));
