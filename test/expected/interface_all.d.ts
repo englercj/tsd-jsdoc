@@ -12,6 +12,13 @@ declare interface Color {
      * in that order.
      */
     rgb(): number[];
+    /**
+     * @function Color#[foobar1]
+     */
+    foobar1?(): void;
+    /**
+     * @name Color#[foobar2]
+     * @type {Number}
+     */
+    foobar2?: number;
 }
-
-

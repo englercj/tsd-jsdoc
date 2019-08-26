@@ -16,4 +16,15 @@ Color.prototype.rgb = function() {
     throw new Error('not implemented');
 };
 
+/**
+ * @function Color#[foobar1]
+ */
+Color.prototype.foobar1 = function() {
+    throw new Error('not implemented');
+};
 
+/**
+ * @name Color#[foobar2]
+ * @type {Number}
+ */
+Color.prototype.foobar2 = undefined;
