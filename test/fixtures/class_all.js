@@ -156,6 +156,11 @@ class MyThing extends OtherThing {
          * @member {Array<Array.<Array<Array.<string[]>>>>}
          */
         this.superArray = {};
+
+        /**
+         * @member {Array}
+         */
+        this.simpleArray = [];
     }
 
     /**
