@@ -204,12 +204,6 @@ export function createInterfaceMethod(doclet: IFunctionDoclet): ts.MethodSignatu
     const type = createFunctionReturnType(doclet);
     const typeParams = resolveTypeParameters(doclet);
 
-    if (!doclet.memberof)
-        mods.push(declareModifier);
-
-    if (doclet.scope === 'static')
-        mods.push(ts.createModifier(ts.SyntaxKind.StaticKeyword));
-
     if (doclet.name.startsWith('exports.'))
         doclet.name = doclet.name.replace('exports.', '');
 
