@@ -38,14 +38,13 @@ class Things {
     }
 
     /**
-     * @function
-     * @name Things#[foobar1]
+     * @method Things#[foobar1]
      */
     foobar1() {
     };
 
     /**
-     * @member {Number}
+     * @type {Number}
      * @name Things#[foobar2]
      */
     foobar2 = undefined;

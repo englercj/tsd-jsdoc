@@ -33,12 +33,11 @@ declare class Things {
      */
     doThings(): void;
     /**
-     * @function
-     * @name Things#[foobar1]
+     * @method Things#[foobar1]
      */
     foobar1?(): void;
     /**
-     * @member {Number}
+     * @type {Number}
      * @name Things#[foobar2]
      */
     foobar2?: number;

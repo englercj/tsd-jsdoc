@@ -14,21 +14,30 @@ declare interface Color {
     rgb(): number[];
     /**
      * @function
-     * @name Color#[foobar1]
+     * @name [foobar1]
+     * @memberof Color#
      */
     foobar1?(): void;
     /**
-     * @function Color#[foobar2]
+     * @function [foobar2]
+     * @memberof Color#
      */
     foobar2?(): void;
     /**
      * @type {Boolean}
-     * @name Color#[foobar3]
+     * @name [foobar3]
+     * @memberof Color#
      */
     foobar3?: boolean;
     /**
      * @member {String}
-     * @name Color#[foobar4]
+     * @name [foobar4]
+     * @memberof Color#
      */
     foobar4?: string;
+    /**
+     * @member {Object} [foobar5]
+     * @memberof Color#
+     */
+    foobar5?: any;
 }
