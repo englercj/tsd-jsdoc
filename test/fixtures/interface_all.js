@@ -17,14 +17,28 @@ Color.prototype.rgb = function() {
 };
 
 /**
- * @function Color#[foobar1]
+ * @function
+ * @name Color#[foobar1]
  */
 Color.prototype.foobar1 = function() {
     throw new Error('not implemented');
 };
 
 /**
- * @name Color#[foobar2]
- * @type {Number}
+ * @function Color#[foobar2]
  */
-Color.prototype.foobar2 = undefined;
+Color.prototype.foobar2 = function() {
+    throw new Error('not implemented');
+};
+
+/**
+ * @type {Boolean}
+ * @name Color#[foobar3]
+ */
+Color.prototype.foobar3 = undefined;
+
+/**
+ * @member {String}
+ * @name Color#[foobar4]
+ */
+Color.prototype.foobar4 = undefined;

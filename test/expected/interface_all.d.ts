@@ -13,12 +13,22 @@ declare interface Color {
      */
     rgb(): number[];
     /**
-     * @function Color#[foobar1]
+     * @function
+     * @name Color#[foobar1]
      */
     foobar1?(): void;
     /**
-     * @name Color#[foobar2]
-     * @type {Number}
+     * @function Color#[foobar2]
      */
-    foobar2?: number;
+    foobar2?(): void;
+    /**
+     * @type {Boolean}
+     * @name Color#[foobar3]
+     */
+    foobar3?: boolean;
+    /**
+     * @member {String}
+     * @name Color#[foobar4]
+     */
+    foobar4?: string;
 }
