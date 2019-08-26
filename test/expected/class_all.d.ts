@@ -32,6 +32,15 @@ declare class Things {
      *
      */
     doThings(): void;
+    /**
+     * @function Things#[foobar1]
+     */
+    foobar1?(): void;
+    /**
+     * @name Things#[foobar2]
+     * @type {Number}
+     */
+    foobar2?: number;
 }
 
 /**

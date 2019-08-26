@@ -36,6 +36,18 @@ class Things {
      */
     doThings() {
     }
+
+    /**
+     * @function Things#[foobar1]
+     */
+    foobar1() {
+    };
+
+    /**
+     * @name Things#[foobar2]
+     * @type {Number}
+     */
+    foobar2 = undefined;
 }
 
 /**
