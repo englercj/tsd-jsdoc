@@ -28,12 +28,21 @@ declare namespace Color {
      */
     var staticMember4: any;
 }
+
 /**
  * Interface for classes that represent a color.
  *
  * @interface
  */
 declare interface Color {
+    /**
+     * @function
+     */
+    instanceMethod(): void;
+    /**
+     * @member {Number}
+     */
+    instanceMember: number;
     /**
      * Get the color as an array of red, green, and blue values, represented as
      * decimal numbers between 0 and 1.

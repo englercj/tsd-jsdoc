@@ -39,6 +39,15 @@ Color.staticMember3 = "foobar";
 */
 Color.staticMember4 = {};
 
+/**
+ * @function
+ */
+Color.prototype.instanceMethod = function() {};
+
+/**
+ * @member {Number}
+ */
+Color.prototype.instanceMember = 5;
 
 /**
  * Get the color as an array of red, green, and blue values, represented as
@@ -50,5 +59,3 @@ Color.staticMember4 = {};
 Color.prototype.rgb = function() {
     throw new Error('not implemented');
 };
-
-
