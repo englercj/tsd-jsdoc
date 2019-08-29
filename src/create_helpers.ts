@@ -340,6 +340,7 @@ export function createInterfaceMember(doclet: IMemberDoclet): ts.PropertySignatu
 export function createNamespaceMember(doclet: IMemberDoclet): ts.VariableStatement
 {
     const mods = doclet.memberof ? undefined : [declareModifier];
+    const flags = doclet.kind === 'constant' ? ts.NodeFlags.Const : undefined;
     const type = resolveType(doclet.type, doclet);
 
     if (doclet.name.startsWith('exports.'))
@@ -347,11 +348,15 @@ export function createNamespaceMember(doclet: IMemberDoclet): ts.VariableStateme
 
     return handleComment(doclet, ts.createVariableStatement(
         mods,
-        [ts.createVariableDeclaration(
-            doclet.name,    // name
-            type,           // type
-            undefined       // initializer
-        )]
+        ts.createVariableDeclarationList([
+            ts.createVariableDeclaration(
+                doclet.name,    // name
+                type,           // type
+                undefined       // initializer
+                )
+            ],
+            flags,
+        )
     ));
 }
 
