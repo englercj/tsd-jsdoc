@@ -69,3 +69,22 @@ FoobarNS.CircleOptions.prototype.radius;
  */
 FoobarNS.Circle = function Circle(opt_options) {
 }
+
+/**
+ * Hello World #1
+ * @member {Number}
+ */
+FoobarNS.helloWorld1 = 1;
+
+/**
+ * Hello World #2
+ * @type {Boolean}
+ */
+FoobarNS.helloWorld2 = true;
+
+/**
+ * Hello World #3
+ * @constant
+ * @type {String}
+ */
+FoobarNS.helloWorld3 = "test";

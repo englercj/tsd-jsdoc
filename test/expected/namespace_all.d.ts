@@ -66,6 +66,20 @@ declare namespace FoobarNS {
     class Circle {
         constructor(opt_options?: FoobarNS.CircleOptions);
     }
+    /**
+     * Hello World #1
+     * @member {Number}
+     */
+    var helloWorld1: number;
+    /**
+     * Hello World #2
+     * @type {Boolean}
+     */
+    var helloWorld2: boolean;
+    /**
+     * Hello World #3
+     * @constant
+     * @type {String}
+     */
+    const helloWorld3: string;
 }
-
-
