@@ -143,18 +143,43 @@ export class Emitter
 
                 if (extras.length)
                 {
-                    const interfaceLongname = this._getInterfaceKey(doclet.longname);
-                    interfaceMerge = this._treeNodes[interfaceLongname] = {
+                    const longname = this._getInterfaceKey(doclet.longname);
+                    interfaceMerge = this._treeNodes[longname] = {
                         doclet: {
                             kind: 'interface',
                             name: doclet.name,
                             scope: doclet.scope,
-                            longname: interfaceLongname,
+                            longname: longname,
                             augments: extras,
                             memberof: doclet.memberof,
                         },
                         children: [],
                     };
+                }
+            }
+
+            let namespaceMerge: IDocletTreeNode | null = null;
+
+            // Generate an namespace of the same name as the interface/mixin to perform
+            // a namespace merge containing any static children (ex members and functions).
+            if (doclet.kind === 'interface' || doclet.kind === 'mixin')
+            {
+                const staticChildren = docs.filter(d => (d as IDocletBase).memberof === doclet.longname && (d as IDocletBase).scope === 'static');
+                if (staticChildren.length)
+                {
+                    const longname = this._getNamespaceKey(doclet.longname);
+                    namespaceMerge = this._treeNodes[longname] = {
+                        doclet: {
+                            kind: 'namespace',
+                            name: doclet.name,
+                            scope: doclet.scope,
+                            longname: longname,
+                            memberof: doclet.memberof,
+                        },
+                        children: [],
+                    };
+
+                    staticChildren.forEach(c => (c as IDocletBase).memberof = longname);
                 }
             }
 
@@ -175,8 +200,8 @@ export class Emitter
                 {
                     const mod = this._getOrCreateClassNamespace(parent);
 
-                    if (interfaceMerge)
-                        mod.children.push(interfaceMerge);
+                    if (interfaceMerge) mod.children.push(interfaceMerge);
+                    if (namespaceMerge) mod.children.push(namespaceMerge);
 
                     mod.children.push(obj);
                 }
@@ -192,8 +217,8 @@ export class Emitter
 
                     if (!isParentEnum)
                     {
-                        if (interfaceMerge)
-                            parent.children.push(interfaceMerge);
+                        if (interfaceMerge) parent.children.push(interfaceMerge);
+                        if (namespaceMerge) parent.children.push(namespaceMerge);
 
                         parent.children.push(obj);
                     }
@@ -201,8 +226,8 @@ export class Emitter
             }
             else
             {
-                if (interfaceMerge)
-                    this._treeRoots.push(interfaceMerge);
+                if (interfaceMerge) this._treeRoots.push(interfaceMerge);
+                if (namespaceMerge) this._treeRoots.push(namespaceMerge);
 
                 this._treeRoots.push(obj);
             }
