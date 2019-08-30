@@ -342,11 +342,12 @@ export function createNamespaceMember(doclet: IMemberDoclet): ts.VariableStateme
     const mods = doclet.memberof ? undefined : [declareModifier];
     const flags = (doclet.kind === 'constant' || doclet.readonly) ? ts.NodeFlags.Const : undefined;
 
-    const literalValue = doclet.meta && doclet.meta.code.type === 'Literal' ? doclet.meta.code.value : undefined;
-    const defaultValue = doclet.defaultvalue !== undefined ? doclet.defaultvalue : literalValue;
-    const initializer = (flags === ts.NodeFlags.Const && defaultValue !== undefined) ? ts.createLiteral(defaultValue) : undefined;
+    const literalValue = doclet.defaultvalue !== undefined ? doclet.defaultvalue
+                         : doclet.meta && doclet.meta.code.type === 'Literal' ? doclet.meta.code.value
+                         : undefined;
+    const initializer = (flags === ts.NodeFlags.Const && literalValue !== undefined) ? ts.createLiteral(literalValue) : undefined;
 
-    // ignore regular type if its a constant value, because that strict value provides more type information
+    // ignore regular type if constant literal, because a literal provides more type information
     const type = initializer ? undefined : resolveType(doclet.type, doclet);
 
     if (doclet.name.startsWith('exports.'))
