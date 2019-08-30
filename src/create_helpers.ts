@@ -1,5 +1,7 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import * as ts from 'typescript';
-import { warn } from './logger';
+import { warn, debug } from './logger';
 import {
     createFunctionParams,
     createFunctionReturnType,
@@ -57,7 +59,8 @@ function validateModuleChildren(children?: ts.Node[])
                 && !ts.isEnumDeclaration(child)
                 && !ts.isModuleDeclaration(child)
                 && !ts.isTypeAliasDeclaration(child)
-                && !ts.isVariableStatement(child))
+                && !ts.isVariableStatement(child)
+                && !ts.isExportAssignment(child))
             {
                 warn('Encountered child that is not a supported declaration, this is likely due to invalid JSDoc.', child);
                 children.splice(i, 1);
@@ -353,6 +356,40 @@ export function createNamespaceMember(doclet: IMemberDoclet): ts.VariableStateme
             undefined       // initializer
         )]
     ));
+}
+
+export function createExportDefault(doclet: IExportDefaultDoclet): ts.ExportAssignment | null
+{
+    if (doclet.meta) {
+        const sourcePath : string = path.join(doclet.meta.path, doclet.meta.filename);
+        debug(`create_helpers.ts:createExportDefault(): Reading '${sourcePath}'`);
+        const fd = fs.openSync(sourcePath, "r");
+        if (fd < 0) {
+            warn(`Could not read from '${sourcePath}'`);
+            return null;
+        }
+        const begin = doclet.meta.range[0];
+        const end = doclet.meta.range[1];
+        const length = end - begin;
+        const buffer = Buffer.alloc(length);
+        if (fs.readSync(fd, buffer, 0, length, begin) !== length) {
+            warn(`Could not read from '${sourcePath}'`);
+            return null;
+        }
+        let exportDefaultCode : string = buffer.toString().trim();
+        debug(`create_helpers.ts:createExportDefault(): export default code: '${exportDefaultCode}'`);
+        if (exportDefaultCode.endsWith(";")) {
+            exportDefaultCode = exportDefaultCode.slice(0, -1).trimRight();
+        }
+        if (exportDefaultCode.match(/^export +default +/)) {
+            exportDefaultCode = exportDefaultCode.replace(/^export +default +/, "");
+        }
+        debug(`create_helpers.ts:createExportDefault():                  >>> '${exportDefaultCode}'`);
+        const expression : ts.Expression = ts.createIdentifier(exportDefaultCode);
+        return handleComment(doclet, ts.createExportDefault(expression));
+    }
+    warn(`Cannot create an 'export default' instruction. Information missing.`, doclet);
+    return null;
 }
 
 export function createModule(doclet: INamespaceDoclet, nested: boolean, children?: ts.Node[]): ts.ModuleDeclaration
