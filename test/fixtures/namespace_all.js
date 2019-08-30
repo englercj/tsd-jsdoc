@@ -71,20 +71,53 @@ FoobarNS.Circle = function Circle(opt_options) {
 }
 
 /**
- * Hello World #1
  * @member {Number}
  */
 FoobarNS.helloWorld1 = 1;
 
 /**
- * Hello World #2
  * @type {Boolean}
  */
 FoobarNS.helloWorld2 = true;
 
 /**
- * Hello World #3
  * @constant
  * @type {String}
  */
-FoobarNS.helloWorld3 = "test";
+FoobarNS.helloWorld3 = foobar;
+
+/**
+ * @constant
+ * @type {Number}
+ */
+FoobarNS.helloWorld4 = foobar;
+
+/**
+ * @constant
+ * @type {Boolean}
+ */
+FoobarNS.helloWorld5 = foobar;
+
+/**
+ * @constant
+ * @type {Object}
+ */
+FoobarNS.helloWorld6 = {hello: "world", test: 7.0, foo: "bar"};
+
+/**
+ * @constant
+ * @type {String}
+ */
+FoobarNS.helloWorld7 = "test";
+
+/**
+ * @constant
+ * @type {Number}
+ */
+FoobarNS.helloWorld8 = 1.2345;
+
+/**
+ * @constant
+ * @type {Boolean}
+ */
+FoobarNS.helloWorld9 = true;
