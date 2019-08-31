@@ -69,3 +69,55 @@ FoobarNS.CircleOptions.prototype.radius;
  */
 FoobarNS.Circle = function Circle(opt_options) {
 }
+
+/**
+ * @member {Number}
+ */
+FoobarNS.helloWorld1 = 1;
+
+/**
+ * @type {Boolean}
+ */
+FoobarNS.helloWorld2 = true;
+
+/**
+ * @constant
+ * @type {String}
+ */
+FoobarNS.helloWorld3 = foobar;
+
+/**
+ * @constant
+ * @type {Number}
+ */
+FoobarNS.helloWorld4 = foobar;
+
+/**
+ * @constant
+ * @type {Boolean}
+ */
+FoobarNS.helloWorld5 = foobar;
+
+/**
+ * @constant
+ * @type {Object}
+ */
+FoobarNS.helloWorld6 = {hello: "world", test: 7.0, foo: "bar"};
+
+/**
+ * @constant
+ * @type {String}
+ */
+FoobarNS.helloWorld7 = "test";
+
+/**
+ * @constant
+ * @type {Number}
+ */
+FoobarNS.helloWorld8 = 1.2345;
+
+/**
+ * @constant
+ * @type {Boolean}
+ */
+FoobarNS.helloWorld9 = true;

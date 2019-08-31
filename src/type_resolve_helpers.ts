@@ -473,7 +473,7 @@ export function toKeywordTypeKind(k: string): ts.KeywordTypeNode['kind'] | null
     }
 }
 
-export function resolveOptional(doclet: IDocletProp): ts.Token<ts.SyntaxKind.QuestionToken> | undefined
+export function resolveOptionalParameter(doclet: IDocletProp): ts.Token<ts.SyntaxKind.QuestionToken> | undefined
 {
     if (doclet.defaultvalue || doclet.optional)
         return ts.createToken(ts.SyntaxKind.QuestionToken);
@@ -481,12 +481,28 @@ export function resolveOptional(doclet: IDocletProp): ts.Token<ts.SyntaxKind.Que
     return undefined;
 }
 
-export function resolveVariable(doclet: IDocletProp): ts.Token<ts.SyntaxKind.DotDotDotToken> | undefined
+export function resolveVariableParameter(doclet: IDocletProp): ts.Token<ts.SyntaxKind.DotDotDotToken> | undefined
 {
     if (doclet.variable)
         return ts.createToken(ts.SyntaxKind.DotDotDotToken);
 
     return undefined;
+}
+
+export function resolveOptionalFromName(doclet: IDocletBase): [ string, ts.Token<ts.SyntaxKind.QuestionToken> | undefined ]
+{
+    let name = doclet.name;
+
+    if (name.startsWith('[') && name.endsWith(']')) {
+        name = name.substring(1, name.length - 1);
+        return [ name, ts.createToken(ts.SyntaxKind.QuestionToken) ];
+    }
+
+    if (doclet.optional) {
+        return [ name, ts.createToken(ts.SyntaxKind.QuestionToken) ];
+    }
+
+    return [ name, undefined ];
 }
 
 function getExprWithTypeArgs(identifier: string)
@@ -729,8 +745,8 @@ export function createFunctionParams(doclet: IFunctionDoclet | ITypedefDoclet | 
     for (let i = 0; i < tree.roots.length; ++i)
     {
         const node = tree.roots[i];
-        const opt = resolveOptional(node.prop);
-        const dots = resolveVariable(node.prop);
+        const opt = resolveOptionalParameter(node.prop);
+        const dots = resolveVariableParameter(node.prop);
         let type = node.children.length ? createTypeLiteral(node.children) : resolveType(node.prop.type);
 
         if (dots)

@@ -6,7 +6,8 @@ import {
     createTypeLiteral,
     resolveHeritageClauses,
     resolveType,
-    resolveTypeParameters
+    resolveTypeParameters,
+    resolveOptionalFromName
 } from './type_resolve_helpers';
 import { PropTree } from "./PropTree";
 
@@ -221,12 +222,13 @@ export function createClassMethod(doclet: IFunctionDoclet): ts.MethodDeclaration
     if (doclet.name.startsWith('exports.'))
         doclet.name = doclet.name.replace('exports.', '');
 
+    const [ name, questionToken ] = resolveOptionalFromName(doclet);
     return handleComment(doclet, ts.createMethod(
         undefined,      // decorators
         mods,           // modifiers
         undefined,      // asteriskToken
-        doclet.name,    // name
-        undefined,      // questionToken
+        name,           // name
+        questionToken,  // questionToken
         typeParams,     // typeParameters
         params,         // parameters
         type,           // type
@@ -241,21 +243,16 @@ export function createInterfaceMethod(doclet: IFunctionDoclet): ts.MethodSignatu
     const type = createFunctionReturnType(doclet);
     const typeParams = resolveTypeParameters(doclet);
 
-    if (!doclet.memberof)
-        mods.push(declareModifier);
-
-    if (doclet.scope === 'static')
-        mods.push(ts.createModifier(ts.SyntaxKind.StaticKeyword));
-
     if (doclet.name.startsWith('exports.'))
         doclet.name = doclet.name.replace('exports.', '');
 
+    const [ name, questionToken ] = resolveOptionalFromName(doclet);
     return handleComment(doclet, ts.createMethodSignature(
         typeParams,     // typeParameters
         params,         // parameters
         type,           // type
-        doclet.name,    // name
-        undefined       // questionToken
+        name,           // name
+        questionToken,  // questionToken
     ));
 }
 
@@ -307,11 +304,12 @@ export function createClassMember(doclet: IMemberDoclet): ts.PropertyDeclaration
     if (doclet.kind === 'constant' || doclet.readonly)
         mods.push(readonlyModifier);
 
+    const [ name, questionToken ] = resolveOptionalFromName(doclet);
     return handleComment(doclet, ts.createProperty(
         undefined,      // decorators
         mods,           // modifiers
-        doclet.name,    // name
-        undefined,      // questionToken
+        name,           // name
+        questionToken,  // questionToken
         type,           // type
         undefined       // initializer
     ));
@@ -328,10 +326,11 @@ export function createInterfaceMember(doclet: IMemberDoclet): ts.PropertySignatu
     if (doclet.scope === 'static')
         mods.push(ts.createModifier(ts.SyntaxKind.StaticKeyword));
 
+    const [ name, questionToken ] = resolveOptionalFromName(doclet);
     return handleComment(doclet, ts.createPropertySignature(
         mods,           // modifiers
-        doclet.name,    // name
-        undefined,      // questionToken
+        name,           // name
+        questionToken,  // questionToken
         type,           // type
         undefined       // initializer
     ));
@@ -340,18 +339,30 @@ export function createInterfaceMember(doclet: IMemberDoclet): ts.PropertySignatu
 export function createNamespaceMember(doclet: IMemberDoclet): ts.VariableStatement
 {
     const mods = doclet.memberof ? undefined : [declareModifier];
-    const type = resolveType(doclet.type, doclet);
+    const flags = (doclet.kind === 'constant' || doclet.readonly) ? ts.NodeFlags.Const : undefined;
+
+    const literalValue = doclet.defaultvalue !== undefined ? doclet.defaultvalue
+                         : doclet.meta && doclet.meta.code.type === 'Literal' ? doclet.meta.code.value
+                         : undefined;
+    const initializer = (flags === ts.NodeFlags.Const && literalValue !== undefined) ? ts.createLiteral(literalValue) : undefined;
+
+    // ignore regular type if constant literal, because a literal provides more type information
+    const type = initializer ? undefined : resolveType(doclet.type, doclet);
 
     if (doclet.name.startsWith('exports.'))
         doclet.name = doclet.name.replace('exports.', '');
 
     return handleComment(doclet, ts.createVariableStatement(
         mods,
-        [ts.createVariableDeclaration(
-            doclet.name,    // name
-            type,           // type
-            undefined       // initializer
-        )]
+        ts.createVariableDeclarationList([
+            ts.createVariableDeclaration(
+                doclet.name,    // name
+                type,           // type
+                initializer     // initializer
+                )
+            ],
+            flags,
+        )
     ));
 }
 

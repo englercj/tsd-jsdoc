@@ -51,6 +51,32 @@ declare interface Color {
      * in that order.
      */
     rgb(): number[];
+    /**
+     * @function
+     * @name [foobar1]
+     * @memberof Color#
+     */
+    foobar1?(): void;
+    /**
+     * @function [foobar2]
+     * @memberof Color#
+     */
+    foobar2?(): void;
+    /**
+     * @type {Boolean}
+     * @name [foobar3]
+     * @memberof Color#
+     */
+    foobar3?: boolean;
+    /**
+     * @member {String}
+     * @name [foobar4]
+     * @memberof Color#
+     */
+    foobar4?: string;
+    /**
+     * @member {Object} [foobar5]
+     * @memberof Color#
+     */
+    foobar5?: any;
 }
-
-
