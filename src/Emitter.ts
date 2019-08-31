@@ -200,8 +200,10 @@ export class Emitter
                 {
                     const mod = this._getOrCreateClassNamespace(parent);
 
-                    if (interfaceMerge) mod.children.push(interfaceMerge);
-                    if (namespaceMerge) mod.children.push(namespaceMerge);
+                    if (interfaceMerge)
+                        mod.children.push(interfaceMerge);
+                    if (namespaceMerge)
+                        mod.children.push(namespaceMerge);
 
                     mod.children.push(obj);
                 }
@@ -217,8 +219,10 @@ export class Emitter
 
                     if (!isParentEnum)
                     {
-                        if (interfaceMerge) parent.children.push(interfaceMerge);
-                        if (namespaceMerge) parent.children.push(namespaceMerge);
+                        if (interfaceMerge)
+                            parent.children.push(interfaceMerge);
+                        if (namespaceMerge)
+                            parent.children.push(namespaceMerge);
 
                         parent.children.push(obj);
                     }
@@ -226,8 +230,10 @@ export class Emitter
             }
             else
             {
-                if (interfaceMerge) this._treeRoots.push(interfaceMerge);
-                if (namespaceMerge) this._treeRoots.push(namespaceMerge);
+                if (interfaceMerge)
+                    this._treeRoots.push(interfaceMerge);
+                if (namespaceMerge)
+                    this._treeRoots.push(namespaceMerge);
 
                 this._treeRoots.push(obj);
             }
