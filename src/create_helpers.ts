@@ -358,7 +358,7 @@ export function createNamespaceMember(doclet: IMemberDoclet): ts.VariableStateme
     ));
 }
 
-export function createExportDefault(doclet: IExportDefaultDoclet): ts.ExportAssignment | null
+export function createExportDefault(doclet: IMemberDoclet): ts.ExportAssignment | null
 {
     if (doclet.meta) {
         const sourcePath : string = path.join(doclet.meta.path, doclet.meta.filename);
