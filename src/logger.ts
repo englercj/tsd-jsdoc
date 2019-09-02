@@ -42,5 +42,9 @@ export function debug(msg: string, data?: any)
 }
 
 export function docletDebugInfo(doclet: TAnyDoclet) : string {
-    return `{longname='${doclet.longname}', kind='${doclet.kind}'}`;
+    if ((doclet.kind !== 'package') && doclet.meta && doclet.meta.range) {
+        return `{longname='${doclet.longname}', kind='${doclet.kind}, range=[${doclet.meta.range[0]}-${doclet.meta.range[1]}]'}`;
+    } else {
+        return `{longname='${doclet.longname}', kind='${doclet.kind}'}`;
+    }
 }
