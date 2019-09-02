@@ -130,17 +130,7 @@ export class Emitter
                 debug(`Emitter._createTreeNodes(): adding ${docletDebugInfo(doclet)} to this._treeNodes`);
                 this._treeNodes[doclet.longname] = { doclet, children: [] };
             } else {
-                if (isExportDefault(doclet)) {
-                    const moduleTreeNode = this._treeNodes[doclet.longname];
-                    if (moduleTreeNode) {
-                        debug(`Emitter._createTreeNodes(): adding 'export default' ${docletDebugInfo(doclet)} to module ${docletDebugInfo(moduleTreeNode.doclet)}`);
-                        moduleTreeNode.children.push({ doclet: doclet, children: [] });
-                    } else {
-                        warn(`Could not retrieve parent module tree node, skipping ${docletDebugInfo(doclet)}`, doclet);
-                    }
-                } else {
-                    debug(`Emitter._createTreeNodes(): skipping ${docletDebugInfo(doclet)} (default)`, doclet);
-                }
+                debug(`Emitter._createTreeNodes(): skipping ${docletDebugInfo(doclet)} (default)`, doclet);
             }
         }
     }
@@ -191,7 +181,18 @@ export class Emitter
                 }
             }
 
-            if (doclet.memberof)
+            if (isExportDefault(doclet))
+            {
+                const parentModule = this._treeNodes[doclet.longname];
+                if (parentModule) {
+                    debug(`Emitter._buildTree(): adding 'export default' ${docletDebugInfo(doclet)} to module ${docletDebugInfo(parentModule.doclet)}`);
+                    parentModule.children.push({ doclet: doclet, children: [] });
+                } else {
+                    warn(`Failed to find parent module of 'export default' doclet ${doclet.longname}`, doclet);
+                    continue;
+                }
+            }
+            else if (doclet.memberof)
             {
                 const parent = this._treeNodes[doclet.memberof];
 
