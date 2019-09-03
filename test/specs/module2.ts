@@ -1,7 +1,7 @@
 import { expectJsDoc } from '../lib';
 
-suite('Module Checks', () => {
+suite('Module2 Checks', () => {
     test('All', () => {
-        expectJsDoc('module');
+        expectJsDoc('module2');
     });
 });
