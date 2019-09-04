@@ -32,7 +32,8 @@ export function debug(msg: string, data?: any)
     if (typeof(console) === 'undefined')
         return;
 
-    if (isDebug) {
+    if (isDebug)
+    {
         console.log(`${header}   ${msg}`);
         if (arguments.length > 1)
         {
@@ -42,9 +43,12 @@ export function debug(msg: string, data?: any)
 }
 
 export function docletDebugInfo(doclet: TAnyDoclet) : string {
-    if ((doclet.kind !== 'package') && doclet.meta && doclet.meta.range) {
+    if ((doclet.kind !== 'package') && doclet.meta && doclet.meta.range)
+    {
         return `{longname='${doclet.longname}', kind='${doclet.kind}, range=[${doclet.meta.range[0]}-${doclet.meta.range[1]}]'}`;
-    } else {
+    }
+    else
+    {
         return `{longname='${doclet.longname}', kind='${doclet.kind}'}`;
     }
 }

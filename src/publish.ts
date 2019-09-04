@@ -17,7 +17,7 @@ export function publish(data: TDocletDb, opts: ITemplateConfig)
     const docs = data().get();
 
     setVerbose(!!opts.verbose);
-    setDebug(!!opts.verbose);
+    setDebug(!!opts.debug);
 
     // create an emitter to parse the docs
     const emitter = new Emitter(opts);

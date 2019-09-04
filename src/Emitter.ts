@@ -129,8 +129,10 @@ export class Emitter
             {
                 debug(`Emitter._createTreeNodes(): adding ${docletDebugInfo(doclet)} to this._treeNodes`);
                 this._treeNodes[doclet.longname] = { doclet, children: [] };
-            } else {
-                debug(`Emitter._createTreeNodes(): skipping ${docletDebugInfo(doclet)} (default)`, doclet);
+            }
+            else
+            {
+                debug(`Emitter._createTreeNodes(): skipping ${docletDebugInfo(doclet)} (doclet name already known)`, doclet);
             }
         }
     }
@@ -184,10 +186,13 @@ export class Emitter
             if (isExportDefault(doclet))
             {
                 const parentModule = this._treeNodes[doclet.longname];
-                if (parentModule) {
+                if (parentModule)
+                {
                     debug(`Emitter._buildTree(): adding 'export default' ${docletDebugInfo(doclet)} to module ${docletDebugInfo(parentModule.doclet)}`);
                     parentModule.children.push({ doclet: doclet, children: [] });
-                } else {
+                }
+                else
+                {
                     warn(`Failed to find parent module of 'export default' doclet ${doclet.longname}`, doclet);
                     continue;
                 }
@@ -280,9 +285,12 @@ export class Emitter
 
             case 'constant':
             case 'member':
-                if (isExportDefault(node.doclet)) {
+                if (isExportDefault(node.doclet))
+                {
                     return createExportDefault(node.doclet);
-                } else {
+                }
+                else
+                {
                     if (node.doclet.isEnum)
                         return createEnum(node.doclet);
                     else if (parent && parent.doclet.kind === 'class')
