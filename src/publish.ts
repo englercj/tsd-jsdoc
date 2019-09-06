@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as helper from 'jsdoc/util/templateHelper';
 import { Emitter } from './Emitter';
-import { setVerbose, setDebug } from './logger';
+import { setVerbose, setDebug, debug, docletDebugInfo } from './logger';
 
 /**
  * @param {TAFFY} data - The TaffyDB containing the data that jsdoc parsed.
@@ -10,14 +10,38 @@ import { setVerbose, setDebug } from './logger';
  */
 export function publish(data: TDocletDb, opts: ITemplateConfig)
 {
-    // remove undocumented stuff.
-    data({ undocumented: true }).remove();
+    // start with taking into account 'verbose' and 'debug' options
+    setVerbose(!!opts.verbose);
+    setDebug(!!opts.debug);
+
+    // in order not to break backward compatibility, the 'documented' generation strategy is used by default
+    if (! opts.generationStrategy)
+    {
+        opts.generationStrategy = 'documented';
+    }
+    debug(`publish(): Generation strategy: '${opts.generationStrategy}'`);
+
+    // do not remove undocumented doclet with the 'exported' generation strategy
+    // the Emitter._walkExportedDoclets() function will make the appropriate selection later
+    if (opts.generationStrategy !== 'exported')
+    {
+        // remove undocumented stuff.
+        data(
+            // use of a function as the TaffyDB query in order to track what is removed
+            // see [TaffyDB documentation](http://taffydb.com/writing_queries.html)
+            function(this: TDoclet) // <= 'this' type declaration inspired from [stackoverflow](https://stackoverflow.com/questions/41944650)
+            {
+                if (this.undocumented)
+                {
+                    debug(`publish(): ${docletDebugInfo(this)} removed`);
+                }
+                return false;
+            }
+        ).remove();
+    }
 
     // get the doc list
     const docs = data().get();
-
-    setVerbose(!!opts.verbose);
-    setDebug(!!opts.debug);
 
     // create an emitter to parse the docs
     const emitter = new Emitter(opts);
