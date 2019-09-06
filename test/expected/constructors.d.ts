@@ -2,7 +2,6 @@
  * Class documentation.
  */
 declare class MyClass {
-
     /**
      * Constructor documentation.
      * @public
@@ -16,7 +15,6 @@ declare class MyClass {
  * Class documentation.
  */
 declare class MyClass2 {
-
     /**
      * Constructor documentation.
      * @protected
@@ -30,7 +28,6 @@ declare class MyClass2 {
  * Class documentation.
  */
 declare class MyClass3 {
-
     /**
      * Constructor documentation.
      * @package
@@ -44,7 +41,6 @@ declare class MyClass3 {
  * Class documentation.
  */
 declare class MyClass4 {
-
     /**
      * Constructor documentation.
      * @private
@@ -53,3 +49,4 @@ declare class MyClass4 {
      */
     private constructor(a: number, b: string);
 }
+

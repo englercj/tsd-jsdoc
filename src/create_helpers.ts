@@ -108,16 +108,19 @@ export function createClass(doclet: IClassDoclet, children?: ts.Node[]): ts.Clas
 
     if (doclet.params)
     {
-        const params = createFunctionParams(doclet);
-
-        members.unshift(
-            ts.createConstructor(
-                undefined,  // decorators
-                undefined,  // modifiers
-                params,     // parameters
-                undefined   // body
-            )
-        );
+        // Check whether the constructor has already been declared.
+        if (members.filter(member => ts.isConstructorDeclaration(member)).length === 0)
+        {
+            debug(`createClass(${docletDebugInfo(doclet)}): no constructor set yet, adding one automatically`);
+            members.unshift(
+                ts.createConstructor(
+                    undefined,                      // decorators
+                    undefined,                      // modifiers
+                    createFunctionParams(doclet),   // parameters
+                    undefined                       // body
+                )
+            );
+        }
     }
 
     if (doclet.properties)
@@ -346,12 +349,11 @@ export function createConstructor(doclet: IClassDoclet): ts.ConstructorDeclarati
 {
     debug(`createConstructor(${docletDebugInfo(doclet)})`);
 
-    const params = createFunctionParams(doclet);
     return handleComment(doclet, ts.createConstructor(
-        undefined,  // decorators
-        getAccessModifiers(doclet),  // modifiers
-        params,     // parameters
-        undefined   // body
+        undefined,                      // decorators
+        getAccessModifiers(doclet),     // modifiers
+        createFunctionParams(doclet),   // parameters
+        undefined                       // body
     ))
 }
 

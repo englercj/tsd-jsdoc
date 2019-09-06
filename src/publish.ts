@@ -10,30 +10,39 @@ import { setVerbose, setDebug, debug, docletDebugInfo } from './logger';
  */
 export function publish(data: TDocletDb, opts: ITemplateConfig)
 {
-    // start with taking into account 'verbose' and 'debug' options
+    // Start with taking into account 'verbose' and 'debug' options.
     setVerbose(!!opts.verbose);
     setDebug(!!opts.debug);
 
-    // in order not to break backward compatibility, the 'documented' generation strategy is used by default
+    // In order not to break backward compatibility, the 'documented' generation strategy is used by default.
     if (! opts.generationStrategy)
     {
         opts.generationStrategy = 'documented';
     }
     debug(`publish(): Generation strategy: '${opts.generationStrategy}'`);
 
-    // do not remove undocumented doclet with the 'exported' generation strategy
-    // the Emitter._walkExportedDoclets() function will make the appropriate selection later
+    // Do not remove undocumented doclet with the 'exported' generation strategy.
+    // The Emitter._walkExportedDoclets() function will make the appropriate selection later.
     if (opts.generationStrategy !== 'exported')
     {
         // remove undocumented stuff.
         data(
-            // use of a function as the TaffyDB query in order to track what is removed
+            // Use of a function as the TaffyDB query in order to track what is removed.
             // see [TaffyDB documentation](http://taffydb.com/writing_queries.html)
             function(this: TDoclet) // <= 'this' type declaration inspired from [stackoverflow](https://stackoverflow.com/questions/41944650)
             {
                 if (this.undocumented)
                 {
-                    debug(`publish(): ${docletDebugInfo(this)} removed`);
+                    // Some doclets are marked 'undocumented', but actually have a 'comment' set.
+                    if ((! this.comment) || (this.comment === ''))
+                    {
+                        debug(`publish(): ${docletDebugInfo(this)} removed`);
+                        return true;
+                    }
+                    else
+                    {
+                        debug(`publish(): ${docletDebugInfo(this)} saved from removal`);
+                    }
                 }
                 return false;
             }

@@ -132,7 +132,12 @@ declare module "util" {
      * @mixes Things
      */
     class MyThing extends OtherThing implements Stuff, Things {
-        constructor(...a: number[]);
+        /**
+         * Constructs!
+         * @param {...number} a - The number.
+         * @private
+         */
+        private constructor(...a: number[]);
         /**
          * Derp or something.
          *

@@ -51,22 +51,31 @@ function isExportDefault(doclet: TDoclet)
 
 function shouldMoveOutOfClass(doclet: TDoclet)
 {
-    if (isConstructor(doclet))
-    {
-        return false;
-    }
-    else
-    {
-        return isClassLike(doclet)
-            || isModuleLike(doclet)
-            || isEnum(doclet)
-            || doclet.kind === 'typedef';
-    }
+    return isClassLike(doclet)
+        || isModuleLike(doclet)
+        || isEnum(doclet)
+        || doclet.kind === 'typedef';
+}
+
+function isClassDeclaration(doclet: TDoclet)
+{
+    return (
+        doclet && (doclet.kind === 'class')
+        && doclet.meta && (
+            // When the owner class's comment contains a @class tag, the first doclet for the class is detached one,
+            // btw the 'code' section is empty.
+            (! doclet.meta.code.type)
+            || (doclet.meta.code.type === 'ClassDeclaration')
+        )
+    );
 }
 
 function isConstructor(doclet: TDoclet)
 {
-    return doclet.kind === "class" && doclet.name === doclet.memberof
+    return (
+        (doclet.kind === 'class')
+        && doclet.meta && (doclet.meta.code.type === 'MethodDefinition')
+    );
 }
 
 export class Emitter
@@ -157,6 +166,26 @@ export class Emitter
         for (let i = 0; i < docs.length; ++i)
         {
             const doclet = docs[i];
+
+            if ((doclet.kind !== 'package') && isConstructor(doclet))
+            {
+                // If this doclet is a constructor, do not watch the 'memberof' attribute,
+                // it usually has the same value as the owner class's declaration,
+                // it does point the owner class itself.
+                // Use the 'longname' which equals the owner class's 'longname'.
+                const ownerClass = this._treeNodes[doclet.longname];
+                if ((!ownerClass) || (!isClassDeclaration(ownerClass.doclet)))
+                {
+                    warn(`Failed to find owner class of constructor '${doclet.longname}'.`, doclet);
+                    continue;
+                }
+                debug(`Emitter._buildTree(): adding constructor ${docletDebugInfo(doclet)} to class declaration ${docletDebugInfo(ownerClass.doclet)}`);
+                ownerClass.children.push({ doclet: doclet, children: [] });
+                continue;
+
+                // Note: The constructor should be generated with its documentation whatever its access level.
+                // Do not move this block after the test below.
+            }
 
             if (doclet.kind === 'package' || this._ignoreDoclet(doclet))
             {
@@ -380,10 +409,17 @@ export class Emitter
 
     private _ignoreDoclet(doclet: TAnyDoclet): boolean
     {
-        if (doclet.kind === 'package'
-            || doclet.ignore
-            || (!this.options.private && doclet.access === 'private')) {
-            debug(`Emitter._ignoreDoclet(doclet=${docletDebugInfo(doclet)}) => true (package, ignored or private disabled)`);
+        let reason: string|undefined = undefined;
+        if (doclet.kind === 'package')
+            reason = 'package doclet';
+        else if (!!doclet.ignore)
+            reason = 'doclet with an ignore flag';
+        else if (!this.options.private && doclet.access === 'private')
+            reason = 'private access disabled';
+        if (reason
+            || (doclet.kind === 'package')) // <= hack for typescript resolutions
+        {
+            debug(`Emitter._ignoreDoclet(doclet=${docletDebugInfo(doclet)}) => true (${reason})`);
             return true
         }
 
