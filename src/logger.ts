@@ -34,7 +34,8 @@ export function debug(msg: string, data?: any)
 
     if (isDebug)
     {
-        console.log(`${header}   ${msg}`);
+        // Mix of tsd-jsdoc header with the jsdoc pattern on 'debug' option activated.
+        console.log(`${header} DEBUG: ${msg}`);
         if (arguments.length > 1)
         {
             console.log(data);
@@ -45,7 +46,7 @@ export function debug(msg: string, data?: any)
 export function docletDebugInfo(doclet: TAnyDoclet) : string {
     if ((doclet.kind !== 'package') && doclet.meta && doclet.meta.range)
     {
-        return `{longname='${doclet.longname}', kind='${doclet.kind}, range=[${doclet.meta.range[0]}-${doclet.meta.range[1]}]'}`;
+        return `{longname='${doclet.longname}', kind='${doclet.kind}', range=[${doclet.meta.range[0]}-${doclet.meta.range[1]}]}`;
     }
     else
     {

@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as ts from 'typescript';
-import { warn, debug } from './logger';
+import { warn, debug, docletDebugInfo } from './logger';
 import {
     createFunctionParams,
     createFunctionReturnType,
@@ -94,6 +94,8 @@ function handleComment<T extends ts.Node>(doclet: IDocletBase, node: T): T
 
 export function createClass(doclet: IClassDoclet, children?: ts.Node[]): ts.ClassDeclaration
 {
+    debug(`createClass(${docletDebugInfo(doclet)})`);
+
     validateClassChildren(children);
 
     const mods = doclet.memberof ? undefined : [declareModifier];
@@ -159,6 +161,8 @@ export function createClass(doclet: IClassDoclet, children?: ts.Node[]): ts.Clas
 
 export function createInterface(doclet: IClassDoclet, children?: ts.Node[]): ts.InterfaceDeclaration
 {
+    debug(`createInterface(${docletDebugInfo(doclet)})`);
+
     validateInterfaceChildren(children);
 
     const mods = doclet.memberof ? undefined : [declareModifier];
@@ -181,6 +185,8 @@ export function createInterface(doclet: IClassDoclet, children?: ts.Node[]): ts.
 
 export function createFunction(doclet: IFunctionDoclet): ts.FunctionDeclaration
 {
+    debug(`createFunction(${docletDebugInfo(doclet)})`);
+
     const mods = doclet.memberof ? undefined : [declareModifier];
     const params = createFunctionParams(doclet);
     const type = createFunctionReturnType(doclet);
@@ -203,6 +209,8 @@ export function createFunction(doclet: IFunctionDoclet): ts.FunctionDeclaration
 
 export function createClassMethod(doclet: IFunctionDoclet): ts.MethodDeclaration
 {
+    debug(`createClassMethod(${docletDebugInfo(doclet)})`);
+
     const mods: ts.Modifier[] = [];
     const params = createFunctionParams(doclet);
     const type = createFunctionReturnType(doclet);
@@ -239,6 +247,8 @@ export function createClassMethod(doclet: IFunctionDoclet): ts.MethodDeclaration
 
 export function createInterfaceMethod(doclet: IFunctionDoclet): ts.MethodSignature
 {
+    debug(`createInterfaceMethod(${docletDebugInfo(doclet)})`);
+
     const mods: ts.Modifier[] = [];
     const params = createFunctionParams(doclet);
     const type = createFunctionReturnType(doclet);
@@ -264,6 +274,8 @@ export function createInterfaceMethod(doclet: IFunctionDoclet): ts.MethodSignatu
 
 export function createEnum(doclet: IMemberDoclet): ts.EnumDeclaration
 {
+    debug(`createEnum(${docletDebugInfo(doclet)})`);
+
     const mods: ts.Modifier[] = [];
     const props: ts.EnumMember[] = [];
 
@@ -294,6 +306,8 @@ export function createEnum(doclet: IMemberDoclet): ts.EnumDeclaration
 
 export function createClassMember(doclet: IMemberDoclet): ts.PropertyDeclaration
 {
+    debug(`createClassMember(${docletDebugInfo(doclet)})`);
+
     const mods: ts.Modifier[] = [];
     const type = resolveType(doclet.type, doclet);
 
@@ -322,6 +336,8 @@ export function createClassMember(doclet: IMemberDoclet): ts.PropertyDeclaration
 
 export function createInterfaceMember(doclet: IMemberDoclet): ts.PropertySignature
 {
+    debug(`createInterfaceMember(${docletDebugInfo(doclet)})`);
+
     const mods: ts.Modifier[] = [];
     const type = resolveType(doclet.type, doclet);
 
@@ -342,6 +358,8 @@ export function createInterfaceMember(doclet: IMemberDoclet): ts.PropertySignatu
 
 export function createNamespaceMember(doclet: IMemberDoclet): ts.VariableStatement
 {
+    debug(`createNamespaceMember(${docletDebugInfo(doclet)})`);
+
     const mods = doclet.memberof ? undefined : [declareModifier];
     const type = resolveType(doclet.type, doclet);
 
@@ -360,6 +378,8 @@ export function createNamespaceMember(doclet: IMemberDoclet): ts.VariableStateme
 
 export function createExportDefault(doclet: IMemberDoclet): ts.ExportAssignment | null
 {
+    debug(`createExportDefault(${docletDebugInfo(doclet)})`);
+
     if (doclet.meta)
     {
         let exportDefaultValue = doclet.meta.code.value;
@@ -408,6 +428,8 @@ export function createExportDefault(doclet: IMemberDoclet): ts.ExportAssignment 
 
 export function createModule(doclet: INamespaceDoclet, nested: boolean, children?: ts.Node[]): ts.ModuleDeclaration
 {
+    debug(`createModule(${docletDebugInfo(doclet)})`);
+
     validateModuleChildren(children);
 
     const mods = doclet.memberof ? undefined : [declareModifier];
@@ -436,6 +458,8 @@ export function createModule(doclet: INamespaceDoclet, nested: boolean, children
 
 export function createNamespace(doclet: INamespaceDoclet, nested: boolean, children?: ts.Node[]): ts.ModuleDeclaration
 {
+    debug(`createNamespace(${docletDebugInfo(doclet)})`);
+
     validateModuleChildren(children);
 
     const mods = doclet.memberof ? undefined : [declareModifier];
@@ -466,6 +490,8 @@ export function createNamespace(doclet: INamespaceDoclet, nested: boolean, child
 
 export function createTypedef(doclet: ITypedefDoclet, children?: ts.Node[]): ts.TypeAliasDeclaration
 {
+    debug(`createTypedef(${docletDebugInfo(doclet)})`);
+
     const mods = doclet.memberof ? undefined : [declareModifier];
     const type = resolveType(doclet.type, doclet);
     const typeParams = resolveTypeParameters(doclet);

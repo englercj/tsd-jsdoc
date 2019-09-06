@@ -146,7 +146,10 @@ export class Emitter
             const doclet = docs[i];
 
             if (doclet.kind === 'package' || this._ignoreDoclet(doclet))
+            {
+                debug(`Emitter._buildTree(): skipping ${docletDebugInfo(doclet) } (package or ignored)`, doclet);
                 continue;
+            }
 
             const obj = this._treeNodes[doclet.longname];
 
@@ -180,6 +183,7 @@ export class Emitter
                         },
                         children: [],
                     };
+                    debug(`Emitter._buildTree(): merge interface created for ${docletDebugInfo(doclet)}`, interfaceMerge);
                 }
             }
 
@@ -215,8 +219,12 @@ export class Emitter
                     const mod = this._getOrCreateClassNamespace(parent);
 
                     if (interfaceMerge)
+                    {
+                        debug(`Emitter._buildTree(): adding ${docletDebugInfo(interfaceMerge.doclet)} to ${docletDebugInfo(mod.doclet)}`);
                         mod.children.push(interfaceMerge);
+                    }
 
+                    debug(`Emitter._buildTree(): adding ${docletDebugInfo(obj.doclet)} to ${docletDebugInfo(mod.doclet)}`);
                     mod.children.push(obj);
                 }
                 else
@@ -232,8 +240,12 @@ export class Emitter
                     if (!isParentEnum)
                     {
                         if (interfaceMerge)
+                        {
+                            debug(`Emitter._buildTree(): adding ${docletDebugInfo(interfaceMerge.doclet)} to ${docletDebugInfo(parent.doclet)}`);
                             parent.children.push(interfaceMerge);
+                        }
 
+                        debug(`Emitter._buildTree(): adding ${docletDebugInfo(obj.doclet)} to ${docletDebugInfo(parent.doclet)}`);
                         parent.children.push(obj);
                     }
                 }
@@ -241,8 +253,12 @@ export class Emitter
             else
             {
                 if (interfaceMerge)
+                {
+                    debug(`Emitter._buildTree(): ${docletDebugInfo(interfaceMerge.doclet)} detected as a root`);
                     this._treeRoots.push(interfaceMerge);
+                }
 
+                debug(`Emitter._buildTree(): ${docletDebugInfo(obj.doclet)} detected as a root`);
                 this._treeRoots.push(obj);
             }
         }
