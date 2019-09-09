@@ -26,6 +26,15 @@ interface IDocletTreeNode
     isNested?: boolean;
 }
 
+function isDocumented(doclet: TDoclet)
+{
+    // Same predicate as in publish().
+    return (
+        (doclet.undocumented !== true)
+        && doclet.comment && (doclet.comment.length > 0)
+    );
+}
+
 function isClassLike(doclet: TDoclet)
 {
     return doclet.kind === 'class' || doclet.kind === 'interface' || doclet.kind === 'mixin';
@@ -135,6 +144,7 @@ export class Emitter
 
     private _createTreeNodes(docs: TAnyDoclet[])
     {
+        debug(`----------------------------------------------------------------`);
         debug(`Emitter._createTreeNodes()`);
 
         for (let i = 0; i < docs.length; ++i)
@@ -143,7 +153,7 @@ export class Emitter
 
             if (doclet.kind === 'package' || this._ignoreDoclet(doclet))
             {
-                debug(`Emitter._createTreeNodes(): skipping ${docletDebugInfo(doclet)} (package or ignored)`, doclet);
+                debug(`Emitter._createTreeNodes(): skipping ${docletDebugInfo(doclet)} (package or ignored)`);
                 continue;
             }
 
@@ -154,43 +164,55 @@ export class Emitter
             }
             else
             {
-                debug(`Emitter._createTreeNodes(): skipping ${docletDebugInfo(doclet)} (doclet name already known)`, doclet);
+                debug(`Emitter._createTreeNodes(): skipping ${docletDebugInfo(doclet)} (doclet name already known)`);
             }
         }
     }
 
     private _buildTree(docs: TAnyDoclet[])
     {
+        debug(`----------------------------------------------------------------`);
         debug(`Emitter._buildTree()`);
 
-        for (let i = 0; i < docs.length; ++i)
+        nextDoclet: for (let i = 0; i < docs.length; ++i)
         {
             const doclet = docs[i];
 
-            if ((doclet.kind !== 'package') && isConstructor(doclet))
+            // Note: The constructor should be generated with its documentation whatever its access level.
+            // Do not move this block after the test below.
+            if ((doclet.kind !== 'package') // <= hack for typescript resolutions
+                && isConstructor(doclet))
             {
                 // If this doclet is a constructor, do not watch the 'memberof' attribute,
                 // it usually has the same value as the owner class's declaration,
                 // it does point the owner class itself.
-                // Use the 'longname' which equals the owner class's 'longname'.
+                // Use the 'longname' which equals to the owner class's 'longname'.
                 const ownerClass = this._treeNodes[doclet.longname];
                 if ((!ownerClass) || (!isClassDeclaration(ownerClass.doclet)))
                 {
                     warn(`Failed to find owner class of constructor '${doclet.longname}'.`, doclet);
-                    continue;
+                    continue nextDoclet;
                 }
                 debug(`Emitter._buildTree(): adding constructor ${docletDebugInfo(doclet)} to class declaration ${docletDebugInfo(ownerClass.doclet)}`);
                 ownerClass.children.push({ doclet: doclet, children: [] });
-                continue;
 
-                // Note: The constructor should be generated with its documentation whatever its access level.
-                // Do not move this block after the test below.
+                // When this constructor is not documented, the 'params' field might not be set.
+                // Inherit from the owner class when possible, in order to ensure constructor generation with the appropriate parameter list.
+                if ((doclet.kind === 'class') && ((! doclet.params) || (doclet.params.length === 0))
+                    && (ownerClass.doclet.kind === 'class') && ownerClass.doclet.params && (ownerClass.doclet.params.length > 0))
+                {
+                    debug(`Emitter._buildTree(): inheriting 'params' from owner class ${docletDebugInfo(ownerClass.doclet)} for undocumented constructor ${docletDebugInfo(doclet)}`);
+                    doclet.params = ownerClass.doclet.params;
+                }
+
+                // Proceed with the next doclet.
+                continue nextDoclet;
             }
 
             if (doclet.kind === 'package' || this._ignoreDoclet(doclet))
             {
-                debug(`Emitter._buildTree(): skipping ${docletDebugInfo(doclet) } (package or ignored)`, doclet);
-                continue;
+                debug(`Emitter._buildTree(): skipping ${docletDebugInfo(doclet) } (package or ignored)`);
+                continue nextDoclet;
             }
 
             const obj = this._treeNodes[doclet.longname];
@@ -198,7 +220,7 @@ export class Emitter
             if (!obj)
             {
                 warn('Failed to find doclet node when building tree, this is likely a bug.', doclet);
-                continue;
+                continue nextDoclet;
             }
 
             let interfaceMerge: IDocletTreeNode | null = null;
@@ -225,7 +247,7 @@ export class Emitter
                         },
                         children: [],
                     };
-                    debug(`Emitter._buildTree(): merge interface created for ${docletDebugInfo(doclet)}`, interfaceMerge);
+                    debug(`Emitter._buildTree(): merge interface created for ${docletDebugInfo(doclet)}`);
                 }
             }
 
@@ -240,7 +262,7 @@ export class Emitter
                 else
                 {
                     warn(`Failed to find parent module of 'export default' doclet ${doclet.longname}`, doclet);
-                    continue;
+                    continue nextDoclet;
                 }
             }
             else if (doclet.memberof)
@@ -250,7 +272,7 @@ export class Emitter
                 if (!parent)
                 {
                     warn(`Failed to find parent of doclet '${doclet.longname}' using memberof '${doclet.memberof}', this is likely due to invalid JSDoc.`, doclet);
-                    continue;
+                    continue nextDoclet;
                 }
 
                 const isParentClassLike = isClassLike(parent.doclet);
@@ -271,6 +293,28 @@ export class Emitter
                 }
                 else
                 {
+                    if (! isDocumented(doclet))
+                    {
+                        // Check this non-documented doclet does not exist yet in the candidate parent's children.
+                        for (const child of parent.children)
+                        {
+                            if ((child.doclet.longname === doclet.longname) && (child.doclet.kind === doclet.kind))
+                            {
+                                // Do not add the undocumented doclet to the parent twice.
+                                debug(`Emitter._buildTree(): skipping undocumented ${docletDebugInfo(doclet)} because ${docletDebugInfo(child.doclet)} is already known in parent ${docletDebugInfo(parent.doclet)}`);
+                                /*// Check whether the meta information can be merged.
+                                if (doclet.meta && doclet.meta.range
+                                    && ((! child.doclet.meta) || (! child.doclet.meta.range)))
+                                {
+                                    debug(`Emitter._buildTree(): replacing ${docletDebugInfo(child.doclet)}'s meta info with ${docletDebugInfo(doclet)}'s one`);
+                                    child.doclet.meta = doclet.meta;
+                                    debug(`Emitter._buildTree(): => is now ${docletDebugInfo(child.doclet)}`);
+                                }*/
+                                continue nextDoclet;
+                            }
+                        }
+                    }
+
                     const isObjModuleLike = isModuleLike(doclet);
                     const isParentModuleLike = isModuleLike(parent.doclet);
 
@@ -308,6 +352,7 @@ export class Emitter
 
     private _parseTree()
     {
+        debug(`----------------------------------------------------------------`);
         debug(`Emitter._parseTree()`);
 
         for (let i = 0; i < this._treeRoots.length; ++i)

@@ -44,12 +44,18 @@ export function debug(msg: string, data?: any)
 }
 
 export function docletDebugInfo(doclet: TAnyDoclet) : string {
-    if ((doclet.kind !== 'package') && doclet.meta && doclet.meta.range)
+    let debugInfo = `{longname='${doclet.longname}', kind='${doclet.kind}'`;
+    if ((doclet.kind !== 'package') && doclet.meta)
     {
-        return `{longname='${doclet.longname}', kind='${doclet.kind}', range=[${doclet.meta.range[0]}-${doclet.meta.range[1]}]}`;
+        if (doclet.meta.code.id)
+        {
+            debugInfo += `, id='${doclet.meta.code.id}'`;
+        }
+        if (doclet.meta.range)
+        {
+            debugInfo += `, range=[${doclet.meta.range[0]}-${doclet.meta.range[1]}]`;
+        }
     }
-    else
-    {
-        return `{longname='${doclet.longname}', kind='${doclet.kind}'}`;
-    }
+    debugInfo += `}`;
+    return debugInfo;
 }

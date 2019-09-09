@@ -18,17 +18,19 @@ export function publish(data: TDocletDb, opts: ITemplateConfig)
     if (! opts.generationStrategy)
     {
         opts.generationStrategy = 'documented';
+        // Uncomment the following line to launch the unit tests in 'exported' mode.
+        //opts.generationStrategy = 'exported';
     }
     debug(`publish(): Generation strategy: '${opts.generationStrategy}'`);
 
     // Do not remove undocumented doclet with the 'exported' generation strategy.
-    // The Emitter._walkExportedDoclets() function will make the appropriate selection later.
+    // The Emitter._markExported() function will make the appropriate selection later.
     if (opts.generationStrategy !== 'exported')
     {
         // remove undocumented stuff.
         data(
             // Use of a function as the TaffyDB query in order to track what is removed.
-            // see [TaffyDB documentation](http://taffydb.com/writing_queries.html)
+            // See [TaffyDB documentation](http://taffydb.com/writing_queries.html)
             function(this: TDoclet) // <= 'this' type declaration inspired from [stackoverflow](https://stackoverflow.com/questions/41944650)
             {
                 if (this.undocumented)
