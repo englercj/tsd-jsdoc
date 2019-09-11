@@ -1,5 +1,3 @@
-import * as fs from 'fs';
-import * as path from 'path';
 import * as ts from 'typescript';
 import { warn, debug, docletDebugInfo } from './logger';
 import {
@@ -399,54 +397,12 @@ export function createNamespaceMember(doclet: IMemberDoclet): ts.VariableStateme
     ));
 }
 
-export function createExportDefault(doclet: IMemberDoclet): ts.ExportAssignment | null
+export function createExportDefault(doclet: IMemberDoclet, value: string): ts.ExportAssignment | null
 {
-    debug(`createExportDefault(${docletDebugInfo(doclet)})`);
+    debug(`createExportDefault(${docletDebugInfo(doclet)}, '${value}')`);
 
-    if (doclet.meta)
-    {
-        let exportDefaultValue = doclet.meta.code.value;
-        if (! exportDefaultValue)
-        {
-            // When the 'export default' value is not given in the 'meta.code.value' attribute,
-            // let's read it directly from the source file.
-            const sourcePath : string = path.join(doclet.meta.path, doclet.meta.filename);
-            debug(`create_helpers.ts:createExportDefault(): Reading '${sourcePath}'`);
-            const fd = fs.openSync(sourcePath, "r");
-            if (fd < 0)
-            {
-                warn(`Could not read from '${sourcePath}'`);
-                return null;
-            }
-            const begin = doclet.meta.range[0];
-            const end = doclet.meta.range[1];
-            const length = end - begin;
-            const buffer = Buffer.alloc(length);
-            if (fs.readSync(fd, buffer, 0, length, begin) !== length)
-            {
-                warn(`Could not read from '${sourcePath}'`);
-                return null;
-            }
-            exportDefaultValue = buffer.toString().trim();
-            debug(`create_helpers.ts:createExportDefault(): exportDefaultValue = '${exportDefaultValue}'`);
-            if (exportDefaultValue.endsWith(";"))
-            {
-                exportDefaultValue = exportDefaultValue.slice(0, -1).trimRight();
-            }
-            if (exportDefaultValue.match(/^export +default +/))
-            {
-                exportDefaultValue = exportDefaultValue.replace(/^export +default +/, "");
-            }
-        }
-        debug(`create_helpers.ts:createExportDefault(): exportDefaultValue = '${exportDefaultValue}'`);
-        if (exportDefaultValue)
-        {
-            const expression : ts.Expression = ts.createIdentifier(exportDefaultValue);
-            return handleComment(doclet, ts.createExportDefault(expression));
-        }
-    }
-    warn(`Cannot create an 'export default' instruction. Information missing.`, doclet);
-    return null;
+    const expression : ts.Expression = ts.createIdentifier(value);
+    return handleComment(doclet, ts.createExportDefault(expression));
 }
 
 export function createModule(doclet: INamespaceDoclet, nested: boolean, children?: ts.Node[]): ts.ModuleDeclaration

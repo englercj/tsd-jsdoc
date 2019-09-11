@@ -45,9 +45,9 @@ declare interface IDocletReturn {
 }
 
 declare interface IDocletCode {
-    id: string;
-    name: string;
-    type: string;
+    id?: string;
+    name?: string;
+    type?: string;
     value?: string;
     paramnames?: string[];
 }

@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as helper from 'jsdoc/util/templateHelper';
 import { Emitter } from './Emitter';
-import { setVerbose, setDebug, debug, docletDebugInfo } from './logger';
+import { setVerbose, setDebug, warn, debug, docletDebugInfo } from './logger';
 
 /**
  * @param {TAFFY} data - The TaffyDB containing the data that jsdoc parsed.
@@ -23,11 +23,9 @@ export function publish(data: TDocletDb, opts: ITemplateConfig)
     }
     debug(`publish(): Generation strategy: '${opts.generationStrategy}'`);
 
-    // Do not remove undocumented doclet with the 'exported' generation strategy.
-    // The Emitter._markExported() function will make the appropriate selection later.
-    if (opts.generationStrategy !== 'exported')
+    if (opts.generationStrategy === 'documented')
     {
-        // remove undocumented stuff.
+        // Remove undocumented stuff.
         data(
             // Use of a function as the TaffyDB query in order to track what is removed.
             // See [TaffyDB documentation](http://taffydb.com/writing_queries.html)
@@ -49,6 +47,15 @@ export function publish(data: TDocletDb, opts: ITemplateConfig)
                 return false;
             }
         ).remove();
+    }
+    else if (opts.generationStrategy === 'exported')
+    {
+        // We don't remove undocumented doclets with the 'exported' generation strategy.
+        // The Emitter._markExported() function will make the appropriate selection later.
+
+        // Disclaimer for an experimental feature.
+        warn(`Note: The 'exported' generation strategy is still an experimental feature for the moment, thank you for your comprehension. `
+            + `Feel free to contribute in case you find a bug.`);
     }
 
     // get the doc list

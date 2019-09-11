@@ -48,13 +48,11 @@ export function docletDebugInfo(doclet: TAnyDoclet) : string {
     if ((doclet.kind !== 'package') && doclet.meta)
     {
         if (doclet.meta.code.id)
-        {
             debugInfo += `, id='${doclet.meta.code.id}'`;
-        }
         if (doclet.meta.range)
-        {
             debugInfo += `, range=[${doclet.meta.range[0]}-${doclet.meta.range[1]}]`;
-        }
+        else if (doclet.meta.lineno)
+            debugInfo += `, lineno=${doclet.meta.lineno}`;
     }
     debugInfo += `}`;
     return debugInfo;
