@@ -99,7 +99,7 @@ declare module "util" {
     }
     /**
      * GitGraph
-     * @constructor
+     * @class GitGraph
      * @param {object} options - GitGraph options
      * @param {string} [options.elementId = "gitGraph"] - Id of the canvas container
      * @param {Template|string|object} [options.template] - Template of the graph
@@ -135,13 +135,12 @@ declare module "util" {
     interface MyThing extends Stuff, Things {
     }
     /**
-     * @class
+     * @class MyThing
      * @extends OtherThing
      * @mixes Stuff
      * @mixes Things
      */
     class MyThing extends OtherThing implements Stuff, Things {
-        constructor(...a: number[]);
         /**
          * Derp or something.
          *
@@ -250,9 +249,10 @@ declare module "util" {
          */
         static me: number;
         /**
-         *
+         * @param {OtherThing} other - To copy from.
+         * @override
          */
-        copy(): void;
+        copy(other: OtherThing): void;
     }
 }
 

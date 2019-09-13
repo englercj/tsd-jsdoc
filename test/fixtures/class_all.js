@@ -95,7 +95,7 @@ class MyClass {
 
 /**
  * GitGraph
- * @constructor
+ * @class GitGraph
  * @param {object} options - GitGraph options
  * @param {string} [options.elementId = "gitGraph"] - Id of the canvas container
  * @param {Template|string|object} [options.template] - Template of the graph
@@ -119,7 +119,7 @@ class GitGraph {
  */
 
 /**
- * @class
+ * @class MyThing
  * @extends OtherThing
  * @mixes Stuff
  * @mixes Things

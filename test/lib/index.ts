@@ -11,6 +11,7 @@ const DATA_DIR = path.resolve(path.join(__dirname, '../fixtures'));
 const EXPECT_DIR = path.resolve(path.join(__dirname, '../expected'));
 const README_PATH = path.resolve(path.join(__dirname, '../../README.md'));
 const TEMPLATE_PATH = path.resolve(path.join(__dirname, '../../dist'));
+const CONFIG_PATH = path.resolve(path.join(__dirname, "./conf.json"));
 
 before(() => {
     // create the temp dir to store types in
@@ -26,6 +27,7 @@ export function compileJsdoc(sourcePath: string) {
         destination: DEST_DIR,
         readme: README_PATH,
         template: TEMPLATE_PATH,
+        configure: CONFIG_PATH
     } as any);
 }
 
