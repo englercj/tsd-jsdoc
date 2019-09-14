@@ -299,19 +299,44 @@ export class Emitter
 
                 if (extras.length)
                 {
-                    const interfaceLongname = this._getInterfaceKey(doclet.longname);
-                    interfaceMerge = this._treeNodes[interfaceLongname] = {
+                    const longname = this._getInterfaceKey(doclet.longname);
+                    interfaceMerge = this._treeNodes[longname] = {
                         doclet: {
                             kind: 'interface',
                             name: doclet.name,
                             scope: doclet.scope,
-                            longname: interfaceLongname,
+                            longname: longname,
                             augments: extras,
                             memberof: doclet.memberof,
                         },
                         children: [],
                     };
                     debug(`Emitter._buildTree(): merge interface created for ${docletDebugInfo(doclet)}`);
+                }
+            }
+
+            let namespaceMerge: IDocletTreeNode | null = null;
+
+            // Generate an namespace of the same name as the interface/mixin to perform
+            // a namespace merge containing any static children (ex members and functions).
+            if (doclet.kind === 'interface' || doclet.kind === 'mixin')
+            {
+                const staticChildren = docs.filter(d => (d as IDocletBase).memberof === doclet.longname && (d as IDocletBase).scope === 'static');
+                if (staticChildren.length)
+                {
+                    const longname = this._getNamespaceKey(doclet.longname);
+                    namespaceMerge = this._treeNodes[longname] = {
+                        doclet: {
+                            kind: 'namespace',
+                            name: doclet.name,
+                            scope: doclet.scope,
+                            longname: longname,
+                            memberof: doclet.memberof,
+                        },
+                        children: [],
+                    };
+
+                    staticChildren.forEach(c => (c as IDocletBase).memberof = longname);
                 }
             }
 
@@ -349,6 +374,11 @@ export class Emitter
                     {
                         debug(`Emitter._buildTree(): adding ${docletDebugInfo(interfaceMerge.doclet)} to ${docletDebugInfo(mod.doclet)}`);
                         mod.children.push(interfaceMerge);
+                    }
+                    if (namespaceMerge)
+                    {
+                        debug(`Emitter._buildTree(): adding ${docletDebugInfo(namespaceMerge.doclet)} to ${docletDebugInfo(mod.doclet)}`);
+                        mod.children.push(namespaceMerge);
                     }
 
                     debug(`Emitter._buildTree(): adding ${docletDebugInfo(obj.doclet)} to ${docletDebugInfo(mod.doclet)}`);
@@ -402,6 +432,12 @@ export class Emitter
                             parent.children.push(interfaceMerge);
                         }
 
+                        if (namespaceMerge)
+                        {
+                            debug(`Emitter._buildTree(): adding ${docletDebugInfo(namespaceMerge.doclet)} to ${docletDebugInfo(parent.doclet)}`);
+                            parent.children.push(namespaceMerge);
+                        }
+
                         debug(`Emitter._buildTree(): adding ${docletDebugInfo(obj.doclet)} to ${docletDebugInfo(parent.doclet)}`);
                         parent.children.push(obj);
                     }
@@ -413,6 +449,12 @@ export class Emitter
                 {
                     debug(`Emitter._buildTree(): ${docletDebugInfo(interfaceMerge.doclet)} detected as a root`);
                     this._treeRoots.push(interfaceMerge);
+                }
+
+                if (namespaceMerge)
+                {
+                    debug(`Emitter._buildTree(): ${docletDebugInfo(namespaceMerge.doclet)} detected as a root`);
+                    this._treeRoots.push(namespaceMerge);
                 }
 
                 debug(`Emitter._buildTree(): ${docletDebugInfo(obj.doclet)} detected as a root`);

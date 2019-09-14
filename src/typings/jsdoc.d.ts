@@ -91,6 +91,7 @@ declare interface IDocletBase {
     properties?: IDocletProp[];
     inherits?: string;
     inherited?: boolean;
+    optional?: boolean;
 }
 
 /**
