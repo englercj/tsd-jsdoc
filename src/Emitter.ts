@@ -4,17 +4,18 @@ import { warn } from './logger';
 import { assertNever } from './assert_never';
 import {
     createClass,
-    createFunction,
-    createClassMethod,
-    createInterfaceMethod,
-    createInterface,
     createClassMember,
+    createClassMethod,
+    createConstructor,
+    createEnum,
+    createFunction,
+    createInterface,
     createInterfaceMember,
-    createNamespaceMember,
+    createInterfaceMethod,
     createModule,
     createNamespace,
+    createNamespaceMember,
     createTypedef,
-    createEnum,
 } from './create_helpers';
 
 interface IDocletTreeNode
@@ -41,10 +42,16 @@ function isEnum(doclet: TDoclet)
 
 function shouldMoveOutOfClass(doclet: TDoclet)
 {
-    return isClassLike(doclet)
+    return !isConstructor(doclet)
+        && (isClassLike(doclet)
         || isModuleLike(doclet)
         || isEnum(doclet)
-        || doclet.kind === 'typedef';
+        || doclet.kind === 'typedef');
+}
+
+function isConstructor(doclet: TDoclet)
+{
+    return doclet.kind === "class" && doclet.name === doclet.memberof
 }
 
 export class Emitter
@@ -269,7 +276,12 @@ export class Emitter
         switch (node.doclet.kind)
         {
             case 'class':
-                return createClass(node.doclet, children);
+                if (isConstructor(node.doclet)) {
+                    // constructor in es6 classes with own doclet
+                    return createConstructor(node.doclet)
+                } else {
+                    return createClass(node.doclet, children);
+                }
 
             case 'constant':
             case 'member':
