@@ -261,14 +261,8 @@ export class Emitter
             {
                 if (node.doclet.override && node.doclet.ignore)
                 {
-                    // According to [PR#11](https://github.com/englercj/tsd-jsdoc/pull/11):
-                    // > If, for example, an @override annotation is present, then the member will still be skipped
-                    // > with the PR applied, but if it is not explicitly annotated as one, the member will now be generated.
-                    // > This is a bit counter-intuitive but it seems to be the jsdoc-way (it discards any jsdoc on the child
-                    // > when it sees @override, just like @inheritdoc does)
-
-                    // Let's replace the previous doclet with this one.
                     debug(`Emitter._createTreeNodes(): replacing ${docletDebugInfo(node.doclet)} by its overriden version ${docletDebugInfo(doclet)}`);
+                    warn(`@override management to be confirmed: waiting for resolution of [tsd-jsdoc#104](https://github.com/englercj/tsd-jsdoc/issues/104)`);
                     node.doclet = doclet;
                     continue;
                 }
@@ -421,6 +415,7 @@ export class Emitter
                 {
                     // As created/replaced in `_createTreeNode()`, `obj` points to the base doclet, so don't use it.
                     debug(`Emitter._buildTree(): adding @override ${docletDebugInfo(doclet)} to ${docletDebugInfo(parent.doclet)}`);
+                    warn(`@override management to be confirmed: waiting for resolution of [tsd-jsdoc#104](https://github.com/englercj/tsd-jsdoc/issues/104)`);
                     parent.children.push({ doclet: doclet, children: [] });
                     continue nextDoclet;
                 }
