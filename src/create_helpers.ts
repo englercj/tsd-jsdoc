@@ -91,9 +91,9 @@ function handleComment<T extends ts.Node>(doclet: IDocletBase, node: T): T
     return node;
 }
 
-export function createClass(doclet: IClassDoclet, children?: ts.Node[]): ts.ClassDeclaration
+export function createClass(doclet: IClassDoclet, children?: ts.Node[], altName?: string): ts.ClassDeclaration
 {
-    debug(`createClass(${docletDebugInfo(doclet)})`);
+    debug(`createClass(${docletDebugInfo(doclet)}, altName=${altName})`);
 
     validateClassChildren(children);
 
@@ -154,16 +154,16 @@ export function createClass(doclet: IClassDoclet, children?: ts.Node[]): ts.Clas
     return handleComment(doclet, ts.createClassDeclaration(
         undefined,      // decorators
         mods,           // modifiers
-        doclet.name,    // name
+        altName || doclet.name, // name
         typeParams,     // typeParameters
         heritageClauses,// heritageClauses
         members         // members
     ));
 }
 
-export function createInterface(doclet: IClassDoclet, children?: ts.Node[]): ts.InterfaceDeclaration
+export function createInterface(doclet: IClassDoclet, children?: ts.Node[], altName?: string): ts.InterfaceDeclaration
 {
-    debug(`createInterface(${docletDebugInfo(doclet)})`);
+    debug(`createInterface(${docletDebugInfo(doclet)}, altName=${altName})`);
 
     validateInterfaceChildren(children);
 
@@ -178,16 +178,16 @@ export function createInterface(doclet: IClassDoclet, children?: ts.Node[]): ts.
     return handleComment(doclet, ts.createInterfaceDeclaration(
         undefined,      // decorators
         mods,           // modifiers
-        doclet.name,    // name
+        altName || doclet.name, // name
         typeParams,     // typeParameters
         heritageClauses,// heritageClauses
         members         // members
     ));
 }
 
-export function createFunction(doclet: IFunctionDoclet): ts.FunctionDeclaration
+export function createFunction(doclet: IFunctionDoclet, altName?: string): ts.FunctionDeclaration
 {
-    debug(`createFunction(${docletDebugInfo(doclet)})`);
+    debug(`createFunction(${docletDebugInfo(doclet)}, altName=${altName})`);
 
     const mods = doclet.memberof ? undefined : [declareModifier];
     const params = createFunctionParams(doclet);
@@ -201,7 +201,7 @@ export function createFunction(doclet: IFunctionDoclet): ts.FunctionDeclaration
         undefined,      // decorators
         mods,           // modifiers
         undefined,      // asteriskToken
-        doclet.name,    // name
+        altName || doclet.name, // name
         typeParams,     // typeParameters
         params,         // parameters
         type,           // type
@@ -209,9 +209,9 @@ export function createFunction(doclet: IFunctionDoclet): ts.FunctionDeclaration
     ));
 }
 
-export function createClassMethod(doclet: IFunctionDoclet): ts.MethodDeclaration
+export function createClassMethod(doclet: IFunctionDoclet, altName?: string): ts.MethodDeclaration
 {
-    debug(`createClassMethod(${docletDebugInfo(doclet)})`);
+    debug(`createClassMethod(${docletDebugInfo(doclet)}, altName=${altName})`);
 
     const mods: ts.Modifier[] = [];
     const params = createFunctionParams(doclet);
@@ -239,7 +239,7 @@ export function createClassMethod(doclet: IFunctionDoclet): ts.MethodDeclaration
         undefined,      // decorators
         mods,           // modifiers
         undefined,      // asteriskToken
-        name,           // name
+        altName || name, // name
         questionToken,  // questionToken
         typeParams,     // typeParameters
         params,         // parameters
@@ -248,9 +248,9 @@ export function createClassMethod(doclet: IFunctionDoclet): ts.MethodDeclaration
     ));
 }
 
-export function createInterfaceMethod(doclet: IFunctionDoclet): ts.MethodSignature
+export function createInterfaceMethod(doclet: IFunctionDoclet, altName?: string): ts.MethodSignature
 {
-    debug(`createInterfaceMethod(${docletDebugInfo(doclet)})`);
+    debug(`createInterfaceMethod(${docletDebugInfo(doclet)}, altName=${altName})`);
 
     const mods: ts.Modifier[] = [];
     const params = createFunctionParams(doclet);
@@ -265,14 +265,14 @@ export function createInterfaceMethod(doclet: IFunctionDoclet): ts.MethodSignatu
         typeParams,     // typeParameters
         params,         // parameters
         type,           // type
-        name,           // name
+        altName || name, // name
         questionToken,  // questionToken
     ));
 }
 
-export function createEnum(doclet: IMemberDoclet): ts.EnumDeclaration
+export function createEnum(doclet: IMemberDoclet, altName?: string): ts.EnumDeclaration
 {
-    debug(`createEnum(${docletDebugInfo(doclet)})`);
+    debug(`createEnum(${docletDebugInfo(doclet)}, altName=${altName})`);
 
     const mods: ts.Modifier[] = [];
     const props: ts.EnumMember[] = [];
@@ -297,14 +297,14 @@ export function createEnum(doclet: IMemberDoclet): ts.EnumDeclaration
     return handleComment(doclet, ts.createEnumDeclaration(
         undefined,
         mods,
-        doclet.name,
+        altName || doclet.name,
         props,
     ));
 }
 
-export function createClassMember(doclet: IMemberDoclet): ts.PropertyDeclaration
+export function createClassMember(doclet: IMemberDoclet, altName?: string): ts.PropertyDeclaration
 {
-    debug(`createClassMember(${docletDebugInfo(doclet)})`);
+    debug(`createClassMember(${docletDebugInfo(doclet)}, altName=${altName})`);
 
     const type = resolveType(doclet.type, doclet);
 
@@ -320,7 +320,7 @@ export function createClassMember(doclet: IMemberDoclet): ts.PropertyDeclaration
     return handleComment(doclet, ts.createProperty(
         undefined,      // decorators
         mods,           // modifiers
-        name,           // name
+        altName || name, // name
         questionToken,  // questionToken
         type,           // type
         undefined       // initializer
@@ -353,9 +353,9 @@ export function createConstructor(doclet: IClassDoclet): ts.ConstructorDeclarati
     ))
 }
 
-export function createInterfaceMember(doclet: IMemberDoclet): ts.PropertySignature
+export function createInterfaceMember(doclet: IMemberDoclet, altName?: string): ts.PropertySignature
 {
-    debug(`createInterfaceMember(${docletDebugInfo(doclet)})`);
+    debug(`createInterfaceMember(${docletDebugInfo(doclet)}, altName=${altName})`);
 
     const mods: ts.Modifier[] = [];
     const type = resolveType(doclet.type, doclet);
@@ -369,16 +369,16 @@ export function createInterfaceMember(doclet: IMemberDoclet): ts.PropertySignatu
     const [ name, questionToken ] = resolveOptionalFromName(doclet);
     return handleComment(doclet, ts.createPropertySignature(
         mods,           // modifiers
-        name,           // name
+        altName || name, // name
         questionToken,  // questionToken
         type,           // type
         undefined       // initializer
     ));
 }
 
-export function createNamespaceMember(doclet: IMemberDoclet): ts.VariableStatement
+export function createNamespaceMember(doclet: IMemberDoclet, altName?: string): ts.VariableStatement
 {
-    debug(`createNamespaceMember(${docletDebugInfo(doclet)})`);
+    debug(`createNamespaceMember(${docletDebugInfo(doclet)}, altName=${altName})`);
 
     const mods = doclet.memberof ? undefined : [declareModifier];
     const flags = (doclet.kind === 'constant' || doclet.readonly) ? ts.NodeFlags.Const : undefined;
@@ -398,7 +398,7 @@ export function createNamespaceMember(doclet: IMemberDoclet): ts.VariableStateme
         mods,
         ts.createVariableDeclarationList([
             ts.createVariableDeclaration(
-                doclet.name,    // name
+                altName || doclet.name, // name
                 type,           // type
                 initializer     // initializer
                 )
@@ -416,9 +416,9 @@ export function createExportDefault(doclet: IMemberDoclet, value: string): ts.Ex
     return handleComment(doclet, ts.createExportDefault(expression));
 }
 
-export function createModule(doclet: INamespaceDoclet, nested: boolean, children?: ts.Node[]): ts.ModuleDeclaration
+export function createModule(doclet: INamespaceDoclet, nested: boolean, children?: ts.Node[], altName?: string): ts.ModuleDeclaration
 {
-    debug(`createModule(${docletDebugInfo(doclet)})`);
+    debug(`createModule(${docletDebugInfo(doclet)}, altName=${altName})`);
 
     validateModuleChildren(children);
 
@@ -435,7 +435,7 @@ export function createModule(doclet: INamespaceDoclet, nested: boolean, children
     if (children)
         body = ts.createModuleBlock(children as ts.Statement[]);
 
-    const name = ts.createStringLiteral(doclet.name);
+    const name = ts.createStringLiteral(altName || doclet.name);
 
     return handleComment(doclet, ts.createModuleDeclaration(
         undefined,      // decorators
@@ -446,9 +446,9 @@ export function createModule(doclet: INamespaceDoclet, nested: boolean, children
     ));
 }
 
-export function createNamespace(doclet: INamespaceDoclet, nested: boolean, children?: ts.Node[]): ts.ModuleDeclaration
+export function createNamespace(doclet: INamespaceDoclet, nested: boolean, children?: ts.Node[], altName?: string): ts.ModuleDeclaration
 {
-    debug(`createNamespace(${docletDebugInfo(doclet)})`);
+    debug(`createNamespace(${docletDebugInfo(doclet)}, altName=${altName})`);
 
     validateModuleChildren(children);
 
@@ -467,7 +467,7 @@ export function createNamespace(doclet: INamespaceDoclet, nested: boolean, child
         body = ts.createModuleBlock(children as ts.Statement[]);
     }
 
-    const name = ts.createIdentifier(doclet.name);
+    const name = ts.createIdentifier(altName || doclet.name);
 
     return handleComment(doclet, ts.createModuleDeclaration(
         undefined,      // decorators
@@ -478,9 +478,9 @@ export function createNamespace(doclet: INamespaceDoclet, nested: boolean, child
     ));
 }
 
-export function createTypedef(doclet: ITypedefDoclet, children?: ts.Node[]): ts.TypeAliasDeclaration
+export function createTypedef(doclet: ITypedefDoclet, children?: ts.Node[], altName?: string): ts.TypeAliasDeclaration
 {
-    debug(`createTypedef(${docletDebugInfo(doclet)})`);
+    debug(`createTypedef(${docletDebugInfo(doclet)}, altName=${altName})`);
 
     const mods = doclet.memberof ? undefined : [declareModifier];
     const type = resolveType(doclet.type, doclet);
@@ -492,7 +492,7 @@ export function createTypedef(doclet: ITypedefDoclet, children?: ts.Node[]): ts.
     return handleComment(doclet, ts.createTypeAliasDeclaration(
         undefined,      // decorators
         mods,           // modifiers
-        doclet.name,    // name
+        altName || doclet.name, // name
         typeParams,     // typeParameters
         type            // type
     ));

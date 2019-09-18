@@ -92,6 +92,7 @@ declare interface IDocletBase {
     inherits?: string;
     inherited?: boolean;
     optional?: boolean;
+    override?: boolean;
 }
 
 /**
@@ -132,9 +133,9 @@ declare interface IFunctionDoclet extends IDocletBase {
  */
 declare interface IMemberDoclet extends IDocletBase {
     kind: 'member' | 'constant';
-    readonly: boolean;
-    isEnum: boolean;
-    type: IDocletType;
+    readonly?: boolean;
+    isEnum?: boolean;
+    type?: IDocletType;
 }
 
 declare interface INamespaceDoclet extends IDocletBase {

@@ -4,18 +4,13 @@ class _NotExported {
 }
 
 /**
- * @type {number}
- */
-const _fooConst = 0;
-
-/**
  *
  */
 class _Foo {
 }
 
 /**
- *
+ * @extends _Foo
  */
 class _Bar extends _Foo {
 }
@@ -27,7 +22,9 @@ class _Baz {
 }
 
 /**
- *
+ * @extends _Baz
+ * Hack: ignored for 'documented' generation strategy with a (re)named export.
+ * @ignore
  */
 class _Qux extends _Baz {
     /**
@@ -35,32 +32,39 @@ class _Qux extends _Baz {
      */
     constructor(bar) {
         /**
-         * @member {_Foo}
+         * @type {_Foo}
          * @readonly
          */
-       this.foo = bar;
+        this.foo = bar;
     }
 }
 
 /**
- * @returns {_Foo | null}
+ * @return {_Foo | null}
+ * Hack: ignored for 'documented' generation strategy with a (re)named export.
+ * @ignore
  */
 function _foo() {
 	return null;
 }
 
-
 /**
- * Named export with 'exports.name =' on a const reference.
+ * Hack: ignored for 'documented' generation strategy with a (re)named export.
+ * @ignore
  */
-exports.fooConst = _fooConst;
+const _bar = 0;
 
 /**
- * Named export with 'exports.name =' on a function reference.
+ * Named export with 'exports.name =' on a referenced class.
+ */
+exports.Qux = _Qux
+
+/**
+ * Named export with 'exports.name =' on a referenced function.
  */
 exports.foo = _foo;
 
 /**
- * Named export with 'exports.name =' on a class reference.
+ * Named export with 'exports.name =' on a referenced var/const.
  */
-exports.Qux = _Qux;
+exports.bar = _bar;

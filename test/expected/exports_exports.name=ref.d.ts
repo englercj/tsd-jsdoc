@@ -5,24 +5,23 @@ declare module "test-export-20190914011810" {
      *
      */
     class _Foo {
-        constructor();
     }
     /**
-     *
+     * @extends _Foo
      */
     class _Bar extends _Foo {
-        constructor();
     }
     /**
      *
      */
     class _Baz {
-        constructor();
     }
     /**
-     *
+     * @extends _Baz
+     * Hack: ignored for 'documented' generation strategy with a (re)named export.
+     * @ignore
      */
-    class _Qux extends _Baz {
+    class Qux extends _Baz {
         /**
          * @param {_Bar} bar
          */
@@ -34,15 +33,14 @@ declare module "test-export-20190914011810" {
         readonly foo: _Foo;
     }
     /**
-     * Named export with 'exports.name =' on a const reference.
+     * @return {_Foo | null}
+     * Hack: ignored for 'documented' generation strategy with a (re)named export.
+     * @ignore
      */
-    var fooConst: number;
+    function foo(): _Foo | null;
     /**
-     * Named export with 'exports.name =' on a function reference.
+     * Hack: ignored for 'documented' generation strategy with a (re)named export.
+     * @ignore
      */
-    function foo(): void;
-    /**
-     * Named export with 'exports.name =' on a class reference.
-     */
-    type Qux = _Qux;
+    const bar = 0;
 }

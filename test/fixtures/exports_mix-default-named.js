@@ -10,7 +10,8 @@ function _foo() {
 }
 
 /**
- * @type {number}
+ * Hack: ignored for 'documented' generation strategy with a (re)named export.
+ * @ignore
  */
 const _bar = 0;
 

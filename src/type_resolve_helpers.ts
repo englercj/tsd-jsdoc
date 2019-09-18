@@ -582,7 +582,7 @@ export function resolveTypeParameters(doclet: TDoclet): ts.TypeParameterDeclarat
 
 export type TTypedDoclet = IMemberDoclet | ITypedefDoclet | IFunctionDoclet;
 
-export function resolveType(t: IDocletType, doclet?: TTypedDoclet): ts.TypeNode
+export function resolveType(t?: IDocletType, doclet?: TTypedDoclet): ts.TypeNode
 {
     if (!t || !t.names || t.names.length === 0)
     {

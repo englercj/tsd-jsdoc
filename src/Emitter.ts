@@ -27,6 +27,7 @@ interface IDocletTreeNode
     children: IDocletTreeNode[];
     isNested?: boolean;
     isExported?: boolean;
+    exportName?: string;
 }
 
 function isDocumented(doclet: TDoclet)
@@ -55,9 +56,11 @@ function isEnum(doclet: TDoclet)
 
 function isDefaultExport(doclet: TDoclet, treeNodes: Dictionary<IDocletTreeNode>)
 {
-    if ((doclet.kind === 'member') && doclet.meta && (doclet.meta.code.name === 'module.exports'))
+    if ((doclet.kind === 'member')
+        && doclet.meta && (doclet.meta.code.name === 'module.exports')
+        && doclet.longname.startsWith('module:'))
     {
-        // Jsdoc does not set the memberof attribute for default exports (we may fix that actually).
+        // Jsdoc does not set the memberof attribute for default exports (we shall fix that actually).
         // By default, the longname of the default export doclet is the longname of the member module.
         const moduleName = doclet.memberof ? doclet.memberof : doclet.longname;
         // Let's check the longname corresponds to an existing module in the current tree nodes.
@@ -110,12 +113,34 @@ function isDefaultExport(doclet: TDoclet, treeNodes: Dictionary<IDocletTreeNode>
 function isNamedExport(doclet: TDoclet, treeNodes: Dictionary<IDocletTreeNode>)
 {
     if ((doclet.kind === 'member')
-        && doclet.meta && doclet.meta.code. name && (doclet.meta.code.name.startsWith('module.exports.') || (doclet.meta.code.name.startsWith('exports.')))
+        && doclet.meta && doclet.meta.code.name && (doclet.meta.code.name !== 'module.exports') && (doclet.meta.code.name !== 'exports')
+        && doclet.longname.startsWith('module:')
         && doclet.memberof) // <= memberof is set by jsdoc for named exports.
     {
         // Let's check the memberof node is a module.
         const node = treeNodes[doclet.memberof];
-        return (node && (node.doclet.kind === 'module'));
+        if (node && (node.doclet.kind === 'module'))
+            return true;
+    }
+    return false;
+}
+
+/**
+ * Determines whether the given doclet is a 'exports =' assignment.
+ * In that case, the doclet longname takes the module's one,
+ * disturbing by the way the processing of the doclets.
+ */
+function isExportsAssignment(doclet: TDoclet, treeNodes: Dictionary<IDocletTreeNode>)
+{
+    if ((doclet.kind === 'member')
+        && doclet.meta && doclet.meta.code.name && (doclet.meta.code.name === 'exports')
+        && doclet.longname.startsWith('module:')
+        && doclet.memberof) // <= memberof is set by jsdoc for named exports.
+    {
+        // Let's check the memberof node is a module.
+        const node = treeNodes[doclet.memberof];
+        if (node && (node.doclet.kind === 'module'))
+            return true;
     }
     return false;
 }
@@ -215,19 +240,39 @@ export class Emitter
         {
             const doclet = docs[i];
 
-            if (doclet.kind === 'package' || this._ignoreDoclet(doclet))
+            if (doclet.kind === 'package'
+                // Do not ignore doclet at this stage.
+                // Let's create the tree node, build the tree,
+                // and eventually filter out the node when generating the output in _parseTreeNode().
+                //|| this._ignoreDoclet(doclet)
+                )
             {
-                debug(`Emitter._createTreeNodes(): skipping ${docletDebugInfo(doclet)} (package or ignored)`);
+                debug(`Emitter._createTreeNodes(): skipping ${docletDebugInfo(doclet)} (package)`);
                 continue;
             }
 
-            if (!this._treeNodes[doclet.longname])
+            const node = this._treeNodes[doclet.longname];
+            if (!node)
             {
                 debug(`Emitter._createTreeNodes(): adding ${docletDebugInfo(doclet)} to this._treeNodes`);
                 this._treeNodes[doclet.longname] = { doclet, children: [] };
             }
             else
             {
+                if (node.doclet.override && node.doclet.ignore)
+                {
+                    // According to [PR#11](https://github.com/englercj/tsd-jsdoc/pull/11):
+                    // > If, for example, an @override annotation is present, then the member will still be skipped
+                    // > with the PR applied, but if it is not explicitly annotated as one, the member will now be generated.
+                    // > This is a bit counter-intuitive but it seems to be the jsdoc-way (it discards any jsdoc on the child
+                    // > when it sees @override, just like @inheritdoc does)
+
+                    // Let's replace the previous doclet with this one.
+                    debug(`Emitter._createTreeNodes(): replacing ${docletDebugInfo(node.doclet)} by its overriden version ${docletDebugInfo(doclet)}`);
+                    node.doclet = doclet;
+                    continue;
+                }
+
                 debug(`Emitter._createTreeNodes(): skipping ${docletDebugInfo(doclet)} (doclet name already known)`);
             }
         }
@@ -241,11 +286,20 @@ export class Emitter
         nextDoclet: for (let i = 0; i < docs.length; ++i)
         {
             const doclet = docs[i];
+            debug(`Emitter._buildTree(): => doclet=${docletDebugInfo(doclet)}`)
 
-            // Note: The constructor should be generated with its documentation whatever its access level.
-            // Do not move this block after the test below.
-            if ((doclet.kind !== 'package') // <= hack for typescript resolutions
-                && isConstructor(doclet))
+            if (doclet.kind === 'package'
+                // Do not ignore doclet at this stage.
+                // Let's build the tree,
+                // and eventually filter out the node when generating the output in _parseTreeNode().
+                //|| this._ignoreDoclet(doclet)
+                )
+            {
+                debug(`Emitter._buildTree(): skipping ${docletDebugInfo(doclet) } (package)`);
+                continue nextDoclet;
+            }
+
+            if (isConstructor(doclet))
             {
                 // If this doclet is a constructor, do not watch the 'memberof' attribute,
                 // it usually has the same value as the owner class's declaration,
@@ -270,12 +324,6 @@ export class Emitter
                 }
 
                 // Proceed with the next doclet.
-                continue nextDoclet;
-            }
-
-            if (doclet.kind === 'package' || this._ignoreDoclet(doclet))
-            {
-                debug(`Emitter._buildTree(): skipping ${docletDebugInfo(doclet) } (package or ignored)`);
                 continue nextDoclet;
             }
 
@@ -311,7 +359,7 @@ export class Emitter
                         },
                         children: [],
                     };
-                    debug(`Emitter._buildTree(): merge interface created for ${docletDebugInfo(doclet)}`);
+                    debug(`Emitter._buildTree(): merge interface ${docletDebugInfo(interfaceMerge.doclet)} created for ${docletDebugInfo(doclet)}`);
                 }
             }
 
@@ -335,12 +383,16 @@ export class Emitter
                         },
                         children: [],
                     };
+                    debug(`Emitter._buildTree(): merge namespace ${docletDebugInfo(namespaceMerge.doclet)} created for ${docletDebugInfo(doclet)}`);
 
                     staticChildren.forEach(c => (c as IDocletBase).memberof = longname);
                 }
             }
 
-            if (isDefaultExport(doclet, this._treeNodes) && doclet.memberof)
+            // Call isDefaultExport() a first time here, in order to fix the `.memberof` attribute when not set.
+            isDefaultExport(doclet, this._treeNodes);
+
+            if (doclet.memberof)
             {
                 const parent = this._treeNodes[doclet.memberof];
                 if (!parent)
@@ -348,16 +400,28 @@ export class Emitter
                     warn(`Failed to find parent of doclet '${doclet.longname}' using memberof '${doclet.memberof}', this is likely due to invalid JSDoc.`, doclet);
                     continue nextDoclet;
                 }
-                debug(`Emitter._buildTree(): adding 'export default' ${docletDebugInfo(doclet)} to module ${docletDebugInfo(parent.doclet)}`);
-                parent.children.push({ doclet: doclet, children: [] });
-            }
-            else if (doclet.memberof)
-            {
-                const parent = this._treeNodes[doclet.memberof];
 
-                if (!parent)
+                // Because the longnames of default export and 'exports =' assignment doclets are the same as the one of the parent module itself,
+                // `obj` actually corresponds to the parent module here.
+                // That's the reason why we don't use `obj` in the lines below, but create a new `IDocletTreeNode` object.
+                if (isDefaultExport(doclet, this._treeNodes))
                 {
-                    warn(`Failed to find parent of doclet '${doclet.longname}' using memberof '${doclet.memberof}', this is likely due to invalid JSDoc.`, doclet);
+                    debug(`Emitter._buildTree(): adding default export ${docletDebugInfo(doclet)} to module ${docletDebugInfo(parent.doclet)}`);
+                    parent.children.push({ doclet: doclet, children: [] });
+                    continue nextDoclet;
+                }
+                if (isExportsAssignment(doclet, this._treeNodes))
+                {
+                    debug(`Emitter._buildTree(): adding 'exports =' assignment ${docletDebugInfo(doclet)} to module ${docletDebugInfo(parent.doclet)}`);
+                    parent.children.push({ doclet: doclet, children: [] });
+                    continue nextDoclet;
+                }
+                // The same with @override doclets: the overriden doclets have the same longnames.
+                if (doclet.override)
+                {
+                    // As created/replaced in `_createTreeNode()`, `obj` points to the base doclet, so don't use it.
+                    debug(`Emitter._buildTree(): adding @override ${docletDebugInfo(doclet)} to ${docletDebugInfo(parent.doclet)}`);
+                    parent.children.push({ doclet: doclet, children: [] });
                     continue nextDoclet;
                 }
 
@@ -468,6 +532,9 @@ export class Emitter
         debug(`----------------------------------------------------------------`);
         debug(`Emitter._markExported()`);
 
+        // Ensure `_markExportedNode()` can be used as a callback function with the appropriate `this` context.
+        this._markExportedNode = this._markExportedNode.bind(this);
+
         // Scan the tree root nodes, identify the 'module' ones,
         // and launch the recursive _markExportedNode() function on them.
         for (let i = 0; i < this._treeRoots.length; i++)
@@ -478,12 +545,15 @@ export class Emitter
         }
     }
 
-    private _markExportedNode(node: IDocletTreeNode)
+    private _markExportedNode(node: IDocletTreeNode, markThisNode: boolean = true)
     {
-        debug(`Emitter._markExportedNode(${docletDebugInfo(node.doclet)})`);
+        debug(`Emitter._markExportedNode(${docletDebugInfo(node.doclet)}, markThisNode=${markThisNode})`);
 
-        // First of all, mark the node with the 'isExported' flag.
-        node.isExported = true;
+        // First of all, mark the node with the 'isExported' flag when required.
+        if (markThisNode)
+        {
+            node.isExported = true;
+        }
 
         // Then, for each kind of node, iterate over the related nodes.
         switch (node.doclet.kind)
@@ -495,13 +565,14 @@ export class Emitter
                 this._markExportedParams(node, node.doclet.params);
                 if (node.doclet.augments)
                     for (const augment of node.doclet.augments)
-                        this._resolveExportedType(node, augment);
+                        this._resolveDocletType(node, augment, this._markExportedNode);
                 if (node.doclet.implements)
                     for (const implement of node.doclet.implements)
-                        this._resolveExportedType(node, implement);
+                        this._resolveDocletType(node, implement, this._markExportedNode);
                 if (node.doclet.mixes)
                     for (const mix of node.doclet.mixes)
-                        this._resolveExportedType(node, mix);
+                        this._resolveDocletType(node, mix, this._markExportedNode);
+                this._markExportedChildren(node);
                 break;
 
             // IFileDoclet:
@@ -517,7 +588,7 @@ export class Emitter
             // IFunctionDoclet:
             case 'callback': case 'function':
                 if (node.doclet.this)
-                    this._resolveExportedType(node, node.doclet.this);
+                    this._resolveDocletType(node, node.doclet.this, this._markExportedNode);
                 this._markExportedParams(node, node.doclet.params);
                 this._markExportedReturns(node, node.doclet.returns);
                 break;
@@ -525,13 +596,31 @@ export class Emitter
             // IMemberDoclet:
             case 'member':
             case 'constant':
-                if (isDefaultExport(node.doclet, this._treeNodes) || isNamedExport(node.doclet, this._treeNodes))
+                if (isDefaultExport(node.doclet, this._treeNodes))
                 {
                     if (node.doclet.meta && node.doclet.meta.code.value)
-                        this._resolveExportedType(node, node.doclet.meta.code.value);
+                    {
+                        this._resolveDocletType(node, node.doclet.meta.code.value, this._markExportedNode);
+                    }
+                }
+                else if (isNamedExport(node.doclet, this._treeNodes))
+                {
+                    if (node.doclet.meta && node.doclet.meta.code.value)
+                    {
+                        const _this= this;
+                        this._resolveDocletType(node, node.doclet.meta.code.value, function (refNode: IDocletTreeNode) {
+                            _this._markExportedNode(
+                                refNode,
+                                // Directly mark the referenced node for export (through this path at least), only if the exported name is changed.
+                                node.doclet.meta && (node.doclet.meta.code.value === node.doclet.name)
+                            );
+                        });
+                    }
                 }
                 else
+                {
                     this._markExportedTypes(node, node.doclet.type);
+                }
                 break;
 
             // INamespaceDoclet:
@@ -563,12 +652,11 @@ export class Emitter
         }
     }
 
-    private _markExportedTypes(node: IDocletTreeNode, types: IDocletType)
+    private _markExportedTypes(node: IDocletTreeNode, types?: IDocletType)
     {
-        for (const typeName of types.names)
-        {
-            this._resolveExportedType(node, typeName);
-        }
+        if (types)
+            for (const typeName of types.names)
+                this._resolveDocletType(node, typeName, this._markExportedNode);
     }
 
     private _markExportedParams(node: IDocletTreeNode, params?: IDocletProp[])
@@ -576,7 +664,7 @@ export class Emitter
         if (params)
             for (const param of params)
                 for (const paramType of param.type.names)
-                    this._resolveExportedType(node, paramType);
+                    this._resolveDocletType(node, paramType, this._markExportedNode);
     }
 
     private _markExportedReturns(node: IDocletTreeNode, returns?: IDocletReturn[])
@@ -584,51 +672,13 @@ export class Emitter
         if (returns)
             for (const ret of returns)
                 for (const retType of ret.type.names)
-                    this._resolveExportedType(node, retType);
+                    this._resolveDocletType(node, retType, this._markExportedNode);
     }
 
-    private _resolveExportedType(currentNode: IDocletTreeNode, typeName: string): void
+    private _markExportedChildren(node: IDocletTreeNode)
     {
-        debug(`Emitter._resolveExportedType(${docletDebugInfo(currentNode.doclet)}, '${typeName}'`);
-
-        // Basic types.
-        switch (typeName)
-        {
-            case 'string':
-            case 'number':
-            case 'function':
-            case '*': // <= means 'any' in jsdoc.
-                return;
-        }
-        if (typeName.match(/^Array\.<.*>$/))
-        {
-            this._resolveExportedType(currentNode, typeName.slice('Array.<'.length, typeName.length - 1));
-            return;
-        }
-        if (typeName.match(/^Object\.<.*>$/))
-        {
-            for (const field of typeName.slice('Object.<'.length, typeName.length - 1).split(', '))
-                this._resolveExportedType(currentNode, field.trim());
-            return;
-        }
-
-        // Lookup for the target symbol through up the scopes.
-        let scope = currentNode.doclet.memberof;
-        while (scope)
-        {
-            const target = this._treeNodes[scope + "~" + typeName];
-            if (target)
-            {
-                this._markExportedNode(target);
-                return;
-            }
-
-            const scopeNode = this._treeNodes[scope];
-            if (! scopeNode) break;
-            scope = scopeNode.doclet.memberof;
-        }
-
-        warn(`No such exported type '${typeName}' in current node:`, currentNode);
+        for (const child of node.children)
+            this._markExportedNode(child);
     }
 
     private _parseTree()
@@ -650,6 +700,11 @@ export class Emitter
         if ((this.options.generationStrategy === 'exported') && (! node.isExported))
         {
             debug(`Emitter._parseTreeNode(${docletDebugInfo(node.doclet)}): skipping doclet, not exported`);
+            return null;
+        }
+        if (this._ignoreDoclet(node.doclet) && (! node.exportName))
+        {
+            debug(`Emitter._parseTreeNode(${docletDebugInfo(node.doclet)}): skipping ignored doclet`);
             return null;
         }
 
@@ -678,7 +733,7 @@ export class Emitter
                 }
                 else
                 {
-                    return createClass(node.doclet, children);
+                    return createClass(node.doclet, children, node.exportName);
                 }
 
             case 'constant':
@@ -686,22 +741,62 @@ export class Emitter
                 if (isDefaultExport(node.doclet, this._treeNodes)
                     && (node.doclet.meta && node.doclet.meta.code.value))
                 {
+                    // Skip 'module.exports = {name: ... }' named export patterns.
+                    if (node.doclet.meta.code.value.startsWith('{'))
+                    {
+                        debug(`Emitter._parseTreeNode(): skipping default export (actually a named export pattern '${node.doclet.meta.code.value}')`);
+                        return null;
+                    }
+
                     return createExportDefault(node.doclet, node.doclet.meta.code.value);
                 }
                 if (isNamedExport(node.doclet, this._treeNodes))
                 {
-                    // Nothing to do, as long as the desired exported symbols are declared in the .d.ts file.
+                    if (node.doclet.meta && node.doclet.meta.code.value)
+                    {
+                        if (node.doclet.meta.code.value != node.doclet.name)
+                        {
+                            const _this = this;
+                            let _res: ts.Node | null = null;
+                            this._resolveDocletType(node, node.doclet.meta.code.value, function(refNode: IDocletTreeNode) {
+                                const namedRefNode: IDocletTreeNode = {
+                                    doclet: refNode.doclet,
+                                    children: refNode.children,
+                                    isNested: refNode.isNested,
+                                    isExported: true,
+                                    exportName: node.doclet.name
+                                }
+                                _res = _this._parseTreeNode(namedRefNode, parent);
+                            });
+                            return _res;
+                        }
+                        else
+                        {
+                            // Nothing to do.
+                            return null;
+                        }
+                    }
+                    else
+                    {
+                        warn(`No ref for named export doclet`, node.doclet);
+                        return null;
+                    }
+                }
+                if (isExportsAssignment(node.doclet, this._treeNodes))
+                {
+                    // Nothing to do.
+                    debug(`Emitter._parseTreeNode(): skipping 'exports =' assignment`);
                     return null;
                 }
 
                 if (node.doclet.isEnum)
-                    return createEnum(node.doclet);
+                    return createEnum(node.doclet, node.exportName);
                 else if (parent && parent.doclet.kind === 'class')
-                    return createClassMember(node.doclet);
+                    return createClassMember(node.doclet, node.exportName);
                 else if (parent && parent.doclet.kind === 'interface')
-                    return createInterfaceMember(node.doclet);
+                    return createInterfaceMember(node.doclet, node.exportName);
                 else
-                    return createNamespaceMember(node.doclet);
+                    return createNamespaceMember(node.doclet, node.exportName);
 
             case 'callback':
             case 'function':
@@ -710,26 +805,26 @@ export class Emitter
                     const parent = this._treeNodes[node.doclet.memberof];
 
                     if (parent && parent.doclet.kind === 'class')
-                        return createClassMethod(node.doclet);
+                        return createClassMethod(node.doclet, node.exportName);
                     else if (parent && parent.doclet.kind === 'interface')
-                        return createInterfaceMethod(node.doclet);
+                        return createInterfaceMethod(node.doclet, node.exportName);
                 }
-                return createFunction(node.doclet);
+                return createFunction(node.doclet, node.exportName);
 
             case 'interface':
-                return createInterface(node.doclet, children);
+                return createInterface(node.doclet, children, node.exportName);
 
             case 'mixin':
-                return createInterface(node.doclet, children);
+                return createInterface(node.doclet, children, node.exportName);
 
             case 'module':
-                return createModule(node.doclet, !!node.isNested, children);
+                return createModule(node.doclet, !!node.isNested, children, node.exportName);
 
             case 'namespace':
-                return createNamespace(node.doclet, !!node.isNested, children);
+                return createNamespace(node.doclet, !!node.isNested, children, node.exportName);
 
             case 'typedef':
-                return createTypedef(node.doclet, children);
+                return createTypedef(node.doclet, children, node.exportName);
 
             case 'file':
                 return null;
@@ -745,6 +840,12 @@ export class Emitter
 
     private _ignoreDoclet(doclet: TAnyDoclet): boolean
     {
+        // Constructors should be generated with their documentation whatever their access level.
+        if ((doclet.kind !== 'package') && isConstructor(doclet))
+        {
+            return false;
+        }
+
         let reason: string|undefined = undefined;
         if (doclet.kind === 'package')
             reason = 'package doclet';
@@ -759,13 +860,15 @@ export class Emitter
             return true
         }
 
-        if (doclet.access === undefined) {
+        if (doclet.access === undefined)
+        {
             return false
         }
 
         const accessLevels = ["private", "package", "protected", "public"];
         const ignored = accessLevels.indexOf(doclet.access.toString()) < accessLevels.indexOf(this.options.access || "package");
-        if (ignored) {
+        if (ignored)
+        {
             debug(`Emitter._ignoreDoclet(doclet=${docletDebugInfo(doclet)}) => true (low access level)`);
         }
         return ignored;
@@ -829,5 +932,65 @@ export class Emitter
         }
 
         return mod;
+    }
+
+    /**
+     * From the context of `currentNode`, search for the doclets which type name corresponds to `typeName`, and apply `callback` on them.
+     * @param currentNode   Starting context for type resolution.
+     * @param typeName      Type name to search for.
+     * @param callback      Callback to apply on each resolved doclet.
+     */
+    private _resolveDocletType(currentNode: IDocletTreeNode, typeName: string, callback: (node: IDocletTreeNode) => void): void
+    {
+        debug(`Emitter._resolveDocletType(${docletDebugInfo(currentNode.doclet)}, '${typeName}')`);
+
+        // Basic types.
+        switch (typeName)
+        {
+            case 'null':
+            case 'string':
+            case 'number':
+            case 'function':
+            case '*': // <= means 'any' in jsdoc.
+                return;
+        }
+        if (typeName.match(/^Array\.<.*>$/))
+        {
+            this._resolveDocletType(currentNode, typeName.slice('Array.<'.length, typeName.length - 1), callback);
+            return;
+        }
+        if (typeName.match(/^Object\.<.*>$/))
+        {
+            for (const field of typeName.slice('Object.<'.length, typeName.length - 1).split(', '))
+                this._resolveDocletType(currentNode, field.trim(), callback);
+            return;
+        }
+
+        if (isDefaultExport(currentNode.doclet, this._treeNodes)
+            && typeName.startsWith('{'))
+        {
+            // 'module.exports = {name: ... }' named export pattern.
+            // Do not process the default export type.
+            // It should be followed by consecutive named doclets for each field of the object.
+            return;
+        }
+
+        // Lookup for the target symbol through up the scopes.
+        let scope = currentNode.doclet.memberof;
+        while (scope)
+        {
+            const target = this._treeNodes[scope + "~" + typeName];
+            if (target)
+            {
+                callback(target);
+                return;
+            }
+
+            const scopeNode = this._treeNodes[scope];
+            if (! scopeNode) break;
+            scope = scopeNode.doclet.memberof;
+        }
+
+        warn(`Could not resolve type '${typeName}' in current node:`, currentNode);
     }
 }
