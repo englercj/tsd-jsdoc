@@ -26,7 +26,18 @@ interface IDocletTreeNode
     doclet: TDoclet;
     children: IDocletTreeNode[];
     isNested?: boolean;
+    /**
+     * Helper flag for named export identification.
+     */
+    isNamedExport?: boolean;
+    /**
+     * Flag set by the 'exported' generation strategy when Emitter._markExported() is called.
+     */
     isExported?: boolean;
+    /**
+     * Makes the node be exported with another name for export.
+     * Prevails on `@ignore` tags when set.
+     */
     exportName?: string;
 }
 
@@ -56,7 +67,7 @@ function isEnum(doclet: TDoclet)
 
 function isDefaultExport(doclet: TDoclet, treeNodes: Dictionary<IDocletTreeNode>)
 {
-    if ((doclet.kind === 'member')
+    if ((doclet.kind !== 'module')
         && doclet.meta && (doclet.meta.code.name === 'module.exports')
         && doclet.longname.startsWith('module:'))
     {
@@ -112,14 +123,23 @@ function isDefaultExport(doclet: TDoclet, treeNodes: Dictionary<IDocletTreeNode>
 
 function isNamedExport(doclet: TDoclet, treeNodes: Dictionary<IDocletTreeNode>)
 {
-    if ((doclet.kind === 'member')
-        && doclet.meta && doclet.meta.code.name && (doclet.meta.code.name !== 'module.exports') && (doclet.meta.code.name !== 'exports')
+    // First of all, check whether the `.isNamedExport` flag is set.
+    const node = treeNodes[doclet.longname];
+    if (node && node.isNamedExport)
+    {
+        return true;
+    }
+
+    // Otherwise, analyze the doclet info.
+    if ((doclet.kind !== 'module')
+        && doclet.meta && doclet.meta.code.name
+        && (doclet.meta.code.name.startsWith('module.exports.') || doclet.meta.code.name.startsWith('exports.'))
         && doclet.longname.startsWith('module:')
         && doclet.memberof) // <= memberof is set by jsdoc for named exports.
     {
-        // Let's check the memberof node is a module.
-        const node = treeNodes[doclet.memberof];
-        if (node && (node.doclet.kind === 'module'))
+        // Let's check the parent node is a module.
+        const parent = treeNodes[doclet.memberof];
+        if (parent && (parent.doclet.kind === 'module'))
             return true;
     }
     return false;
@@ -280,7 +300,6 @@ export class Emitter
         nextDoclet: for (let i = 0; i < docs.length; ++i)
         {
             const doclet = docs[i];
-            debug(`Emitter._buildTree(): => doclet=${docletDebugInfo(doclet)}`)
 
             if (doclet.kind === 'package'
                 // Do not ignore doclet at this stage.
@@ -383,7 +402,7 @@ export class Emitter
                 }
             }
 
-            // Call isDefaultExport() a first time here, in order to fix the `.memberof` attribute when not set.
+            // Call isDefaultExport() a first time here, in order to fix the `.memberof` attribute if not set.
             isDefaultExport(doclet, this._treeNodes);
 
             if (doclet.memberof)
@@ -400,8 +419,26 @@ export class Emitter
                 // That's the reason why we don't use `obj` in the lines below, but create a new `IDocletTreeNode` object.
                 if (isDefaultExport(doclet, this._treeNodes))
                 {
-                    debug(`Emitter._buildTree(): adding default export ${docletDebugInfo(doclet)} to module ${docletDebugInfo(parent.doclet)}`);
-                    parent.children.push({ doclet: doclet, children: [] });
+                    if (doclet.meta && doclet.meta.code.value && doclet.meta.code.value.startsWith('{'))
+                    {
+                        // 'module.exports = {name: ... }' named export pattern.
+                        debug(`Emitter._buildTree(): skipping 'module.exports = {name: ... }' named export pattern doclet ${docletDebugInfo(doclet)}`);
+                        // This default export doclet is followed by doclets wich describe each field of the {name: ...} object,
+                        // but those are not named 'export' and thus cannot be detected as named exports by default.
+                        const value = JSON.parse(doclet.meta.code.value);
+                        for (const name in value)
+                        {
+                            this._resolveDocletType(parent, name, function(namedExportNode: IDocletTreeNode) {
+                                debug(`Emitter._buildTree(): => tagging ${docletDebugInfo(namedExportNode.doclet)} as a named export`);
+                                namedExportNode.isNamedExport = true;
+                            });
+                        }
+                    }
+                    else
+                    {
+                        debug(`Emitter._buildTree(): adding default export ${docletDebugInfo(doclet)} to module ${docletDebugInfo(parent.doclet)}`);
+                        parent.children.push({ doclet: doclet, children: [] });
+                    }
                     continue nextDoclet;
                 }
                 if (isExportsAssignment(doclet, this._treeNodes))
@@ -697,7 +734,8 @@ export class Emitter
             debug(`Emitter._parseTreeNode(${docletDebugInfo(node.doclet)}): skipping doclet, not exported`);
             return null;
         }
-        if (this._ignoreDoclet(node.doclet) && (! node.exportName))
+        if ((! node.exportName) // Check the `.exportName` flag before calling `_ignoreDoclet()` in order to avoid false debug lines.
+            && this._ignoreDoclet(node.doclet))
         {
             debug(`Emitter._parseTreeNode(${docletDebugInfo(node.doclet)}): skipping ignored doclet`);
             return null;
@@ -736,13 +774,6 @@ export class Emitter
                 if (isDefaultExport(node.doclet, this._treeNodes)
                     && (node.doclet.meta && node.doclet.meta.code.value))
                 {
-                    // Skip 'module.exports = {name: ... }' named export patterns.
-                    if (node.doclet.meta.code.value.startsWith('{'))
-                    {
-                        debug(`Emitter._parseTreeNode(): skipping default export (actually a named export pattern '${node.doclet.meta.code.value}')`);
-                        return null;
-                    }
-
                     return createExportDefault(node.doclet, node.doclet.meta.code.value);
                 }
                 if (isNamedExport(node.doclet, this._treeNodes))
@@ -937,7 +968,7 @@ export class Emitter
      */
     private _resolveDocletType(currentNode: IDocletTreeNode, typeName: string, callback: (node: IDocletTreeNode) => void): void
     {
-        debug(`Emitter._resolveDocletType(${docletDebugInfo(currentNode.doclet)}, '${typeName}')`);
+        debug(`Emitter._resolveDocletType(currentNode=${docletDebugInfo(currentNode.doclet)}, typeName='${typeName}')`);
 
         // Basic types.
         switch (typeName)
@@ -961,31 +992,25 @@ export class Emitter
             return;
         }
 
-        if (isDefaultExport(currentNode.doclet, this._treeNodes)
-            && typeName.startsWith('{'))
-        {
-            // 'module.exports = {name: ... }' named export pattern.
-            // Do not process the default export type.
-            // It should be followed by consecutive named doclets for each field of the object.
-            return;
-        }
-
         // Lookup for the target symbol through up the scopes.
-        let scope = currentNode.doclet.memberof;
+        let scope: string | undefined = currentNode.doclet.longname;
         while (scope)
         {
-            const target = this._treeNodes[scope + "~" + typeName];
-            if (target)
+            for (const delimiter of [".", "~"])
             {
-                callback(target);
-                return;
+                const target = this._treeNodes[scope + delimiter + typeName];
+                if (target)
+                {
+                    callback(target);
+                    return;
+                }
             }
 
-            const scopeNode = this._treeNodes[scope];
+            const scopeNode: IDocletTreeNode | undefined = this._treeNodes[scope];
             if (! scopeNode) break;
             scope = scopeNode.doclet.memberof;
         }
 
-        warn(`Could not resolve type '${typeName}' in current node:`, currentNode);
+        warn(`Could not resolve type '${typeName}' in current node:`, currentNode.doclet);
     }
 }

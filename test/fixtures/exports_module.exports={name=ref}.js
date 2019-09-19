@@ -10,6 +10,9 @@ class _NotExported {
 function _foo() {
 }
 
+/**
+ * Jsdoc comment for 'documented' generation strategy.
+ */
 module.exports = {
     /**
      * Named export with 'module.exports = {name: ...}' on a referenced type.

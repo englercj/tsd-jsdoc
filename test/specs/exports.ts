@@ -25,7 +25,7 @@ suite('Exports Checks', () => {
         // Not supported yet: {id: "export default named-function",           desc: "'export default' with named function inline"},
         // Not supported yet: {id: "module.exports=named-class",              desc: "'module.exports =' default export pattern with named class inline"},
         // Not supported yet: {id: "module.exports=named-function",           desc: "'module.exports =' default export pattern with named function inline"},
-        // Not supported yet: {id: "export named-types",                      desc: "'export' keyword"},
+        {id: "export named-types",                      desc: "'export' keyword"},
         // Not supported yet: {id: "module.exports.name=named-class",         desc: "'module.exports.name =' named export pattern with named class inline"},
         // Not supported yet: {id: "module.exports.name=named-function",      desc: "'module.exports.name =' named export pattern with named function inline"},
         // Not supported yet: {id: "exports.name=named-class",                desc: "'exports.name =' named export pattern with named class inline"},

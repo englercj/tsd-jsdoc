@@ -5,33 +5,31 @@ declare module "test-export-20190913220851" {
      *
      */
     class _Foo {
-        constructor();
     }
     /**
-     *
+     * @extends _Foo
      */
     class _Bar extends _Foo {
-        constructor();
     }
     /**
      *
      */
     class _Baz {
-        constructor();
     }
     /**
-     *
+     * Named export with 'export' on a named class.
+     * @extends _Baz
      */
     class Qux extends _Baz {
+        /**
+         * @param {_Bar} bar
+         */
+        constructor(bar: _Bar);
         /**
          * @type {_Foo}
          * @readonly
          */
         readonly foo: _Foo;
-        /**
-         * @param {_Bar} bar
-         */
-        constructor(bar: _Bar);
     }
     /**
      * Named export with 'export' on a named function.
@@ -39,3 +37,4 @@ declare module "test-export-20190913220851" {
      */
     function foo(): _Foo | null;
 }
+
