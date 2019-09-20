@@ -1,4 +1,4 @@
-/** @module test-export-20190913220044 */
+/** @module test-export-20190919181620 */
 
 class _NotExported {
 }
@@ -23,10 +23,8 @@ class _Baz {
 
 /**
  * @extends _Baz
- * Hack: ignored for 'documented' generation strategy with a (re)named export.
- * @ignore
  */
-class _Qux extends _Baz {
+class Qux extends _Baz {
     /**
      * @param {_Bar} bar
      */
@@ -41,30 +39,27 @@ class _Qux extends _Baz {
 
 /**
  * @return {_Foo | null}
- * Hack: ignored for 'documented' generation strategy with a (re)named export.
- * @ignore
  */
-function _foo() {
+function foo() {
 	return null;
 }
 
 /**
- * Hack: ignored for 'documented' generation strategy with a (re)named export.
- * @ignore
+ *
  */
-const _bar = 0;
+const bar = 0;
 
 /**
  * Named export with 'module.exports.name =' on a referenced class.
  */
-module.exports.Qux = _Qux
+module.exports.Qux = Qux
 
 /**
  * Named export with 'module.exports.name =' on a referenced function.
  */
-module.exports.foo = _foo;
+module.exports.foo = foo;
 
 /**
  * Named export with 'module.exports.name =' on a referenced var/const.
  */
-module.exports.bar = _bar;
+module.exports.bar = bar;

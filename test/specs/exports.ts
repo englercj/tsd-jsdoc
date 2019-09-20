@@ -14,12 +14,12 @@ suite('Exports Checks', () => {
         {id: "export default ref",                      desc: "'export default' keywords with reference to an existing type"},
         {id: "module.exports=ref",                      desc: "'module.exports =' default export pattern with reference to an existing type"},
         // Named exports.
-        {id: "module.exports.name=ref",                 desc: "'module.exports.name =' named export pattern with reference to an existing type"},
-        {id: "exports.name=ref",                        desc: "'exports.name =' named export pattern with reference to an existing type"},
-        {id: "module.exports={name=ref}",               desc: "'module.exports = { name: ...}' named export pattern with references to existing types"},
-        // Mixs.
-        {id: "exports=module.exports=",                 desc: "'exports = module.exports =' pattern"},
-        {id: "mix-default-named",                       desc: "Mix of default and named exports"},
+        {id: "module.exports.name=ref-same-name",       desc: "'module.exports.name =' named export pattern with reference to an existing type with the same same"},
+        {id: "module.exports.name=ref-other-name",      desc: "'module.exports.name =' named export pattern with reference to an existing type with a different name"},
+        {id: "exports.name=ref-same-name",              desc: "'exports.name =' named export pattern with reference to an existing type with the same name"},
+        {id: "exports.name=ref-other-name",             desc: "'exports.name =' named export pattern with reference to an existing type with a different name"},
+        {id: "module.exports={name=ref-same-name}",     desc: "'module.exports = { name: ... }' named export pattern with references to existing types with same names"},
+        {id: "module.exports={name=ref-other-name}",    desc: "'module.exports = { name: ... }' named export pattern with references to existing types with different names"},
         // Inline named types.
         // Not supported yet: {id: "export default named-class",              desc: "'export default' with named class inline"},
         // Not supported yet: {id: "export default named-function",           desc: "'export default' with named function inline"},
@@ -43,6 +43,9 @@ suite('Exports Checks', () => {
         // Not supported yet: {id: "exports.name=lambda-function",            desc: "'exports.name =' named export pattern with lambda function"},
         // Not supported yet: {id: "module.exports={name=lambda-class}",      desc: "'module.exports = { name: ...}' named export pattern with lambda class"},
         // Not supported yet: {id: "module.exports={name=lambda-function}",   desc: "'module.exports = { name: ...}' named export pattern with lambda class"},
+        // Mixs.
+        {id: "exports=module.exports=",                 desc: "'exports = module.exports =' pattern"},
+        {id: "mix-default-named",                       desc: "Mix of default and named exports"},
         // Border cases.
         // To be fixed: {id: "indirect(=module.exports).name=",         desc: "Named export through an indirection"},
         // Not supported: {id: "wrong exports.name=",                     desc: "Wrong use of 'exports.name =' while not set to module.exports"},

@@ -1,6 +1,6 @@
-/** @module test-export-20190914011810
+/** @module test-export-20190913220044
  */
-declare module "test-export-20190914011810" {
+declare module "test-export-20190913220044" {
     /**
      *
      */
@@ -18,7 +18,7 @@ declare module "test-export-20190914011810" {
     }
     /**
      * @extends _Baz
-     * Hack: ignored for 'documented' generation strategy with a (re)named export.
+     * Hack: ignored for 'documented' generation strategy with a (re)named export, generated twice otherwise.
      * @ignore
      */
     class Qux extends _Baz {
@@ -34,12 +34,12 @@ declare module "test-export-20190914011810" {
     }
     /**
      * @return {_Foo | null}
-     * Hack: ignored for 'documented' generation strategy with a (re)named export.
+     * Hack: ignored for 'documented' generation strategy with a (re)named export, generated twice otherwise.
      * @ignore
      */
     function foo(): _Foo | null;
     /**
-     * Hack: ignored for 'documented' generation strategy with a (re)named export.
+     * Hack: ignored for 'documented' generation strategy with a (re)named export, generated twice otherwise.
      * @ignore
      */
     const bar = 0;

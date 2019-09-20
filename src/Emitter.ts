@@ -140,7 +140,16 @@ function isNamedExport(doclet: TDoclet, treeNodes: Dictionary<IDocletTreeNode>)
         // Let's check the parent node is a module.
         const parent = treeNodes[doclet.memberof];
         if (parent && (parent.doclet.kind === 'module'))
+        {
+            // Set the `.isNamedExport` attribute by the way.
+            // This ensures the doclet will still be recognized as a named export, even though its name is changed (in create_helpers.ts possibly).
+            if (node)
+            {
+                node.isNamedExport = true;
+            }
+
             return true;
+        }
     }
     return false;
 }
@@ -429,9 +438,14 @@ export class Emitter
                         for (const name in value)
                         {
                             this._resolveDocletType(parent, name, function(namedExportNode: IDocletTreeNode) {
-                                debug(`Emitter._buildTree(): => tagging ${docletDebugInfo(namedExportNode.doclet)} as a named export`);
-                                namedExportNode.isNamedExport = true;
-                            });
+                                    debug(`Emitter._buildTree(): => tagging ${docletDebugInfo(namedExportNode.doclet)} as a named export`);
+                                    namedExportNode.isNamedExport = true;
+                                },
+                                // Doclet filter: search for 'member' doclets only.
+                                function(target: IDocletTreeNode) {
+                                    return (target.doclet.kind === 'member');
+                                }
+                            );
                         }
                     }
                     else
@@ -618,7 +632,8 @@ export class Emitter
                 break;
 
             // IFunctionDoclet:
-            case 'callback': case 'function':
+            case 'callback':
+            case 'function':
                 if (node.doclet.this)
                     this._resolveDocletType(node, node.doclet.this, this._markExportedNode);
                 this._markExportedParams(node, node.doclet.params);
@@ -639,14 +654,17 @@ export class Emitter
                 {
                     if (node.doclet.meta && node.doclet.meta.code.value)
                     {
-                        const _this= this;
+                        const thisEmitter = this;
                         this._resolveDocletType(node, node.doclet.meta.code.value, function (refNode: IDocletTreeNode) {
-                            _this._markExportedNode(
-                                refNode,
                                 // Directly mark the referenced node for export (through this path at least), only if the exported name is changed.
-                                node.doclet.meta && (node.doclet.meta.code.value === node.doclet.name)
-                            );
-                        });
+                                const markThisNode = node.doclet.meta && (node.doclet.meta.code.value === node.doclet.name);
+                                thisEmitter._markExportedNode(refNode, markThisNode);
+                            },
+                            // Doclet filter: avoid cyclic loops in case this named export references a type with the same name.
+                            function(target: IDocletTreeNode) {
+                                return (target !== node);
+                            }
+                        );
                     }
                 }
                 else
@@ -657,7 +675,7 @@ export class Emitter
 
             // INamespaceDoclet:
             case 'module':
-                // Search for module exports in the module.
+                // Search for export doclets in the module.
                 for (const child of node.children)
                 {
                     if (isDefaultExport(child.doclet, this._treeNodes)
@@ -782,9 +800,11 @@ export class Emitter
                     {
                         if (node.doclet.meta.code.value != node.doclet.name)
                         {
-                            const _this = this;
-                            let _res: ts.Node | null = null;
+                            const thisEmitter = this;
+                            let tsRes: ts.Node | null = null;
                             this._resolveDocletType(node, node.doclet.meta.code.value, function(refNode: IDocletTreeNode) {
+                                // Named export from a type with a different name.
+                                // Create a live IDocletTreeNode object with the `.exportName` attribute set.
                                 const namedRefNode: IDocletTreeNode = {
                                     doclet: refNode.doclet,
                                     children: refNode.children,
@@ -792,13 +812,14 @@ export class Emitter
                                     isExported: true,
                                     exportName: node.doclet.name
                                 }
-                                _res = _this._parseTreeNode(namedRefNode, parent);
+                                tsRes = thisEmitter._parseTreeNode(namedRefNode, parent);
                             });
-                            return _res;
+                            return tsRes;
                         }
                         else
                         {
                             // Nothing to do.
+                            debug(`Emitter._parseTreeNode(): skipping named export with reference of the same name`);
                             return null;
                         }
                     }
@@ -965,8 +986,12 @@ export class Emitter
      * @param currentNode   Starting context for type resolution.
      * @param typeName      Type name to search for.
      * @param callback      Callback to apply on each resolved doclet.
+     * @param filter        Optional filter function that indicates whether a doclet is an appropriate candidate for what we search.
      */
-    private _resolveDocletType(currentNode: IDocletTreeNode, typeName: string, callback: (node: IDocletTreeNode) => void): void
+    private _resolveDocletType(
+        currentNode: IDocletTreeNode, typeName: string,
+        callback: (node: IDocletTreeNode) => void,
+        filter?: (node: IDocletTreeNode) => boolean): void
     {
         debug(`Emitter._resolveDocletType(currentNode=${docletDebugInfo(currentNode.doclet)}, typeName='${typeName}')`);
 
@@ -982,13 +1007,13 @@ export class Emitter
         }
         if (typeName.match(/^Array\.<.*>$/))
         {
-            this._resolveDocletType(currentNode, typeName.slice('Array.<'.length, typeName.length - 1), callback);
+            this._resolveDocletType(currentNode, typeName.slice('Array.<'.length, typeName.length - 1), callback, filter);
             return;
         }
         if (typeName.match(/^Object\.<.*>$/))
         {
             for (const field of typeName.slice('Object.<'.length, typeName.length - 1).split(', '))
-                this._resolveDocletType(currentNode, field.trim(), callback);
+                this._resolveDocletType(currentNode, field.trim(), callback, filter);
             return;
         }
 
@@ -1001,8 +1026,15 @@ export class Emitter
                 const target = this._treeNodes[scope + delimiter + typeName];
                 if (target)
                 {
-                    callback(target);
-                    return;
+                    if (filter && (! filter(target)))
+                    {
+                        debug(`Emitter._resolveDocletType() ${docletDebugInfo(target.doclet)} filtered out`);
+                    }
+                    else
+                    {
+                        callback(target);
+                        return;
+                    }
                 }
             }
 

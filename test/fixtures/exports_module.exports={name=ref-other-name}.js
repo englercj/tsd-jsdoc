@@ -4,7 +4,7 @@ class _NotExported {
 }
 
 /**
- * Hack: ignored for 'documented' generation strategy with a (re)named export.
+ * Hack: ignored for 'documented' generation strategy with a (re)named export, generated twice otherwise.
  * @ignore
  */
 function _foo() {
