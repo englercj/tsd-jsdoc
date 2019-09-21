@@ -10,7 +10,7 @@ class _Foo {
 }
 
 /**
- *
+ * @extends _Foo
  */
 class _Bar extends _Foo {
 }
@@ -23,6 +23,7 @@ class _Baz {
 
 /**
  * Named export with 'module.exports.name =' on a named class.
+ * @extends _Baz
  */
 module.exports.Qux = class _Qux extends _Baz {
     /**
