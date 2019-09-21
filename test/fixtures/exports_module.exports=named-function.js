@@ -10,9 +10,9 @@ class _Foo {
 }
 
 /**
- * Default export with 'export default' on a named function.
+ * Default export with 'module.exports =' on a named function.
  * @returns {_Foo | null}
  */
-export default function _foo() {
+module.exports = function _foo() {
     return null;
 }

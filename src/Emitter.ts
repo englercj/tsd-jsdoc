@@ -92,7 +92,7 @@ function isDefaultExport(doclet: TDoclet, treeNodes: Dictionary<IDocletTreeNode>
 
             if (! doclet.meta.code.value)
             {
-                // When the default export value is not given in the 'meta.code.value' attribute,
+                // When the default export value is not given in the `meta.code.value` attribute,
                 // let's read it directly from the source file.
                 const sourcePath : string = path.join(doclet.meta.path, doclet.meta.filename);
                 const fd = fs.openSync(sourcePath, 'r');
@@ -190,10 +190,11 @@ function isClassDeclaration(doclet: TDoclet): boolean
     return !!(
         doclet && (doclet.kind === 'class')
         && doclet.meta && (
-            // When the owner class's comment contains a @class tag, the first doclet for the class is detached one,
-            // btw the 'code' section is empty.
+            // When the owner class's comment contains a `@class` tag, the first doclet for the class is a detached one,
+            // by the way the `meta.code` section is empty.
             (! doclet.meta.code.type)
             || (doclet.meta.code.type === 'ClassDeclaration')
+            || (doclet.meta.code.type === 'ClassExpression')
         )
     );
 }
