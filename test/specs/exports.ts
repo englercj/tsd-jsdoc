@@ -28,8 +28,8 @@ suite('Exports Checks', () => {
         {id: "export named-types",                      desc: "'export' keyword before a named type"},
         {id: "module.exports.name=named-class",         desc: "'module.exports.name =' named export pattern with named class inline"},
         {id: "module.exports.name=named-function",      desc: "'module.exports.name =' named export pattern with named function inline"},
-        // Not supported yet: {id: "exports.name=named-class",                desc: "'exports.name =' named export pattern with named class inline"},
-        // Not supported yet: {id: "exports.name=named-function",             desc: "'exports.name =' named export pattern with named function inline"},
+        {id: "exports.name=named-class",                desc: "'exports.name =' named export pattern with named class inline"},
+        {id: "exports.name=named-function",             desc: "'exports.name =' named export pattern with named function inline"},
         // Not supported yet: {id: "module.exports={name=named-class}",       desc: "'module.exports = { name: ...}' named export pattern with named class inline"},
         // Not supported yet: {id: "module.exports={name=named-function}",    desc: "'module.exports = { name: ...}' named export pattern with named class inline"},
         // Lambdas.
@@ -39,8 +39,8 @@ suite('Exports Checks', () => {
         {id: "module.exports=lambda-function",          desc: "'module.exports =' default export pattern with lambda function"},
         {id: "module.exports.name=lambda-class",        desc: "'module.exports.name =' named export pattern with lambda class"},
         {id: "module.exports.name=lambda-function",     desc: "'module.exports.name =' named export pattern with lambda function"},
-        // Not supported yet: {id: "exports.name=lambda-class",               desc: "'exports.name =' named export pattern with lambda class"},
-        // Not supported yet: {id: "exports.name=lambda-function",            desc: "'exports.name =' named export pattern with lambda function"},
+        {id: "exports.name=lambda-class",               desc: "'exports.name =' named export pattern with lambda class"},
+        {id: "exports.name=lambda-function",            desc: "'exports.name =' named export pattern with lambda function"},
         // Not supported yet: {id: "module.exports={name=lambda-class}",      desc: "'module.exports = { name: ...}' named export pattern with lambda class"},
         // Not supported yet: {id: "module.exports={name=lambda-function}",   desc: "'module.exports = { name: ...}' named export pattern with lambda class"},
         // Mixs.
