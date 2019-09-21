@@ -83,7 +83,7 @@ function buildOptionalName(doclet: IDocletBase, altName?: string): ts.Identifier
 {
     if (altName)
         return ts.createIdentifier(altName);
-    if (doclet.meta && doclet.meta.code.name && (doclet.meta.code.name === 'module.exports'))
+    if (doclet.meta && (doclet.meta.code.name === 'module.exports'))
         return undefined;
     if (doclet.name.startsWith('exports.'))
         return ts.createIdentifier(doclet.name.replace('exports.', ''));
@@ -209,7 +209,11 @@ export function createFunction(doclet: IFunctionDoclet, altName?: string): ts.Fu
 {
     debug(`createFunction(${docletDebugInfo(doclet)}, altName=${altName})`);
 
-    const mods = doclet.memberof ? undefined : [declareModifier];
+    const mods = [];
+    if (!doclet.memberof)
+        mods.push(declareModifier);
+    if (doclet.meta && (doclet.meta.code.name === 'module.exports'))
+        mods.push(exportModifier, defaultModifier);
     const params = createFunctionParams(doclet);
     const type = createFunctionReturnType(doclet);
     const typeParams = resolveTypeParameters(doclet);

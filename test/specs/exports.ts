@@ -22,7 +22,7 @@ suite('Exports Checks', () => {
         {id: "module.exports={name=ref-other-name}",    desc: "'module.exports = { name: ... }' named export pattern with references to existing types with different names"},
         // Inline named types.
         {id: "export default named-class",              desc: "'export default' with named class inline"},
-        // Not supported yet: {id: "export default named-function",           desc: "'export default' with named function inline"},
+        {id: "export default named-function",           desc: "'export default' with named function inline"},
         // Not supported yet: {id: "module.exports=named-class",              desc: "'module.exports =' default export pattern with named class inline"},
         // Not supported yet: {id: "module.exports=named-function",           desc: "'module.exports =' default export pattern with named function inline"},
         {id: "export named-types",                      desc: "'export' keyword"},
@@ -34,7 +34,7 @@ suite('Exports Checks', () => {
         // Not supported yet: {id: "module.exports={name=named-function}",    desc: "'module.exports = { name: ...}' named export pattern with named class inline"},
         // Lambdas.
         {id: "export default lambda-class",             desc: "'export default' with lambda class"},
-        // Not supported yet: {id: "export default lambda-function",          desc: "'export default' with lambda function"},
+        {id: "export default lambda-function",          desc: "'export default' with lambda function"},
         // Not supported yet: {id: "module.exports=lambda-class",             desc: "'module.exports =' default export pattern with lambda class"},
         // Not supported yet: {id: "module.exports=lambda-function",          desc: "'module.exports =' default export pattern with lambda function"},
         // Not supported yet: {id: "module.exports.name=lambda-class",        desc: "'module.exports.name =' named export pattern with lambda class"},
