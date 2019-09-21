@@ -5,24 +5,22 @@ declare module "test-export-20190913220412" {
      *
      */
     class _Foo {
-        constructor();
     }
     /**
-     *
+     * @extends _Foo
      */
     class _Bar extends _Foo {
-        constructor();
     }
     /**
      *
      */
     class _Baz {
-        constructor();
     }
     /**
      * Default export with 'export default' on a named class.
+     * @extends _Baz
      */
-    export default class _Qux extends _Baz {
+    export default class extends _Baz {
         /**
          * @param {_Bar} bar
          */
@@ -34,3 +32,4 @@ declare module "test-export-20190913220412" {
         readonly foo: _Foo;
     }
 }
+

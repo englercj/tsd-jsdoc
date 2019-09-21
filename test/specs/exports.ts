@@ -21,7 +21,7 @@ suite('Exports Checks', () => {
         {id: "module.exports={name=ref-same-name}",     desc: "'module.exports = { name: ... }' named export pattern with references to existing types with same names"},
         {id: "module.exports={name=ref-other-name}",    desc: "'module.exports = { name: ... }' named export pattern with references to existing types with different names"},
         // Inline named types.
-        // Not supported yet: {id: "export default named-class",              desc: "'export default' with named class inline"},
+        {id: "export default named-class",              desc: "'export default' with named class inline"},
         // Not supported yet: {id: "export default named-function",           desc: "'export default' with named function inline"},
         // Not supported yet: {id: "module.exports=named-class",              desc: "'module.exports =' default export pattern with named class inline"},
         // Not supported yet: {id: "module.exports=named-function",           desc: "'module.exports =' default export pattern with named function inline"},
