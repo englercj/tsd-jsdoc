@@ -33,7 +33,7 @@ suite('Exports Checks', () => {
         // Not supported yet: {id: "module.exports={name=named-class}",       desc: "'module.exports = { name: ...}' named export pattern with named class inline"},
         // Not supported yet: {id: "module.exports={name=named-function}",    desc: "'module.exports = { name: ...}' named export pattern with named class inline"},
         // Lambdas.
-        // Not supported yet: {id: "export default lambda-class",             desc: "'export default' with lambda class"},
+        {id: "export default lambda-class",             desc: "'export default' with lambda class"},
         // Not supported yet: {id: "export default lambda-function",          desc: "'export default' with lambda function"},
         // Not supported yet: {id: "module.exports=lambda-class",             desc: "'module.exports =' default export pattern with lambda class"},
         // Not supported yet: {id: "module.exports=lambda-function",          desc: "'module.exports =' default export pattern with lambda function"},
