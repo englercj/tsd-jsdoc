@@ -10,9 +10,15 @@ class _Foo {
 }
 
 /**
- * Named export with 'exports.name =' on a lambda function.
- * @returns {_Foo | null}
+ * Jsdoc comment for 'documented' generation strategy.
  */
-exports.foo = function() {
-    return null;
-}
+module.exports = {
+    /**
+     * Named export with 'module.exports = {name: ...}' on a lambda function.
+     * @returns {_Foo | null}
+     */
+    foo:
+        function() {
+            return null;
+        }
+};

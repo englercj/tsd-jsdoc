@@ -5,32 +5,29 @@ declare module "test-export-20190913235349" {
      *
      */
     class _Foo {
-        constructor();
     }
     /**
-     *
+     * @extends _Foo
      */
     class _Bar extends _Foo {
-        constructor();
     }
     /**
      *
      */
     class _Baz {
-        constructor();
     }
     /**
      * Named export with 'module.exports = {name: ...}' on a named class.
+     * @param {_Bar} bar
+     * @extends _Baz
      */
     class Qux extends _Baz {
-        /**
-         * @param {_Bar} bar
-         */
         constructor(bar: _Bar);
         /**
-         * @member {_Foo}
+         * @type {_Foo}
          * @readonly
          */
         readonly foo: _Foo;
     }
 }
+

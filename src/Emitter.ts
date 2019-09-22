@@ -429,7 +429,7 @@ export class Emitter
                     if (doclet.meta && doclet.meta.code.value && doclet.meta.code.value.startsWith('{'))
                     {
                         // 'module.exports = {name: ... }' named export pattern.
-                        debug(`Emitter._buildTree(): skipping 'module.exports = {name: ... }' named export pattern doclet ${docletDebugInfo(doclet)}`);
+                        debug(`Emitter._buildTree(): 'module.exports = {name: ... }' named export pattern doclet ${docletDebugInfo(doclet)}: skipping doclet but scan the object members`);
                         // This default export doclet is followed by doclets wich describe each field of the {name: ...} object,
                         // but those are not named 'export' and thus cannot be detected as named exports by default.
                         const value = JSON.parse(doclet.meta.code.value);
@@ -439,9 +439,13 @@ export class Emitter
                                     debug(`Emitter._buildTree(): => tagging ${docletDebugInfo(namedExportNode.doclet)} as a named export`);
                                     namedExportNode.isNamedExport = true;
                                 },
-                                // Doclet filter: search for 'member' doclets only.
+                                // Doclet filter: search for 'member', 'class' or 'function' doclets.
                                 function(target: IDocletTreeNode) {
-                                    return (target.doclet.kind === 'member');
+                                    return (
+                                        (target.doclet.kind === 'member')
+                                        || (target.doclet.kind === 'class')
+                                        || (target.doclet.kind === 'function')
+                                    );
                                 }
                             );
                         }
@@ -1022,17 +1026,17 @@ export class Emitter
      */
     private _getNodeFromLongname(longname: string, filter?: (node: IDocletTreeNode) => boolean): IDocletTreeNode | null
     {
-        debug(`Emitter._getNodeFromLongname('${longname}')`);
-
         const node = this._treeNodes[longname];
         if (!node)
         {
+            debug(`Emitter._getNodeFromLongname('${longname}') => null`);
             warn(`No such doclet '${longname}'`);
             return null;
         }
 
         if ((! filter) || filter(node))
         {
+            debug(`Emitter._getNodeFromLongname('${longname}') => ${docletDebugInfo(node.doclet)}`);
             return node;
         }
 
@@ -1045,14 +1049,17 @@ export class Emitter
             {
                 if ((child.doclet.longname === longname) && filter(child))
                 {
+                    debug(`Emitter._getNodeFromLongname('${longname}') => ${docletDebugInfo(child.doclet)}`);
                     return child;
                 }
             }
+            debug(`Emitter._getNodeFromLongname('${longname}') => null`);
             warn(`No such doclet '${longname}' in module`);
             return null;
         }
         else
         {
+            debug(`Emitter._getNodeFromLongname('${longname}') => null`);
             warn(`Unexpected doclet for longname '${longname}`, node.doclet);
             return null;
         }

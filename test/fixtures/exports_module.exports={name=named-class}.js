@@ -10,7 +10,7 @@ class _Foo {
 }
 
 /**
- *
+ * @extends _Foo
  */
 class _Bar extends _Foo {
 }
@@ -22,13 +22,21 @@ class _Baz {
 }
 
 /**
- * Named export with 'module.exports = {name: ...}' on a named class.
+ * Jsdoc comment for 'documented' generation strategy.
  */
 module.exports = {
+    /**
+     * Named export with 'module.exports = {name: ...}' on a named class.
+     * @param {_Bar} bar
+     * @extends _Baz
+     */
     Qux:
         class _Qux extends _Baz {
             /**
-             * @param {Bar} bar
+             * Does not work! No doclet generated for this constructor.
+             * @see [jsdoc#1699](https://github.com/jsdoc/jsdoc/issues/1699)
+             * Please set the constructor documentation in the class declaration documentation.
+             * @param {_Bar} bar
              */
             constructor(bar) {
                 /**
