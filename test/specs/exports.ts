@@ -18,6 +18,8 @@ suite('Exports Checks', () => {
         {id: "module.exports.name=ref-other-name",      desc: "'module.exports.name =' named export pattern with reference to an existing type with a different name"},
         {id: "exports.name=ref-same-name",              desc: "'exports.name =' named export pattern with reference to an existing type with the same name"},
         {id: "exports.name=ref-other-name",             desc: "'exports.name =' named export pattern with reference to an existing type with a different name"},
+        // Not supported yet: {id: "export default {name=ref-same-name}",     desc: "'export default { name: ... }' named export pattern with references to existing types with same names"},
+        // Not supported yet: {id: "export default {name=ref-other-name}",    desc: "'export default { name: ... }' named export pattern with references to existing types with different names"},
         {id: "module.exports={name=ref-same-name}",     desc: "'module.exports = { name: ... }' named export pattern with references to existing types with same names"},
         {id: "module.exports={name=ref-other-name}",    desc: "'module.exports = { name: ... }' named export pattern with references to existing types with different names"},
         // Inline named types.
@@ -30,8 +32,10 @@ suite('Exports Checks', () => {
         {id: "module.exports.name=named-function",      desc: "'module.exports.name =' named export pattern with named function inline"},
         {id: "exports.name=named-class",                desc: "'exports.name =' named export pattern with named class inline"},
         {id: "exports.name=named-function",             desc: "'exports.name =' named export pattern with named function inline"},
+        // Not supported yet: {id: "export default {name=named-class}",       desc: "'export default { name: ...}' named export pattern with named class inline"},
+        // Not supported yet: {id: "export default {name=named-function}",    desc: "'export default { name: ...}' named export pattern with named function inline"},
         {id: "module.exports={name=named-class}",       desc: "'module.exports = { name: ...}' named export pattern with named class inline"},
-        {id: "module.exports={name=named-function}",    desc: "'module.exports = { name: ...}' named export pattern with named class inline"},
+        {id: "module.exports={name=named-function}",    desc: "'module.exports = { name: ...}' named export pattern with named function inline"},
         // Lambdas.
         {id: "export default lambda-class",             desc: "'export default' with lambda class"},
         {id: "export default lambda-function",          desc: "'export default' with lambda function"},
@@ -42,11 +46,12 @@ suite('Exports Checks', () => {
         {id: "exports.name=lambda-class",               desc: "'exports.name =' named export pattern with lambda class"},
         {id: "exports.name=lambda-function",            desc: "'exports.name =' named export pattern with lambda function"},
         {id: "module.exports={name=lambda-class}",      desc: "'module.exports = { name: ...}' named export pattern with lambda class"},
-        {id: "module.exports={name=lambda-function}",   desc: "'module.exports = { name: ...}' named export pattern with lambda class"},
+        {id: "module.exports={name=lambda-function}",   desc: "'module.exports = { name: ...}' named export pattern with lambda function"},
         // Mixs.
         {id: "exports=module.exports=",                 desc: "'exports = module.exports =' pattern"},
         {id: "mix-default-named",                       desc: "Mix of default and named exports"},
         // Border cases.
+        {id: "cyclic-dependencies",                     desc: "Check no infinite loop on cyclic dependencies"},
         // To be fixed: {id: "indirect(=module.exports).name=",         desc: "Named export through an indirection"},
         // Not supported: {id: "wrong exports.name=",                     desc: "Wrong use of 'exports.name =' while not set to module.exports"},
     ];

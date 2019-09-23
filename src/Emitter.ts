@@ -631,11 +631,16 @@ export class Emitter
     {
         debug(`Emitter._markExportedNode(${docletDebugInfo(node.doclet)}, markThisNode=${markThisNode})`);
 
-        // First of all, mark the node with the 'isExported' flag when required.
+        // First of all, mark the node with the 'isExported' flag.
+        const doProcessNode = (node.isExported === undefined);
         if (markThisNode)
-        {
             node.isExported = true;
-        }
+        else if (! node.isExported)
+            node.isExported = false;
+
+        // Process the node once only in order to avoid infinite loops in cas of cyclic dependencies.
+        if (! doProcessNode)
+            return;
 
         // Then, for each kind of node, iterate over the related nodes.
         switch (node.doclet.kind)
