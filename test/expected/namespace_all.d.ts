@@ -41,10 +41,6 @@ declare namespace FoobarNS {
      * @extends FoobarNS.Foo
      */
     class Bar extends FoobarNS.Foo {
-        /**
-         * A method.
-         */
-        f(): void;
     }
     /**
      * @interface

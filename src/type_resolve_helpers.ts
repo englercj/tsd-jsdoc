@@ -1,8 +1,6 @@
 import * as ts from 'typescript';
-import { Dictionary } from './Dictionary';
 import { warn } from './logger';
 import { PropTree, IPropDesc } from './PropTree';
-import { type } from 'os';
 
 const rgxObjectTokenize = /(<|>|,|\(|\)|\||\{|\}|:)/;
 const rgxCommaAll = /,/g;
@@ -20,17 +18,29 @@ enum ENodeType {
     TYPE,       // string, X    has no children
     OBJECT,     // {a:b, c:d}   has name value pairs for children
 }
-class StringTreeNode {
+export class StringTreeNode {
     children: StringTreeNode[] = [];
     constructor(public name: string, public type: ENodeType, public parent: StringTreeNode | null)
     { }
 
-    dump(indent:number = 0) : void
+    dump(output: (msg: string) => void, indent: number = 0) : void
     {
-        console.log(`${'  '.repeat(indent)}name: ${this.name}, type:${this.typeToString()}`);
+        output(`${'  '.repeat(indent)}name: ${this.name}, type:${this.typeToString()}`);
         this.children.forEach((child) => {
-            child.dump(indent + 1);
+            child.dump(output, indent + 1);
         });
+    }
+
+    walkTypes(callback: (treeNode: StringTreeNode) => void) : void
+    {
+        for (let i=0; i<this.children.length; i++)
+        {
+            // Skip object field names.
+            if ((this.type === ENodeType.OBJECT) && (i % 2 === 0))
+                continue;
+            this.children[i].walkTypes(callback);
+        }
+        callback(this);
     }
 
     typeToString() : string
@@ -70,7 +80,7 @@ export function resolveComplexTypeName(name: string, doclet?: TTypedDoclet): ts.
     return resolveTree(root);
 }
 
-function generateTree(name: string, parent: StringTreeNode | null = null) : StringTreeNode | null
+export function generateTree(name: string, parent: StringTreeNode | null = null) : StringTreeNode | null
 {
     const anyNode = new StringTreeNode('any', ENodeType.TYPE, parent);
     const parts = name.split(rgxObjectTokenize).filter(function (e) {

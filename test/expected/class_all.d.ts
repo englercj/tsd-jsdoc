@@ -1,91 +1,85 @@
-/**
- * @this OtherThing
- */
-declare function doStuff(): void;
-
-/**
- * @class
- * @abstract
- */
-declare class OtherThing {
-    /**
-     *
-     */
-    copy(): void;
-}
-
-/**
- *
- */
-declare class Stuff {
-    /**
-     *
-     */
-    doStuff(): void;
-}
-
-/**
- *
- */
-declare class Things {
-    /**
-     *
-     */
-    doThings(): void;
-    /**
-     * @method Things#[foobar1]
-     */
-    foobar1?(): void;
-    /**
-     * @type {Number}
-     * @name Things#[foobar2]
-     */
-    foobar2?: number;
-}
-
-/**
- * Deep class #1
- *
- * @class
- */
-declare class DeepClass1 {
-    constructor();
-}
-
-declare namespace DeepClass1 {
-    /**
-     * Deep class #2
-     *
-     * @class
-     */
-    class DeepClass2 {
-        constructor();
-    }
-    namespace DeepClass2 {
-        /**
-         * Deep class #3
-         *
-         * @class
-         */
-        class DeepClass3 {
-            constructor();
-        }
-        namespace DeepClass3 {
-            /**
-             * Deep class #4
-             *
-             * @class
-             */
-            class DeepClass4 {
-                constructor();
-            }
-        }
-    }
-}
-
 /** @module util
  */
 declare module "util" {
+    /**
+     * @this OtherThing
+     */
+    function doStuff(): void;
+    /**
+     * @class
+     * @abstract
+     */
+    class OtherThing {
+        /**
+         *
+         */
+        copy(): void;
+    }
+    /**
+     *
+     */
+    class Stuff {
+        /**
+         *
+         */
+        doStuff(): void;
+    }
+    /**
+     *
+     */
+    class Things {
+        /**
+         *
+         */
+        doThings(): void;
+        /**
+         * @method module:util~Things#[foobar1]
+         */
+        foobar1?(): void;
+        /**
+         * @type {Number}
+         * @name module:util~Things#[foobar2]
+         */
+        foobar2?: number;
+    }
+    /**
+     * Deep class #1
+     *
+     * @class
+     */
+    class DeepClass1 {
+        constructor();
+    }
+    namespace DeepClass1 {
+        /**
+         * Deep class #2
+         *
+         * @class
+         */
+        class DeepClass2 {
+            constructor();
+        }
+        namespace DeepClass2 {
+            /**
+             * Deep class #3
+             *
+             * @class
+             */
+            class DeepClass3 {
+                constructor();
+            }
+            namespace DeepClass3 {
+                /**
+                 * Deep class #4
+                 *
+                 * @class
+                 */
+                class DeepClass4 {
+                    constructor();
+                }
+            }
+        }
+    }
     /**
      * @class MyClass
      * @param {string} message
@@ -254,10 +248,6 @@ declare module "util" {
          * @static
          */
         static me: number;
-        /**
-         *
-         */
-        copy(): void;
     }
 }
 

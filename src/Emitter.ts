@@ -20,6 +20,7 @@ import {
     createNamespaceMember,
     createTypedef,
 } from './create_helpers';
+import { generateTree, StringTreeNode } from './type_resolve_helpers';
 
 interface IDocletTreeNode
 {
@@ -292,14 +293,6 @@ export class Emitter
             }
             else
             {
-                if (node.doclet.override && node.doclet.ignore)
-                {
-                    debug(`Emitter._createTreeNodes(): replacing ${docletDebugInfo(node.doclet)} by its overriden version ${docletDebugInfo(doclet)}`);
-                    warn(`@override management to be confirmed: waiting for resolution of [tsd-jsdoc#104](https://github.com/englercj/tsd-jsdoc/issues/104)`);
-                    node.doclet = doclet;
-                    continue;
-                }
-
                 debug(`Emitter._createTreeNodes(): skipping ${docletDebugInfo(doclet)} (doclet name already known)`);
             }
         }
@@ -435,17 +428,10 @@ export class Emitter
                         const value = JSON.parse(doclet.meta.code.value);
                         for (const name in value)
                         {
-                            this._resolveDocletType(parent, name, function(namedExportNode: IDocletTreeNode) {
-                                    debug(`Emitter._buildTree(): => tagging ${docletDebugInfo(namedExportNode.doclet)} as a named export`);
+                            this._resolveDocletType(name, parent,
+                                function(namedExportNode: IDocletTreeNode) {
+                                    debug(`Emitter._buildTree(): tagging ${docletDebugInfo(namedExportNode.doclet)} as a named export`);
                                     namedExportNode.isNamedExport = true;
-                                },
-                                // Doclet filter: search for 'member', 'class' or 'function' doclets.
-                                function(target: IDocletTreeNode) {
-                                    return (
-                                        (target.doclet.kind === 'member')
-                                        || (target.doclet.kind === 'class')
-                                        || (target.doclet.kind === 'function')
-                                    );
                                 }
                             );
                         }
@@ -478,16 +464,6 @@ export class Emitter
                 {
                     debug(`Emitter._buildTree(): adding 'exports =' assignment ${docletDebugInfo(doclet)} to module ${docletDebugInfo(parent.doclet)}`);
                     // The longname of 'exports =' assignment doclets is the same as the one of the parent module itself.
-                    // Thus no tree node has been created yet. Let's create one.
-                    parent.children.push({ doclet: doclet, children: [] });
-                    continue nextDoclet;
-                }
-                if (doclet.override)
-                {
-                    // As created/replaced in `_createTreeNode()`, `obj` points to the base doclet, so don't use it.
-                    debug(`Emitter._buildTree(): adding @override ${docletDebugInfo(doclet)} to ${docletDebugInfo(parent.doclet)}`);
-                    warn(`@override management to be confirmed: waiting for resolution of [tsd-jsdoc#104](https://github.com/englercj/tsd-jsdoc/issues/104)`);
-                    // The @override doclets have the same longname as the overriden doclets.
                     // Thus no tree node has been created yet. Let's create one.
                     parent.children.push({ doclet: doclet, children: [] });
                     continue nextDoclet;
@@ -530,7 +506,13 @@ export class Emitter
                         // Check this non-documented doclet does not exist yet in the candidate parent's children.
                         for (const child of parent.children)
                         {
-                            if ((child.doclet.longname === doclet.longname) && (child.doclet.kind === doclet.kind))
+                            // Check also against the optional form of the doclet.
+                            const optionalLongname = (
+                                doclet.longname.slice(0, doclet.longname.length - doclet.name.length)
+                                + `[${doclet.name}]`
+                            );
+                            if ((child.doclet.kind === doclet.kind)
+                                && ((child.doclet.longname === doclet.longname) || (child.doclet.longname === optionalLongname)))
                             {
                                 // Do not add the undocumented doclet to the parent twice.
                                 debug(`Emitter._buildTree(): skipping undocumented ${docletDebugInfo(doclet)} because ${docletDebugInfo(child.doclet)} is already known in parent ${docletDebugInfo(parent.doclet)}`);
@@ -652,13 +634,13 @@ export class Emitter
                 this._markExportedParams(node, node.doclet.params);
                 if (node.doclet.augments)
                     for (const augment of node.doclet.augments)
-                        this._resolveDocletType(node, augment, this._markExportedNode);
+                        this._resolveDocletType(augment, node, this._markExportedNode);
                 if (node.doclet.implements)
                     for (const implement of node.doclet.implements)
-                        this._resolveDocletType(node, implement, this._markExportedNode);
+                        this._resolveDocletType(implement, node, this._markExportedNode);
                 if (node.doclet.mixes)
                     for (const mix of node.doclet.mixes)
-                        this._resolveDocletType(node, mix, this._markExportedNode);
+                        this._resolveDocletType(mix, node, this._markExportedNode);
                 this._markExportedChildren(node);
                 break;
 
@@ -676,7 +658,7 @@ export class Emitter
             case 'callback':
             case 'function':
                 if (node.doclet.this)
-                    this._resolveDocletType(node, node.doclet.this, this._markExportedNode);
+                    this._resolveDocletType(node.doclet.this, node, this._markExportedNode);
                 this._markExportedParams(node, node.doclet.params);
                 this._markExportedReturns(node, node.doclet.returns);
                 break;
@@ -688,7 +670,7 @@ export class Emitter
                 {
                     if (node.doclet.meta && node.doclet.meta.code.value)
                     {
-                        this._resolveDocletType(node, node.doclet.meta.code.value, this._markExportedNode);
+                        this._resolveDocletType(node.doclet.meta.code.value, node, this._markExportedNode);
                     }
                 }
                 else if (isNamedExport(node.doclet, this._treeNodes))
@@ -696,7 +678,7 @@ export class Emitter
                     if (node.doclet.meta && node.doclet.meta.code.value)
                     {
                         const thisEmitter = this;
-                        this._resolveDocletType(node, node.doclet.meta.code.value, function (refNode: IDocletTreeNode) {
+                        this._resolveDocletType(node.doclet.meta.code.value, node, function (refNode: IDocletTreeNode) {
                                 // Directly mark the referenced node for export (through this path at least), only if the exported name is changed.
                                 const markThisNode = node.doclet.meta && (node.doclet.meta.code.value === node.doclet.name);
                                 thisEmitter._markExportedNode(refNode, markThisNode);
@@ -727,7 +709,7 @@ export class Emitter
                 }
                 break;
             case 'namespace':
-                // TODO: Shall we search for exports as well? or scan all children?
+                this._markExportedChildren(node);
                 break;
 
             // ITypedefDoclet:
@@ -747,7 +729,7 @@ export class Emitter
     {
         if (types)
             for (const typeName of types.names)
-                this._resolveDocletType(node, typeName, this._markExportedNode);
+                this._resolveDocletType(typeName, node, this._markExportedNode);
     }
 
     private _markExportedParams(node: IDocletTreeNode, params?: IDocletProp[])
@@ -755,7 +737,7 @@ export class Emitter
         if (params)
             for (const param of params)
                 for (const paramType of param.type.names)
-                    this._resolveDocletType(node, paramType, this._markExportedNode);
+                    this._resolveDocletType(paramType, node, this._markExportedNode);
     }
 
     private _markExportedReturns(node: IDocletTreeNode, returns?: IDocletReturn[])
@@ -763,7 +745,7 @@ export class Emitter
         if (returns)
             for (const ret of returns)
                 for (const retType of ret.type.names)
-                    this._resolveDocletType(node, retType, this._markExportedNode);
+                    this._resolveDocletType(retType, node, this._markExportedNode);
     }
 
     private _markExportedChildren(node: IDocletTreeNode)
@@ -843,7 +825,7 @@ export class Emitter
                         {
                             const thisEmitter = this;
                             let tsRes: ts.Node | null = null;
-                            this._resolveDocletType(node, node.doclet.meta.code.value, function(refNode: IDocletTreeNode) {
+                            this._resolveDocletType(node.doclet.meta.code.value, node, function(refNode: IDocletTreeNode) {
                                 // Named export from a type with a different name.
                                 // Create a live IDocletTreeNode object with the `.exportName` attribute set.
                                 const namedRefNode: IDocletTreeNode = {
@@ -942,6 +924,9 @@ export class Emitter
             reason = 'doclet with an ignore flag';
         else if (!this.options.private && doclet.access === 'private')
             reason = 'private access disabled';
+        // Disable method overrides. See [tsd-jsdoc#104](https://github.com/englercj/tsd-jsdoc/issues/104).
+        else if ((doclet.kind === 'function') && (doclet.override || doclet.overrides))
+            reason = 'overriding doclet';
         if (reason
             || (doclet.kind === 'package')) // <= hack for typescript resolutions
         {
@@ -965,30 +950,33 @@ export class Emitter
 
     private _getInterfaceKey(longname?: string): string
     {
-        debug(`Emitter._getInterfaceKey('${longname}')`);
-
         return longname ? longname + '$$interface$helper' : '';
     }
 
     private _getNamespaceKey(longname?: string): string
     {
-        debug(`Emitter._getNamespaceKey('${longname}')`);
-
         return longname ? longname + '$$namespace$helper' : '';
     }
 
     private _getOrCreateClassNamespace(obj: IDocletTreeNode): IDocletTreeNode
     {
-        debug(`Emitter._getOrCreateClassNamespace(${docletDebugInfo(obj.doclet)})`);
+        function _debug(msg: string) { /*debug(msg);*/ }
+        _debug(`Emitter._getOrCreateClassNamespace(${docletDebugInfo(obj.doclet)})`);
 
-        if (obj.doclet.kind === 'namespace')
+        if ((obj.doclet.kind === 'module') || (obj.doclet.kind === 'namespace'))
+        {
+            _debug(`Emitter._getOrCreateClassNamespace(): ${docletDebugInfo(obj.doclet)} is a module or namespace`)
             return obj;
+        }
 
         const namespaceKey = this._getNamespaceKey(obj.doclet.longname);
         let mod = this._treeNodes[namespaceKey];
 
         if (mod)
+        {
+            _debug(`Emitter._getOrCreateClassNamespace(): longname '${obj.doclet.longname}' already exists in this._treeNodes`);
             return mod;
+        }
 
         mod = this._treeNodes[namespaceKey] = {
             doclet: {
@@ -1002,6 +990,7 @@ export class Emitter
 
         if (obj.doclet.memberof)
         {
+            _debug(`Emitter._getOrCreateClassNamespace(): memberof='${obj.doclet.memberof}'`);
             const parent = this._treeNodes[obj.doclet.memberof];
 
             if (!parent)
@@ -1012,11 +1001,13 @@ export class Emitter
 
             let parentMod = this._getOrCreateClassNamespace(parent);
 
+            debug(`Emitter._getOrCreateClassNamespace(): pushing ${docletDebugInfo(mod.doclet)} as a child of ${docletDebugInfo(parentMod.doclet)}`);
             mod.doclet.memberof = parentMod.doclet.longname;
             parentMod.children.push(mod);
         }
         else
         {
+            debug(`Emitter._getOrCreateClassNamespace(): no memberof, pushing ${docletDebugInfo(mod.doclet)} as a root`);
             this._treeRoots.push(mod);
         }
 
@@ -1031,17 +1022,21 @@ export class Emitter
      */
     private _getNodeFromLongname(longname: string, filter?: (node: IDocletTreeNode) => boolean): IDocletTreeNode | null
     {
+        function _debug(msg: string) {
+            //debug(msg);
+        }
+
         const node = this._treeNodes[longname];
         if (!node)
         {
-            debug(`Emitter._getNodeFromLongname('${longname}') => null`);
+            _debug(`Emitter._getNodeFromLongname('${longname}') => null`);
             warn(`No such doclet '${longname}'`);
             return null;
         }
 
         if ((! filter) || filter(node))
         {
-            debug(`Emitter._getNodeFromLongname('${longname}') => ${docletDebugInfo(node.doclet)}`);
+            _debug(`Emitter._getNodeFromLongname('${longname}') => ${docletDebugInfo(node.doclet)}`);
             return node;
         }
 
@@ -1054,17 +1049,17 @@ export class Emitter
             {
                 if ((child.doclet.longname === longname) && filter(child))
                 {
-                    debug(`Emitter._getNodeFromLongname('${longname}') => ${docletDebugInfo(child.doclet)}`);
+                    _debug(`Emitter._getNodeFromLongname('${longname}') => ${docletDebugInfo(child.doclet)}`);
                     return child;
                 }
             }
-            debug(`Emitter._getNodeFromLongname('${longname}') => null`);
+            _debug(`Emitter._getNodeFromLongname('${longname}') => null`);
             warn(`No such doclet '${longname}' in module`);
             return null;
         }
         else
         {
-            debug(`Emitter._getNodeFromLongname('${longname}') => null`);
+            _debug(`Emitter._getNodeFromLongname('${longname}') => null`);
             warn(`Unexpected doclet for longname '${longname}`, node.doclet);
             return null;
         }
@@ -1078,60 +1073,97 @@ export class Emitter
      * @param filter        Optional filter function that indicates whether a doclet is an appropriate candidate for what we search.
      */
     private _resolveDocletType(
-        currentNode: IDocletTreeNode, typeName: string,
+        typeName: string, currentNode: IDocletTreeNode,
         callback: (node: IDocletTreeNode) => void,
         filter?: (node: IDocletTreeNode) => boolean): void
     {
-        debug(`Emitter._resolveDocletType(currentNode=${docletDebugInfo(currentNode.doclet)}, typeName='${typeName}')`);
-
-        // Basic types.
-        switch (typeName)
-        {
-            case 'null':
-            case 'string':
-            case 'number':
-            case 'function':
-            case '*': // <= means 'any' in jsdoc.
-                return;
+        function _debug(msg: string) {
+            //debug(msg);
         }
-        if (typeName.match(/^Array\.<.*>$/))
+        _debug(`Emitter._resolveDocletType(typeName='${typeName}', currentNode=${docletDebugInfo(currentNode.doclet)})`);
+
+        const tokens = generateTree(typeName);
+        if (!tokens)
         {
-            this._resolveDocletType(currentNode, typeName.slice('Array.<'.length, typeName.length - 1), callback, filter);
+            warn(`Could not resolve type '${typeName}' in current node:`, currentNode.doclet);
             return;
         }
-        if (typeName.match(/^Object\.<.*>$/))
-        {
-            for (const field of typeName.slice('Object.<'.length, typeName.length - 1).split(', '))
-                this._resolveDocletType(currentNode, field.trim(), callback, filter);
-            return;
-        }
+        tokens.dump((msg: string) => _debug(`Emitter._resolveDocletType(): tokens = ${msg}`));
 
-        // Lookup for the target symbol through up the scopes.
-        let scope: string | undefined = currentNode.doclet.longname;
-        while (scope)
-        {
-            for (const delimiter of [".", "~"])
+        const thisEmitter = this;
+        tokens.walkTypes(function(token: StringTreeNode) {
+            _debug(`Emitter._resolveDocletType(): token = {name:${token.name}, type:${token.typeToString()}}`);
+            typeName = token.name;
+            if (typeName.match(/.*\[ *\].*/))
+                typeName = typeName.slice(0, typeName.indexOf('['));
+            _debug(`Emitter._resolveDocletType(): typeName = ${typeName}`);
+
+            // Skip basic types.
+            switch (typeName)
             {
-                const target = this._treeNodes[scope + delimiter + typeName];
-                if (target)
+                case 'void':
+                case 'null':
+                case 'string':
+                case 'boolean':
+                case 'number': case 'Number':
+                case 'function':
+                case 'any':
+                case 'object': case 'Object': // <= means 'any' in jsdoc
+                case '*': // <= means 'any' in jsdoc
+                case 'Array':
+                case 'Union':
+                case 'Promise':
+                case 'HTMLElement': // <= Basic typescript type.
+                    return;
+            }
+
+            // Lookup for the target symbol through up the scopes.
+            let scope: string | undefined = currentNode.doclet.longname;
+            while (scope)
+            {
+                _debug(`Emitter._resolveDocletType(): scope='${scope}'`);
+                const longnames = [
+                    `${scope}.${typeName}`,
+                    `${scope}~${typeName}`,
+                    `${scope}~${typeName}$$interface$helper`,
+                    `${scope}~${typeName}$$namespace$helper`,
+                ];
+                let targetFound = false;
+                for (const longname of longnames)
                 {
-                    if (filter && (! filter(target)))
+                    _debug(`Emitter._resolveDocletType(): trying longname '${longname}'...`);
+                    const target = thisEmitter._treeNodes[longname];
+                    if (target)
                     {
-                        debug(`Emitter._resolveDocletType() ${docletDebugInfo(target.doclet)} filtered out`);
+                        if (filter && (! filter(target)))
+                        {
+                            _debug(`Emitter._resolveDocletType(): filtered out ${docletDebugInfo(target.doclet)}`);
+                        }
+                        else
+                        {
+                            _debug(`Emitter._resolveDocletType(): found! ${docletDebugInfo(target.doclet)}`);
+                            callback(target);
+                            targetFound = true;
+                        }
                     }
                     else
                     {
-                        callback(target);
-                        return;
+                        _debug(`Emitter._resolveDocletType(): no such doclet longname '${longname}'`);
                     }
                 }
+                // When one target at least has been found within this scope, stop searching.
+                if (targetFound)
+                {
+                    _debug(`Emitter._resolveDocletType(): done`);
+                    return;
+                }
+
+                const scopeNode: IDocletTreeNode | undefined = thisEmitter._treeNodes[scope];
+                if (! scopeNode) break;
+                scope = scopeNode.doclet.memberof;
             }
 
-            const scopeNode: IDocletTreeNode | undefined = this._treeNodes[scope];
-            if (! scopeNode) break;
-            scope = scopeNode.doclet.memberof;
-        }
-
-        warn(`Could not resolve type '${typeName}' in current node:`, currentNode.doclet);
+            warn(`Could not resolve type '${typeName}' in current node:`, currentNode.doclet);
+        });
     }
 }

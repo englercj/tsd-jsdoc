@@ -44,6 +44,7 @@ FoobarNS.Bar = function Bar() {
 
 /**
  * A method.
+ * Note: override of Foo.f().
  */
 FoobarNS.Bar.prototype.f = function f() {
 };

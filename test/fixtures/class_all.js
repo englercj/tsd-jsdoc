@@ -1,3 +1,5 @@
+/** @module util */
+
 /**
  * @this OtherThing
  */
@@ -38,14 +40,14 @@ class Things {
     }
 
     /**
-     * @method Things#[foobar1]
+     * @method module:util~Things#[foobar1]
      */
     foobar1() {
     };
 
     /**
      * @type {Number}
-     * @name Things#[foobar2]
+     * @name module:util~Things#[foobar2]
      */
     foobar2 = undefined;
 }
@@ -78,8 +80,6 @@ function DeepClass1() {
         }
     }
 }
-
-/** @module util */
 
 /**
  * @class MyClass
@@ -290,3 +290,12 @@ class MyThing extends OtherThing {
  * @static
  */
 MyThing.me = 10;
+
+module.exports = {
+    doStuff: doStuff,
+    DeepClass1: DeepClass1,
+    MyClass: MyClass,
+    GitGraph: GitGraph,
+    Something: Something,
+    MyThing: MyThing
+}
