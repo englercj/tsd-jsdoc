@@ -1,52 +1,52 @@
-/**
- * Class documentation.
+/** @module constructors
  */
-declare class MyClass {
+declare module "constructors" {
     /**
-     * Constructor documentation.
-     * @public
-     * @param {number} a
-     * @param {string} b
+     * Class documentation.
      */
-    public constructor(a: number, b: string);
-}
-
-/**
- * Class documentation.
- */
-declare class MyClass2 {
+    class MyClass {
+        /**
+         * Constructor documentation.
+         * @public
+         * @param {number} a
+         * @param {string} b
+         */
+        public constructor(a: number, b: string);
+    }
     /**
-     * Constructor documentation.
-     * @protected
-     * @param {number} a
-     * @param {string} b
+     * Class documentation.
      */
-    protected constructor(a: number, b: string);
-}
-
-/**
- * Class documentation.
- */
-declare class MyClass3 {
+    class MyClass2 {
+        /**
+         * Constructor documentation.
+         * @protected
+         * @param {number} a
+         * @param {string} b
+         */
+        protected constructor(a: number, b: string);
+    }
     /**
-     * Constructor documentation.
-     * @package
-     * @param {number} a
-     * @param {string} b
+     * Class documentation.
      */
-    private constructor(a: number, b: string);
-}
-
-/**
- * Class documentation.
- */
-declare class MyClass4 {
+    class MyClass3 {
+        /**
+         * Constructor documentation.
+         * @package
+         * @param {number} a
+         * @param {string} b
+         */
+        private constructor(a: number, b: string);
+    }
     /**
-     * Constructor documentation.
-     * @private
-     * @param {number} a
-     * @param {string} b
+     * Class documentation.
      */
-    private constructor(a: number, b: string);
+    class MyClass4 {
+        /**
+         * Constructor documentation.
+         * @private
+         * @param {number} a
+         * @param {string} b
+         */
+        private constructor(a: number, b: string);
+    }
 }
-

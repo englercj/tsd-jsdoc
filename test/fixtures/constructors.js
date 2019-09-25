@@ -1,3 +1,5 @@
+/** @module constructors */
+
 /**
  * Class documentation.
  */
@@ -52,4 +54,11 @@ class MyClass4 {
      * @param {string} b
      */
     constructor(a, b) {}
+}
+
+module.exports = {
+    MyClass: MyClass,
+    MyClass2: MyClass2,
+    MyClass3: MyClass3,
+    MyClass4: MyClass4
 }

@@ -10,6 +10,9 @@ import { setVerbose, setDebug, warn, debug, docletDebugInfo } from './logger';
  */
 export function publish(data: TDocletDb, opts: ITemplateConfig)
 {
+    // Activate warnings by default.
+    if (opts.verbose === undefined)
+        opts.verbose = true;
     // Start with taking into account 'verbose' and 'debug' options.
     setVerbose(!!opts.verbose);
     setDebug(!!opts.debug);

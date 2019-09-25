@@ -673,22 +673,21 @@ export class Emitter
                         this._resolveDocletType(node.doclet.meta.code.value, node, this._markExportedNode);
                     }
                 }
-                else if (isNamedExport(node.doclet, this._treeNodes))
+                else if (isNamedExport(node.doclet, this._treeNodes)
+                         && node.doclet.meta && node.doclet.meta.code.value
+                         && (! isEnum(node.doclet)))
                 {
-                    if (node.doclet.meta && node.doclet.meta.code.value)
-                    {
-                        const thisEmitter = this;
-                        this._resolveDocletType(node.doclet.meta.code.value, node, function (refNode: IDocletTreeNode) {
-                                // Directly mark the referenced node for export (through this path at least), only if the exported name is changed.
-                                const markThisNode = node.doclet.meta && (node.doclet.meta.code.value === node.doclet.name);
-                                thisEmitter._markExportedNode(refNode, markThisNode);
-                            },
-                            // Doclet filter: avoid cyclic loops in case this named export references a type with the same name.
-                            function(target: IDocletTreeNode) {
-                                return (target !== node);
-                            }
-                        );
-                    }
+                    const thisEmitter = this;
+                    this._resolveDocletType(node.doclet.meta.code.value, node, function (refNode: IDocletTreeNode) {
+                            // Directly mark the referenced node for export (through this path at least), only if the exported name is changed.
+                            const markThisNode = node.doclet.meta && (node.doclet.meta.code.value === node.doclet.name);
+                            thisEmitter._markExportedNode(refNode, markThisNode);
+                        },
+                        // Doclet filter: avoid cyclic loops in case this named export references a type with the same name.
+                        function(target: IDocletTreeNode) {
+                            return (target !== node);
+                        }
+                    );
                 }
                 else
                 {
@@ -817,38 +816,32 @@ export class Emitter
                 {
                     return createExportDefault(node.doclet, node.doclet.meta.code.value);
                 }
-                if (isNamedExport(node.doclet, this._treeNodes))
+                if (isNamedExport(node.doclet, this._treeNodes)
+                    && node.doclet.meta && node.doclet.meta.code.value
+                    && (! isEnum(node.doclet)))
                 {
-                    if (node.doclet.meta && node.doclet.meta.code.value)
+                    if (node.doclet.meta.code.value !== node.doclet.name)
                     {
-                        if (node.doclet.meta.code.value != node.doclet.name)
-                        {
-                            const thisEmitter = this;
-                            let tsRes: ts.Node | null = null;
-                            this._resolveDocletType(node.doclet.meta.code.value, node, function(refNode: IDocletTreeNode) {
-                                // Named export from a type with a different name.
-                                // Create a live IDocletTreeNode object with the `.exportName` attribute set.
-                                const namedRefNode: IDocletTreeNode = {
-                                    doclet: refNode.doclet,
-                                    children: refNode.children,
-                                    isNested: refNode.isNested,
-                                    isExported: true,
-                                    exportName: node.doclet.name
-                                }
-                                tsRes = thisEmitter._parseTreeNode(namedRefNode, parent);
-                            });
-                            return tsRes;
-                        }
-                        else
-                        {
-                            // Nothing to do.
-                            debug(`Emitter._parseTreeNode(): skipping named export with reference of the same name`);
-                            return null;
-                        }
+                        const thisEmitter = this;
+                        let tsRes: ts.Node | null = null;
+                        this._resolveDocletType(node.doclet.meta.code.value, node, function(refNode: IDocletTreeNode) {
+                            // Named export from a type with a different name.
+                            // Create a live IDocletTreeNode object with the `.exportName` attribute set.
+                            const namedRefNode: IDocletTreeNode = {
+                                doclet: refNode.doclet,
+                                children: refNode.children,
+                                isNested: refNode.isNested,
+                                isExported: true,
+                                exportName: node.doclet.name
+                            }
+                            tsRes = thisEmitter._parseTreeNode(namedRefNode, parent);
+                        });
+                        return tsRes;
                     }
                     else
                     {
-                        warn(`No ref for named export doclet`, node.doclet);
+                        // Nothing to do.
+                        debug(`Emitter._parseTreeNode(): skipping named export with reference of the same name`);
                         return null;
                     }
                 }
@@ -1145,10 +1138,6 @@ export class Emitter
                             callback(target);
                             targetFound = true;
                         }
-                    }
-                    else
-                    {
-                        _debug(`Emitter._resolveDocletType(): no such doclet longname '${longname}'`);
                     }
                 }
                 // When one target at least has been found within this scope, stop searching.
