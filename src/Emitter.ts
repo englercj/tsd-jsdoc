@@ -1096,10 +1096,10 @@ export class Emitter
             {
                 case 'void':
                 case 'null':
-                case 'string':
-                case 'boolean':
+                case 'string': case 'String':
+                case 'boolean': case 'Boolean':
                 case 'number': case 'Number':
-                case 'function':
+                case 'function': case 'Function':
                 case 'any':
                 case 'object': case 'Object': // <= means 'any' in jsdoc
                 case '*': // <= means 'any' in jsdoc
