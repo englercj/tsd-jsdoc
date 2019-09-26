@@ -1,108 +1,113 @@
-/**
- * @namespace FoobarNS
+/** @module namespaces
  */
-declare namespace FoobarNS {
+declare module "namespaces" {
     /**
-     * @classdesc
-     * A Foo.
-     *
-     * @constructor
-     * @template T
+     * @namespace FoobarNS
      */
-    class Foo<T> {
+    namespace FoobarNS {
         /**
-         * A generic method.
-         * @param {FoobarNS.Foo.FCallback} f A function.
-         * @param [opt_this=10] An object.
-         * @param {number[]|object<number, string[]>} [opt_2=10] An object.
-         * @template S
+         * @classdesc
+         * A Foo.
+         *
+         * @constructor
+         * @template T
          */
-        f<S>(f: FoobarNS.Foo.FCallback, opt_this?: any, opt_2?: number[] | {
-            [key: number]: string[];
-        }): void;
-    }
-    namespace Foo {
+        class Foo<T> {
+            /**
+             * A generic method.
+             * @param {FoobarNS.Foo.FCallback} f A function.
+             * @param [opt_this=10] An object.
+             * @param {number[]|object<number, string[]>} [opt_2=10] An object.
+             * @template S
+             */
+            f<S>(f: FoobarNS.Foo.FCallback, opt_this?: any, opt_2?: number[] | {
+                [key: number]: string[];
+            }): void;
+        }
+        namespace Foo {
+            /**
+             * @callback FCallback
+             * @this S
+             * @memberof module:namespaces~FoobarNS.Foo
+             * @param {T} first - The first param.
+             * @param {number} second - The second param.
+             * @param {T[]} third - The third param.
+             * @returns {*}
+             */
+            type FCallback = (this: S, first: T, second: number, third: T[]) => any;
+        }
         /**
-         * @callback FCallback
-         * @this S
-         * @memberof FoobarNS.Foo
-         * @param {T} first - The first param.
-         * @param {number} second - The second param.
-         * @param {T[]} third - The third param.
-         * @returns {*}
+         * @classdesc
+         * A Bar.
+         *
+         * @constructor
+         * @extends FoobarNS.Foo
          */
-        type FCallback = (this: S, first: T, second: number, third: T[]) => any;
-    }
-    /**
-     * @classdesc
-     * A Bar.
-     *
-     * @constructor
-     * @extends FoobarNS.Foo
-     */
-    class Bar extends FoobarNS.Foo {
-    }
-    /**
-     * @interface
-     */
-    interface CircleOptions {
+        class Bar extends FoobarNS.Foo {
+        }
         /**
-         * Circle radius.
-         * @type {number}
+         * @interface
          */
-        radius: number;
+        interface CircleOptions {
+            /**
+             * Circle radius.
+             * @type {number}
+             */
+            radius: number;
+        }
+        /**
+         * @classdesc
+         * Set circle style for vector features.
+         *
+         * @constructor
+         * @param {FoobarNS.CircleOptions=} opt_options Options.
+         */
+        class Circle {
+            constructor(opt_options?: FoobarNS.CircleOptions);
+        }
+        /**
+         * @member {Number}
+         */
+        var helloWorld1: number;
+        /**
+         * @type {Boolean}
+         */
+        var helloWorld2: boolean;
+        /**
+         * @constant
+         * @type {String}
+         */
+        const helloWorld3: string;
+        /**
+         * @constant
+         * @type {Number}
+         */
+        const helloWorld4: number;
+        /**
+         * @constant
+         * @type {Boolean}
+         */
+        const helloWorld5: boolean;
+        /**
+         * @constant
+         * @type {Object}
+         */
+        const helloWorld6: any;
+        /**
+         * @constant
+         * @type {String}
+         */
+        const helloWorld7 = "test";
+        /**
+         * @constant
+         * @type {Number}
+         */
+        const helloWorld8 = 1.2345;
+        /**
+         * @constant
+         * @type {Boolean}
+         */
+        const helloWorld9 = true;
     }
-    /**
-     * @classdesc
-     * Set circle style for vector features.
-     *
-     * @constructor
-     * @param {FoobarNS.CircleOptions=} opt_options Options.
-     */
-    class Circle {
-        constructor(opt_options?: FoobarNS.CircleOptions);
-    }
-    /**
-     * @member {Number}
-     */
-    var helloWorld1: number;
-    /**
-     * @type {Boolean}
-     */
-    var helloWorld2: boolean;
-    /**
-     * @constant
-     * @type {String}
-     */
-    const helloWorld3: string;
-    /**
-     * @constant
-     * @type {Number}
-     */
-    const helloWorld4: number;
-    /**
-     * @constant
-     * @type {Boolean}
-     */
-    const helloWorld5: boolean;
-    /**
-     * @constant
-     * @type {Object}
-     */
-    const helloWorld6: any;
-    /**
-     * @constant
-     * @type {String}
-     */
-    const helloWorld7 = "test";
-    /**
-     * @constant
-     * @type {Number}
-     */
-    const helloWorld8 = 1.2345;
-    /**
-     * @constant
-     * @type {Boolean}
-     */
-    const helloWorld9 = true;
 }
+

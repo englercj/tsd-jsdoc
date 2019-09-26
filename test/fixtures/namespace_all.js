@@ -1,3 +1,5 @@
+/** @module namespaces */
+
 /**
  * @namespace FoobarNS
  */
@@ -15,7 +17,7 @@ FoobarNS.Foo = function Foo() {
 /**
  * @callback FCallback
  * @this S
- * @memberof FoobarNS.Foo
+ * @memberof module:namespaces~FoobarNS.Foo
  * @param {T} first - The first param.
  * @param {number} second - The second param.
  * @param {T[]} third - The third param.
@@ -44,7 +46,9 @@ FoobarNS.Bar = function Bar() {
 
 /**
  * A method.
- * Note: override of Foo.f().
+ * Seems that when FoobarNS is declared in a module, jsdoc does not detect the override of of Foo.f() automatically anymore.
+ * Let's tell jsdoc explicitely.
+ * @override
  */
 FoobarNS.Bar.prototype.f = function f() {
 };
@@ -122,3 +126,7 @@ FoobarNS.helloWorld8 = 1.2345;
  * @type {Boolean}
  */
 FoobarNS.helloWorld9 = true;
+
+module.exports = {
+    FoobarNS: FoobarNS
+}

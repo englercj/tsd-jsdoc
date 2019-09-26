@@ -240,6 +240,7 @@ export class Emitter
 
     emit()
     {
+        debug(`----------------------------------------------------------------`);
         debug(`Emitter.emit()`);
 
         const resultFile = ts.createSourceFile(
@@ -735,8 +736,9 @@ export class Emitter
     {
         if (params)
             for (const param of params)
-                for (const paramType of param.type.names)
-                    this._resolveDocletType(paramType, node, this._markExportedNode);
+                if (param.type)
+                    for (const paramType of param.type.names)
+                        this._resolveDocletType(paramType, node, this._markExportedNode);
     }
 
     private _markExportedReturns(node: IDocletTreeNode, returns?: IDocletReturn[])
@@ -1147,8 +1149,24 @@ export class Emitter
                     return;
                 }
 
+                // Search for templates.
+                // Does not work with jsdoc@3.6.3, as long as jsdoc@3.6.x does not support @template tags, nor generates "tags" sections anymore.
                 const scopeNode: IDocletTreeNode | undefined = thisEmitter._treeNodes[scope];
                 if (! scopeNode) break;
+                if (scopeNode.doclet.tags)
+                {
+                    for (const tag of scopeNode.doclet.tags)
+                    {
+                        if ((tag.title === 'template') && (tag.value === typeName))
+                        {
+                            // No doclet for templates.
+                            _debug(`Emitter._resolveDocletType(): template found!`);
+                            // Stop searching.
+                            return;
+                        }
+                    }
+                }
+
                 scope = scopeNode.doclet.memberof;
             }
 

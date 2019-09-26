@@ -23,7 +23,7 @@ export function warn(msg: string, data?: any)
     {
         // `console.warn()` pushes in stderr.
         // Let's push the message in stdout with `console.log()` as well, as `debug()` does for a better debugging experience.
-        console.log(`${header} ${msg}`);
+        console.log(`${header} WARN: ${msg}`);
         if (arguments.length > 1)
         {
             console.log(data);

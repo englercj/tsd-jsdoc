@@ -29,10 +29,10 @@ declare interface IDocletType {
 }
 
 declare interface IDocletProp {
-    type: IDocletType;
+    type?: IDocletType;
     name: string;
     description: string;
-    comment: string;
+    comment?: string;
     defaultvalue?: string;
     meta?: any;
     optional?: boolean;
