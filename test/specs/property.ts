@@ -1,7 +1,5 @@
-import { expectJsDoc } from '../lib';
+import { tsdJsdocTestCase } from '../lib';
 
 suite('Property Checks', () => {
-    test('All', () => {
-        expectJsDoc('property_all');
-    });
+    tsdJsdocTestCase('All', 'property_all');
 });

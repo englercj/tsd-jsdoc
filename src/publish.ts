@@ -18,8 +18,6 @@ export function publish(data: TDocletDb, opts: ITemplateConfig)
     if (! opts.generationStrategy)
     {
         opts.generationStrategy = 'documented';
-        // Uncomment the following line to launch the unit tests in 'exported' mode.
-        //opts.generationStrategy = 'exported';
     }
     debug(`publish(): Generation strategy: '${opts.generationStrategy}'`);
 

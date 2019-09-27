@@ -1,4 +1,4 @@
-import { expectJsDoc } from '../lib';
+import { tsdJsdocTestCase } from '../lib';
 
 suite('Exports Checks', () => {
     class ExportTest {
@@ -63,8 +63,6 @@ suite('Exports Checks', () => {
         }
     }
     for (const exportTest of exportTests) {
-        test(`[${exportTest.id}]${" ".repeat(maxIdLen - exportTest.id.length)} ${exportTest.desc}`, () => {
-            expectJsDoc(`exports_${exportTest.id}`);
-        });
+        tsdJsdocTestCase(`[${exportTest.id}]${" ".repeat(maxIdLen - exportTest.id.length)} ${exportTest.desc}`, `exports_${exportTest.id}`);
     }
 });

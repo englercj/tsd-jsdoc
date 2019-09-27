@@ -1,7 +1,5 @@
-import { expectJsDoc } from '../lib';
+import { tsdJsdocTestCase } from '../lib';
 
 suite('Namespace Checks', () => {
-    test('All', () => {
-        expectJsDoc('namespace_all');
-    });
+    tsdJsdocTestCase('All', 'namespace_all');
 });
