@@ -1,3 +1,4 @@
+/** @module properties */
 
 /**
  * @class
@@ -12,7 +13,7 @@ class PropTest1 {
  */
 class PropTest2 {
     /**
-     * @name PropTest2#otherProp
+     * @name module:properties~PropTest2#otherProp
      * @type {Number}
      */
     otherProp = 1;
@@ -24,13 +25,13 @@ class PropTest2 {
  */
 class PropTest3 {
     /**
-     * @name PropTest3#myProp
+     * @name module:properties~PropTest3#myProp
      * @type {Boolean}
      * @description duplicate
      */
     myProp = true;
     /**
-     * @name PropTest3#myProp
+     * @name module:properties~PropTest3#myProp
      * @type {Boolean}
      * @description duplicate
      */
@@ -50,7 +51,7 @@ var PropTest4 = function() {
  */
 var PropTest5 = function() {
     /**
-     * @name PropTest5#otherProp
+     * @name module:properties~PropTest5#otherProp
      * @type {Number}
      */
     this.otherProp = 1;
@@ -62,15 +63,24 @@ var PropTest5 = function() {
  */
 var PropTest6 = function() {
     /**
-     * @name PropTest6#myProp
+     * @name module:properties~PropTest6#myProp
      * @type {Boolean}
      * @description duplicate
      */
     this.myProp = true;
     /**
-     * @name PropTest6#myProp
+     * @name module:properties~PropTest6#myProp
      * @type {Boolean}
      * @description duplicate
      */
     this.myProp = true;
+}
+
+module.exports = {
+    PropTest1: PropTest1,
+    PropTest2: PropTest2,
+    PropTest3: PropTest3,
+    PropTest4: PropTest4,
+    PropTest5: PropTest5,
+    PropTest6: PropTest6,
 }

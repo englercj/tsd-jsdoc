@@ -1,90 +1,89 @@
-/**
- * @class
- * @property {String} myProp foobar
+/** @module properties
  */
-declare class PropTest1 {
+declare module "properties" {
     /**
-     * foobar
-    */
-    myProp: string;
-}
-
-/**
- * @class
- * @property {Number} myProp
- */
-declare class PropTest2 {
-    /**
-     * @name PropTest2#otherProp
-     * @type {Number}
+     * @class
+     * @property {String} myProp foobar
      */
-    otherProp: number;
-    myProp: number;
-}
-
-/**
- * @class
- * @property {Boolean} myProp
- */
-declare class PropTest3 {
+    class PropTest1 {
+        /**
+         * foobar
+        */
+        myProp: string;
+    }
     /**
-     * @name PropTest3#myProp
-     * @type {Boolean}
-     * @description duplicate
+     * @class
+     * @property {Number} myProp
      */
-    myProp: boolean;
+    class PropTest2 {
+        /**
+         * @name module:properties~PropTest2#otherProp
+         * @type {Number}
+         */
+        otherProp: number;
+        myProp: number;
+    }
     /**
-     * @name PropTest3#myProp
-     * @type {Boolean}
-     * @description duplicate
+     * @class
+     * @property {Boolean} myProp
      */
-    myProp: boolean;
-    myProp: boolean;
-}
-
-/**
- * @constructor
- * @property {String} myProp foobar
- */
-declare class PropTest4 {
-    constructor();
+    class PropTest3 {
+        /**
+         * @name module:properties~PropTest3#myProp
+         * @type {Boolean}
+         * @description duplicate
+         */
+        myProp: boolean;
+        /**
+         * @name module:properties~PropTest3#myProp
+         * @type {Boolean}
+         * @description duplicate
+         */
+        myProp: boolean;
+        myProp: boolean;
+    }
     /**
-     * foobar
-    */
-    myProp: string;
-}
-
-/**
- * @constructor
- * @property {Number} myProp
- */
-declare class PropTest5 {
-    constructor();
-    /**
-     * @name PropTest5#otherProp
-     * @type {Number}
+     * @constructor
+     * @property {String} myProp foobar
      */
-    otherProp: number;
-    myProp: number;
-}
-
-/**
- * @constructor
- * @property {Boolean} myProp
- */
-declare class PropTest6 {
-    constructor();
+    class PropTest4 {
+        constructor();
+        /**
+         * foobar
+        */
+        myProp: string;
+    }
     /**
-     * @name PropTest6#myProp
-     * @type {Boolean}
-     * @description duplicate
+     * @constructor
+     * @property {Number} myProp
      */
-    myProp: boolean;
+    class PropTest5 {
+        constructor();
+        /**
+         * @name module:properties~PropTest5#otherProp
+         * @type {Number}
+         */
+        otherProp: number;
+        myProp: number;
+    }
     /**
-     * @name PropTest6#myProp
-     * @type {Boolean}
-     * @description duplicate
+     * @constructor
+     * @property {Boolean} myProp
      */
-    myProp: boolean;
-    myProp: boolean;
+    class PropTest6 {
+        constructor();
+        /**
+         * @name module:properties~PropTest6#myProp
+         * @type {Boolean}
+         * @description duplicate
+         */
+        myProp: boolean;
+        /**
+         * @name module:properties~PropTest6#myProp
+         * @type {Boolean}
+         * @description duplicate
+         */
+        myProp: boolean;
+        myProp: boolean;
+    }
 }

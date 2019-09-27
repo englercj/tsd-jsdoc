@@ -1,3 +1,5 @@
+/** @module typedefs */
+
 /**
  * The complete Triforce, or one or more components of the Triforce.
  * @typedef {object} Triforce
@@ -75,3 +77,11 @@
  * @property {function(string, number): Promise<number>} wobble Wobbles the pattern
  *  (complex function)
  */
+
+module.exports = {
+    Triforce: Triforce,
+    Anon: Anon,
+    GitGraphOptions: GitGraphOptions,
+    NumberLike: NumberLike,
+    PatternOptions: PatternOptions
+}
