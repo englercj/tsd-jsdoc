@@ -5,7 +5,14 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as jsdocApi from 'jsdoc-api';
 import { expect } from 'chai';
-const jsdocInfo = require('../../node_modules/jsdoc/package');
+// jsdoc-api may actually work with a jsdoc instance installed in its own `node_modules` subdirectory.
+// Use the same kind of 'walk-back' call as jsdoc-api does in order to find the jsdoc instance actually used.
+const walkBack = require('walk-back');
+const jsdocPath = walkBack(
+  path.join(__dirname, '../../node_modules/jsdoc-api'),
+  path.join('node_modules', 'jsdoc')
+);
+const jsdocInfo = require(path.join(jsdocPath || '../../node_modules/jsdoc', 'package'));
 
 const DEST_DIR = path.resolve(path.join(__dirname, '../_temp'));
 const DATA_DIR = path.resolve(path.join(__dirname, '../fixtures'));
