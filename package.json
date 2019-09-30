@@ -27,10 +27,6 @@
     "chai": "^4.2.0",
     "jsdoc": "^3.6.3",
     "jsdoc-api": "^5.0.3",
-    "jsdoc-api4.0.3": "npm:jsdoc-api@^4.0.3",
-    "jsdoc-api5.0.3": "npm:jsdoc-api@^5.0.3",
-    "jsdoc3.5.5": "npm:jsdoc@^3.5.5",
-    "jsdoc3.6.3": "npm:jsdoc@^3.6.3",
     "mocha": "^5.2.0",
     "ts-node": "^7.0.1",
     "walk-back": "^3.0.1"
