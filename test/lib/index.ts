@@ -1,16 +1,20 @@
 // tslint:disable-next-line
 /// <reference path="../typings/jsdoc-api.d.ts" />
+/// <reference path="../typings/walk-back.d.ts" />
 
 import * as fs from 'fs';
 import * as path from 'path';
 import * as jsdocApi from 'jsdoc-api';
 import { expect } from 'chai';
+// See: [stackoverflow.com](https://stackoverflow.com/questions/39109027/write-a-declaration-file-for-a-default-export-module)
+//      [TypeScript#2242](https://github.com/Microsoft/TypeScript/issues/2242)
+import walkBack  = require('walk-back');
+
 // jsdoc-api may actually work with a jsdoc instance installed in its own `node_modules` subdirectory.
 // Use the same kind of 'walk-back' call as jsdoc-api does in order to find the jsdoc instance actually used.
-const walkBack = require('walk-back');
 const jsdocPath = walkBack(
-  path.join(__dirname, '../../node_modules/jsdoc-api'),
-  path.join('node_modules', 'jsdoc')
+    path.join(__dirname, '../../node_modules/jsdoc-api'),
+    path.join('node_modules', 'jsdoc')
 );
 const jsdocInfo = require(path.join(jsdocPath || '../../node_modules/jsdoc', 'package'));
 
