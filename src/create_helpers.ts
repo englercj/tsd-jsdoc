@@ -133,7 +133,7 @@ export function createClass(doclet: IClassDoclet, children?: ts.Node[], altName?
         // Check whether the constructor has already been declared.
         if (members.filter(member => ts.isConstructorDeclaration(member)).length === 0)
         {
-            debug(`createClass(${docletDebugInfo(doclet)}): no constructor set yet, adding one automatically`);
+            debug(`createClass(): no constructor set yet, adding one automatically`);
             members.unshift(
                 ts.createConstructor(
                     undefined,                      // decorators
@@ -149,9 +149,24 @@ export function createClass(doclet: IClassDoclet, children?: ts.Node[], altName?
     {
         const tree = new PropTree(doclet.properties);
 
-        for (let i = 0; i < tree.roots.length; ++i)
+        nextProperty: for (let i = 0; i < tree.roots.length; ++i)
         {
             const node = tree.roots[i];
+
+            // Check whether the property has already been declared.
+            for (const tsProp of members.filter(member => ts.isPropertyDeclaration(member)))
+            {
+                if (tsProp.name)
+                {
+                    const propName:string = (<any> tsProp.name).text;
+                    if (propName === node.name)
+                    {
+                        debug(`createClass(): skipping property already declared '${node.name}'`);
+                        continue nextProperty;
+                    }
+                }
+            }
+
             const opt = node.prop.optional ? ts.createToken(ts.SyntaxKind.QuestionToken) : undefined;
             const t = node.children.length ? createTypeLiteral(node.children) : resolveType(node.prop.type);
 

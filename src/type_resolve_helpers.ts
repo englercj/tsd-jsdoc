@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import { warn } from './logger';
+import { warn, debug, docletDebugInfo } from './logger';
 import { PropTree, IPropDesc } from './PropTree';
 
 const rgxObjectTokenize = /(<|>|,|\(|\)|\||\{|\}|:)/;
@@ -560,6 +560,8 @@ export function resolveTypeParameters(doclet: TDoclet): ts.TypeParameterDeclarat
 {
     const typeParams: ts.TypeParameterDeclaration[] = [];
 
+    // Works in jsdoc@3.5.x only, not in jsdoc@3.6.x (up to jsdoc@3.6.3 at least).
+    // jsdoc@3.6.x does not seem to generate `tags` sections for `@template` tags anymore.
     if (doclet.tags)
     {
         for (let i = 0; i < doclet.tags.length; ++i)
@@ -568,22 +570,43 @@ export function resolveTypeParameters(doclet: TDoclet): ts.TypeParameterDeclarat
 
             if (tag.title === 'template')
             {
-                const types = (tag.text || 'T').split(',');
-
-                for (let x = 0; x < types.length; ++x)
-                {
-                    const name = types[x].trim();
-
-                    if (!name)
-                        continue;
-
-                    typeParams.push(ts.createTypeParameterDeclaration(
-                        name,           // name
-                        undefined,      // constraint
-                        undefined       // defaultType
-                    ));
-                }
+                onTemplateTag(tag.text);
             }
+        }
+    }
+    // Otherwise, let's check directly the comment text.
+    else if (doclet.comment && doclet.comment.includes('@template'))
+    {
+        debug(`resolveTypeParameters(): jsdoc@3.6.x @template handling directly in the comment text for ${docletDebugInfo(doclet)}`);
+        for (let line of doclet.comment.split(/\r?\n/))
+        {
+            line = line.trim();
+            if (line.startsWith('*'))
+                line = line.slice(1).trim();
+            if (line.startsWith('@template'))
+            {
+                line = line.slice('@template'.length).trim();
+                onTemplateTag(line);
+            }
+        }
+    }
+
+    function onTemplateTag(tagText?: string)
+    {
+        const types = (tagText || 'T').split(',');
+
+        for (let x = 0; x < types.length; ++x)
+        {
+            const name = types[x].trim();
+
+            if (!name)
+                continue;
+
+            typeParams.push(ts.createTypeParameterDeclaration(
+                name,           // name
+                undefined,      // constraint
+                undefined       // defaultType
+            ));
         }
     }
 

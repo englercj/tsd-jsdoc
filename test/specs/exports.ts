@@ -56,13 +56,7 @@ suite('Exports Checks', () => {
         // Not supported: {id: "wrong exports.name=",                     desc: "Wrong use of 'exports.name =' while not set to module.exports"},
     ];
     // Execute the tests.
-    let maxIdLen = 0;
     for (const exportTest of exportTests) {
-        if (exportTest.id.length > maxIdLen) {
-            maxIdLen = exportTest.id.length;
-        }
-    }
-    for (const exportTest of exportTests) {
-        tsdJsdocTestCase(`[${exportTest.id}]${" ".repeat(maxIdLen - exportTest.id.length)} ${exportTest.desc}`, `exports_${exportTest.id}`);
+        tsdJsdocTestCase(exportTest.id, `exports_${exportTest.id}`, exportTest.desc);
     }
 });

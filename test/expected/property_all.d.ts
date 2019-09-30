@@ -34,13 +34,6 @@ declare module "properties" {
          * @description duplicate
          */
         myProp: boolean;
-        /**
-         * @name module:properties~PropTest3#myProp
-         * @type {Boolean}
-         * @description duplicate
-         */
-        myProp: boolean;
-        myProp: boolean;
     }
     /**
      * @constructor
@@ -77,13 +70,6 @@ declare module "properties" {
          * @type {Boolean}
          * @description duplicate
          */
-        myProp: boolean;
-        /**
-         * @name module:properties~PropTest6#myProp
-         * @type {Boolean}
-         * @description duplicate
-         */
-        myProp: boolean;
         myProp: boolean;
     }
 }

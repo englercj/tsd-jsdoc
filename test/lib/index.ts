@@ -88,11 +88,17 @@ function expectJsDoc(fileName: string, generationStrategy: 'documented' | 'expor
  * @param testName Name of the test.
  * @param basename Fixture file base name.
  */
-export function tsdJsdocTestCase(testName: string, basename: string) {
-    test('\'documented\' generation strategy - ' + testName, function() {
-        expectJsDoc(basename, 'documented');
-    });
-    test('\'generated\' generation strategy  - ' + testName, function() {
-        expectJsDoc(basename, 'exported');
-    });
+export function tsdJsdocTestCase(testName: string, basename: string, description?: string) {
+    test(
+        testName + ' '.repeat(40-testName.length) + '\'documented\' generation strategy     ' + (description ? description : ''),
+        function() {
+            expectJsDoc(basename, 'documented');
+        }
+    );
+    test(
+        testName + ' '.repeat(40-testName.length) + '\'exported\' generation strategy       ' + (description ? description : ''),
+        function() {
+            expectJsDoc(basename, 'exported');
+        }
+    );
 }

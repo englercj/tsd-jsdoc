@@ -20,7 +20,7 @@ import {
     createNamespaceMember,
     createTypedef,
 } from './create_helpers';
-import { generateTree, StringTreeNode } from './type_resolve_helpers';
+import { generateTree, StringTreeNode, resolveTypeParameters } from './type_resolve_helpers';
 
 interface IDocletTreeNode
 {
@@ -45,10 +45,13 @@ interface IDocletTreeNode
 function isDocumented(doclet: TDoclet): boolean
 {
     // Same predicate as in publish().
-    return !!(
-        (doclet.undocumented !== true)
-        && doclet.comment && (doclet.comment.length > 0)
-    );
+    if (doclet.undocumented)
+        if (doclet.comment && (doclet.comment.length > 0))
+            return true;
+        else
+            return false;
+    else
+        return true;
 }
 
 function isClassLike(doclet: TDoclet): boolean
@@ -331,6 +334,11 @@ export class Emitter
                     warn(`Failed to find owner class of constructor '${doclet.longname}'.`, doclet);
                     continue nextDoclet;
                 }
+                // jsdoc@3.6.3 may generate multiple doclets for constructors.
+                // Watch in the class children whether a constructor is already registered.
+                if (this._checkDuplicateChild(doclet, ownerClass, (child: IDocletTreeNode) => isConstructor(child.doclet)))
+                    continue nextDoclet;
+
                 debug(`Emitter._buildTree(): adding constructor ${docletDebugInfo(doclet)} to class declaration ${docletDebugInfo(ownerClass.doclet)}`);
                 ownerClass.children.push({ doclet: doclet, children: [] });
 
@@ -442,17 +450,9 @@ export class Emitter
                     {
                         // Export doclets may be twiced, escpecially in case of inline or lambda definitions.
                         // Scan the parent module's children in order to avoid the addition of two doclets for the same default export purpose.
-                        for (const child of parent.children)
-                        {
-                            if (isDefaultExport(child.doclet, this._treeNodes))
-                            {
-                                // Multiple default export doclets.
-                                // Prefer the last one, in as much as jsdoc gives more information in it.
-                                debug(`Emitter._buildTree(): replacing default export ${docletDebugInfo(child.doclet)} by ${docletDebugInfo(doclet)} in module ${docletDebugInfo(parent.doclet)}`);
-                                child.doclet = doclet;
-                                continue nextDoclet;
-                            }
-                        }
+                        const thisEmitter = this;
+                        if (this._checkDuplicateChild(doclet, parent, (child: IDocletTreeNode) => isDefaultExport(child.doclet, thisEmitter._treeNodes)))
+                            continue nextDoclet;
                         // No default export doclet yet in the parent module.
                         debug(`Emitter._buildTree(): adding default export ${docletDebugInfo(doclet)} to module ${docletDebugInfo(parent.doclet)}`);
                         // The longname of default export doclets is the same as the one of the parent module itself.
@@ -502,38 +502,21 @@ export class Emitter
                 }
                 else
                 {
-                    if (! isDocumented(doclet))
-                    {
-                        // Check this non-documented doclet does not exist yet in the candidate parent's children.
-                        for (const child of parent.children)
-                        {
+                    if (this._checkDuplicateChild(doclet, parent,
+                        function(child: IDocletTreeNode) {
+                            if (child.doclet.kind !== doclet.kind)
+                                return false;
+                            if (child.doclet.longname === doclet.longname)
+                                return true;
                             // Check also against the optional form of the doclet.
-                            const optionalLongname = (
-                                doclet.longname.slice(0, doclet.longname.length - doclet.name.length)
-                                + `[${doclet.name}]`
-                            );
-                            if ((child.doclet.kind === doclet.kind)
-                                && ((child.doclet.longname === doclet.longname) || (child.doclet.longname === optionalLongname)))
-                            {
-                                // Do not add the undocumented doclet to the parent twice.
-                                debug(`Emitter._buildTree(): skipping undocumented ${docletDebugInfo(doclet)} because ${docletDebugInfo(child.doclet)} is already known in parent ${docletDebugInfo(parent.doclet)}`);
-
-                                // At this point, we could be tempted to merge meta information between detached and actual doclets.
-                                // The code below has no particular use in the rest of the process, thus it is not activated yet,
-                                // but it could be of interest, so it is left as a comment:
-                                /*// Check whether the meta information can be merged between a detached and an actual doclet.
-                                if (doclet.meta && doclet.meta.range                            // <= is `doclet` an actual doclet?
-                                    && ((! child.doclet.meta) || (! child.doclet.meta.range)))  // <= is `child.doclet` a detached doclet?
-                                {
-                                    debug(`Emitter._buildTree(): replacing ${docletDebugInfo(child.doclet)}'s meta info with ${docletDebugInfo(doclet)}'s one`);
-                                    child.doclet.meta = doclet.meta;
-                                    debug(`Emitter._buildTree(): => is now ${docletDebugInfo(child.doclet)}`);
-                                }*/
-
-                                continue nextDoclet;
-                            }
+                            const shortname = doclet.name || '';
+                            const optionalLongname = doclet.longname.slice(0, doclet.longname.length - shortname.length) + `[${shortname}]`;
+                            if (child.doclet.longname === optionalLongname)
+                                return true;
+                            return false;
                         }
-                    }
+                    ))
+                        continue nextDoclet;
 
                     const isObjModuleLike = isModuleLike(doclet);
                     const isParentModuleLike = isModuleLike(parent.doclet);
@@ -590,6 +573,51 @@ export class Emitter
                 this._treeRoots.push(obj);
             }
         }
+    }
+
+    /**
+     * Before adding the doclet as a child of a candidate parent, check whether it is a duplicate a an already known child.
+     * In such a case, the most documented doclet is preferred, or the last one.
+     * @param doclet Candidate child doclet.
+     * @param parent Candidate parent node.
+     * @param match Handler that tells whether an already known child is a duplicate for the previous candidate child `doclet`.
+     * @returns `true` when a duplicate has been found, `false` otherwise.
+     */
+    private _checkDuplicateChild(doclet: TDoclet, parent: IDocletTreeNode, match: (child: IDocletTreeNode) => boolean): boolean
+    {
+        // Check this doclet does not exist yet in the candidate parent's children.
+        for (const child of parent.children)
+        {
+            if (match(child))
+            {
+                if (! isDocumented(doclet))
+                {
+                    // Do not add the undocumented doclet to the parent twice.
+                    debug(`Emitter._checkConcurrentChild(): skipping undocumented ${docletDebugInfo(doclet)} because ${docletDebugInfo(child.doclet)} is already known in parent ${docletDebugInfo(parent.doclet)}`);
+
+                    // At this point, we could be tempted to merge meta information between detached and actual doclets.
+                    // The code below has no particular use in the rest of the process, thus it is not activated yet,
+                    // but it could be of interest, so it is left as a comment:
+                    /*// Check whether the meta information can be merged between a detached and an actual doclet.
+                    if (doclet.meta && doclet.meta.range                            // <= is `doclet` an actual doclet?
+                        && ((! child.doclet.meta) || (! child.doclet.meta.range)))  // <= is `child.doclet` a detached doclet?
+                    {
+                        debug(`Emitter._buildTree(): replacing ${docletDebugInfo(child.doclet)}'s meta info with ${docletDebugInfo(doclet)}'s one`);
+                        child.doclet.meta = doclet.meta;
+                        debug(`Emitter._buildTree(): => is now ${docletDebugInfo(child.doclet)}`);
+                    }*/
+                }
+                else
+                {
+                    // Replace the previously known doclet by this new one in other cases.
+                    debug(`Emitter._buildTree(): replacing ${docletDebugInfo(child.doclet)} with ${docletDebugInfo(doclet)} in ${docletDebugInfo(parent.doclet)}`);
+                    child.doclet = doclet;
+                }
+
+                return true;
+            }
+        }
+        return false;
     }
 
     private _markExported()
@@ -1017,9 +1045,7 @@ export class Emitter
      */
     private _getNodeFromLongname(longname: string, filter?: (node: IDocletTreeNode) => boolean): IDocletTreeNode | null
     {
-        function _debug(msg: string) {
-            //debug(msg);
-        }
+        function _debug(msg: string) { /*debug(msg);*/ }
 
         const node = this._treeNodes[longname];
         if (!node)
@@ -1072,9 +1098,7 @@ export class Emitter
         callback: (node: IDocletTreeNode) => void,
         filter?: (node: IDocletTreeNode) => boolean): void
     {
-        function _debug(msg: string) {
-            //debug(msg);
-        }
+        function _debug(msg: string) { /*debug(msg);*/ }
         _debug(`Emitter._resolveDocletType(typeName='${typeName}', currentNode=${docletDebugInfo(currentNode.doclet)})`);
 
         const tokens = generateTree(typeName);
@@ -1153,17 +1177,13 @@ export class Emitter
                 // Does not work with jsdoc@3.6.3, as long as jsdoc@3.6.x does not support @template tags, nor generates "tags" sections anymore.
                 const scopeNode: IDocletTreeNode | undefined = thisEmitter._treeNodes[scope];
                 if (! scopeNode) break;
-                if (scopeNode.doclet.tags)
+                for (const tsTypeParameterDeclaration of resolveTypeParameters(scopeNode.doclet))
                 {
-                    for (const tag of scopeNode.doclet.tags)
+                    if (tsTypeParameterDeclaration.name.text === typeName)
                     {
-                        if ((tag.title === 'template') && (tag.value === typeName))
-                        {
-                            // No doclet for templates.
-                            _debug(`Emitter._resolveDocletType(): template found!`);
-                            // Stop searching.
-                            return;
-                        }
+                        _debug(`Emitter._resolveDocletType(): template found! in ${docletDebugInfo(scopeNode.doclet)}`);
+                        // No doclet. Stop searching.
+                        return;
                     }
                 }
 
