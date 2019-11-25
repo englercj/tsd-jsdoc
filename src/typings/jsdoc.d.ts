@@ -94,7 +94,7 @@ declare interface IDocletBase {
  * Specific doclet types
  */
 declare interface IClassDoclet extends IDocletBase {
-    kind: 'class' | 'interface' | 'mixin';
+    kind: 'class' | 'interface' | 'mixin' | 'external';
     params?: IDocletProp[];
     augments?: string[];
     implements?: string[];
