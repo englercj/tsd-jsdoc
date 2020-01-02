@@ -67,24 +67,89 @@ function validateModuleChildren(children?: ts.Node[])
     }
 }
 
+function formatMultilineComment(comment: string): string {
+    return comment.split('\n').join('\n * ');
+}
+
+function handlePropsComment(props: IDocletProp[], jsdocTagName: String): string[] {
+    return props.map(prop => {
+        if (prop.description) {
+            let name;
+            if (prop.optional) {
+                if (prop.defaultvalue !== undefined) {
+                    name = `[${prop.name} = ${prop.defaultvalue}]`;
+                } else {
+                    name = `[${prop.name}]`;
+                }
+            } else {
+                name = prop.name;
+            }
+            const description = ` - ${formatMultilineComment(prop.description)}`;
+            return `\n * @${jsdocTagName} ${name}${description}`
+        }
+        return ''
+    }).filter(value => value !== '')
+}
+
+function handleReturnsComment(doclet: IDocletBase): string[] {
+    if ('returns' in doclet) {
+        return (doclet['returns'] as IDocletReturn[]).map(ret => {
+            if (ret.description) {
+                return `\n * @returns ${formatMultilineComment(ret.description)}`;
+            }
+            return '';
+        }).filter(value => value !== '');
+    }
+    return []
+}
+
+function handleExamplesComment(doclet: IDocletBase): string[] {
+    if (doclet.examples !== undefined) {
+        return doclet.examples.map(example => {
+            return `\n * @example
+ * ${formatMultilineComment(example)}`;
+        });
+    }
+    return [];
+}
+
+function handleParamsComment(doclet: IDocletBase): string[] {
+    if ('params' in doclet) {
+        return handlePropsComment((doclet['params'] as IDocletProp[]), 'param');
+    }
+    return []
+}
+
+function handlePropertiesComment(doclet: IDocletBase): string[] {
+    if (doclet.properties && (!('isEnum' in doclet) || (doclet['isEnum'] === false))) {
+        return handlePropsComment(doclet.properties, 'property');
+    }
+    return []
+}
+
 function handleComment<T extends ts.Node>(doclet: IDocletBase, node: T): T
 {
     if (doclet.comment && doclet.comment.length > 4)
     {
-        let comment = doclet.comment;
+        let description = '';
+        if (doclet.description) {
+            description = `\n * ${formatMultilineComment(doclet.description)}`;
+        } else if ('classdesc' in doclet) {
+            description = `\n * ${formatMultilineComment((doclet['classdesc'] as string))}`;
+        }
+        const examples = handleExamplesComment(doclet);
+        const properties = handlePropertiesComment(doclet);
+        const params = handleParamsComment(doclet);
+        const returns = handleReturnsComment(doclet);
 
-        // remove '/*' and '*/'
-        comment = comment.substring(2, doclet.comment.length - 2);
+        if (description || examples.length > 0 || properties.length > 0 || params.length > 0 || returns.length > 0) {
+            let comment = `*${description}${examples.join('')}${properties.join('')}${params.join('')}${returns.join('')}
+ `;
 
-        // remove '          *' leading spaces
-        comment = comment.replace(/[ \t]+\*/g, ' *');
+            const kind = ts.SyntaxKind.MultiLineCommentTrivia;
 
-        // remove trailing spacesgit dif
-        comment = comment.trim() + '\n ';
-
-        const kind = ts.SyntaxKind.MultiLineCommentTrivia;
-
-        ts.addSyntheticLeadingComment(node, kind, comment, true);
+            ts.addSyntheticLeadingComment(node, kind, comment, true);
+        }
     }
 
     return node;
