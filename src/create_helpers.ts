@@ -166,7 +166,7 @@ function handleComment<T extends ts.Node>(doclet: IDocletBase, node: T): T
         const params = handleParamsComment(doclet);
         const returns = handleReturnsComment(doclet);
 
-        if (description || examples.length > 0 || properties.length > 0 || params.length > 0 || returns.length > 0)
+        if (description || examples || properties || params || returns)
         {
             let comment = `*${description}${examples}${properties}${params}${returns}
  `;
