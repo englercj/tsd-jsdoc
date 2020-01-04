@@ -1,4 +1,4 @@
-declare function doStuff(): void;
+declare function doStuff(this: OtherThing): void;
 
 declare class OtherThing {
     copy(): void;
