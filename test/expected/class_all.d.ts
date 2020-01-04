@@ -1,7 +1,7 @@
 /**
  * @this OtherThing
  */
-declare function doStuff(): void;
+declare function doStuff(this: OtherThing): void;
 
 /**
  * @class
