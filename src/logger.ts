@@ -7,7 +7,7 @@ export function setVerbose(value: boolean)
     isVerbose = value;
 }
 
-export function warn(msg: string, data?: any|TAnyDoclet)
+export function warn(msg: string, data?: any)
 {
 
     if (typeof(console) === 'undefined')
