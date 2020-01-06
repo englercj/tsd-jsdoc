@@ -9,7 +9,6 @@ export function setVerbose(value: boolean)
 
 export function warn(msg: string, data?: any)
 {
-
     if (typeof(console) === 'undefined')
         return;
 
