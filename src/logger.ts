@@ -13,7 +13,8 @@ export function warn(msg: string, data?: any)
         return;
 
     let prefix = header;
-    if (arguments.length > 1 && data && data.hasOwnProperty('meta')) {
+    if (data && data.meta)
+    {
         const meta = data.meta;
         prefix = `${prefix} ${meta.filename}:${meta.lineno}:${meta.columnno}`;
     }
