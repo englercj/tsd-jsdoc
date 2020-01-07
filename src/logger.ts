@@ -12,7 +12,14 @@ export function warn(msg: string, data?: any)
     if (typeof(console) === 'undefined')
         return;
 
-    console.warn(`${header} ${msg}`);
+    let prefix = header;
+    if (data && data.meta)
+    {
+        const meta = data.meta;
+        prefix = `${prefix} ${meta.filename}:${meta.lineno}:${meta.columnno}`;
+    }
+
+    console.warn(`${prefix} ${msg}`);
 
     if (isVerbose && arguments.length > 1)
     {
