@@ -166,6 +166,21 @@ function handleComment<T extends ts.Node>(doclet: IDocletBase, node: T): T
         const params = handleParamsComment(doclet);
         const returns = handleReturnsComment(doclet);
 
+        if ('isEnum' in doclet && doclet['isEnum'] === true)
+        {
+            if ('properties' in doclet)
+            {
+                const enumProperties = (doclet['properties'] as Array<IDocletBase>);
+                // @ts-ignore
+                const enumMembers = node['members'];
+                for (let index = 0; index < enumProperties.length; index++)
+                {
+                    const enumProperty = enumProperties[index];
+                    const enumMember = enumMembers[index];
+                    handleComment(enumProperty, enumMember);
+                }
+            }
+        }
         if (description || examples || properties || params || returns)
         {
             let comment = `*${description}${examples}${properties}${params}${returns}
