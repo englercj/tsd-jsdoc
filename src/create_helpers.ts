@@ -104,7 +104,7 @@ function handlePropsComment(props: IDocletProp[], jsdocTagName: String): string
 
 function handleReturnsComment(doclet: TDoclet): string
 {
-    if (doclet.kind === 'function' && doclet.returns)
+    if (isFunctionDoclet(doclet) && doclet.returns)
     {
         return doclet.returns.map((ret) =>
         {
