@@ -152,8 +152,8 @@ declare interface IPackageDoclet {
 
 declare type TDoclet = (
     IClassDoclet
-    | IEventDoclet
     | IFileDoclet
+    | IEventDoclet
     | IFunctionDoclet
     | IMemberDoclet
     | INamespaceDoclet
