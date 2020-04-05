@@ -19,17 +19,19 @@ declare class dummy3 {
     constructor();
 }
 
-My custom code
-goes here
-And here
-And finally
-here
+declare class MyCustomCode {
+    goesHere: boolean;
+}
+declare const and = "here";
+declare enum AndFinally {
+    here
+}
 
-Testing 123
+declare const Testing = `123
 123
  123
-  123
+  123`;
 
-hello    world
+declare const Test = "hello   world";
 
-foobar
+declare function foobar();

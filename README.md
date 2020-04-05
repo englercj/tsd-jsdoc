@@ -34,6 +34,17 @@ Or add this to your JSON configuration:
 }
 ```
 
+To support `@template` and `@customtsd` you also need to specify it as a plugin, like so:
+
+```json
+{
+    "plugins": [ "./node_modules/tsd-jsdoc/dist/plugin" ],
+    "opts": {
+        "template": "./node_modules/tsd-jsdoc/dist"
+    }
+}
+```
+
 ## Validation
 
 This library provides very little validation beyond what JSDoc provides. Meaning if you
@@ -102,4 +113,5 @@ list of the tags from CC that are supported in this template:
 JSDoc doesn't have a way to express all the features of typescript so we treat some syntax as special case to
 create better Typescript.
 
-- `Class<T>` - If we encounter a type that is `Class<T>` we will treat it as `typeof T`. See [jsdoc3/jsdoc#1349](https://github.com/jsdoc3/jsdoc/issues/1349)
+- `Class<T>` - If we encounter a type that is `Class<T>`, we will treat it as `typeof T`. See [jsdoc3/jsdoc#1349](https://github.com/jsdoc3/jsdoc/issues/1349)
+- `@customtsd` - If we encounter the custom jsdoc tag `@customtsd`, we will treat like `@example`, collect all the code, and emit it as-is at the end of the output file

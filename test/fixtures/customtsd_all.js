@@ -4,18 +4,21 @@
 var dummy1 = function() {};
 
 /**
- * @customtsd My custom code
- * goes here
- * @customtsd And here
- * @customtsd And finally
- * here
+ * @customtsd declare class MyCustomCode {
+ *     goesHere: boolean;
+ * }
+ * @customtsd declare const and = "here";
+ * @customtsd
+ * declare enum AndFinally {
+ *     here
+ * }
  */
 
 /**
- * @customtsd Testing 123
+ * @customtsd declare const Testing = `123
  * 123
  *  123
- *   123
+ *   123`;
  */
 
  /**
@@ -25,12 +28,12 @@ var dummy2 = function() {};
 
 
  /**
- * @customtsd hello    world
+ * @customtsd declare const Test = "hello   world";
  */
 
  /**
  * @customtsd
- * foobar
+ * declare function foobar();
  */
 
  /**

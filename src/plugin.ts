@@ -1,4 +1,3 @@
-
 export function defineTags(dictionary: ITagDictionary) {
     dictionary.defineTag("template", {
         onTagged: function(doclet, tag) {
