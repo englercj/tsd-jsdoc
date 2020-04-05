@@ -1,0 +1,6 @@
+{
+    "opts": {
+        "template": "dist"
+    },
+    "plugins": ["dist/plugin"]
+}

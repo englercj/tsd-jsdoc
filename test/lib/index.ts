@@ -9,9 +9,7 @@ import { expect } from 'chai';
 const DEST_DIR = path.resolve(path.join(__dirname, '../_temp'));
 const DATA_DIR = path.resolve(path.join(__dirname, '../fixtures'));
 const EXPECT_DIR = path.resolve(path.join(__dirname, '../expected'));
-const README_PATH = path.resolve(path.join(__dirname, '../../README.md'));
-const TEMPLATE_PATH = path.resolve(path.join(__dirname, '../../dist'));
-const CONFIG_PATH = path.resolve(path.join(__dirname, "./conf.json"));
+const CONFIG_PATH = path.resolve(path.join(__dirname, '../../jsdoc-conf.json'));
 
 before(() => {
     // create the temp dir to store types in
@@ -25,8 +23,6 @@ export function compileJsdoc(sourcePath: string) {
         files: sourcePath,
         cache: false,
         destination: DEST_DIR,
-        readme: README_PATH,
-        template: TEMPLATE_PATH,
         configure: CONFIG_PATH
     } as any);
 }
