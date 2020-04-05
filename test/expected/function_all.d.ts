@@ -20,6 +20,21 @@ declare function test1(a?: number, input: {
 declare function test2(x: any[], y: any[], z: any[], w: any[][]): void;
 
 /**
+ * @function
+ * @param {object[]} myObjs
+ * @param {number} myObjs[].foo
+ * @param {boolean} myObjs[].bar
+ * @param {string} myObjs[].test1
+ * @param {string[]} [myObjs[].test2]
+ */
+declare function test3(myObjs: {
+    foo: number;
+    bar: boolean;
+    test1: string;
+    test2?: string[];
+}[]): void;
+
+/**
  * @class
  */
 declare class Test12345 {
@@ -40,5 +55,3 @@ declare class Test12345 {
      */
     static f(key: string): number;
 }
-
-

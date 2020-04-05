@@ -88,3 +88,21 @@ declare class PropTest6 {
     myProp: boolean;
     myProp: boolean;
 }
+
+/**
+ * @constructor
+ * @property {object[]} myProps
+ * @property {number} myProps[].foo
+ * @property {boolean} myProps[].bar
+ * @property {string} myProps[].test1
+ * @property {string[]} [myProps[].test2]
+ */
+declare class PropTest7 {
+    constructor();
+    myProps: {
+        foo: number;
+        bar: boolean;
+        test1: string;
+        test2?: string[];
+    }[];
+}
