@@ -56,7 +56,11 @@ export class PropTree
             if (parts.length > 1)
             {
                 parts.pop();
-                const parentName = parts.join('.');
+                let parentName = parts.join('.');
+                if (parentName.endsWith('[]')) {
+                    parentName = parentName.substring(0, parentName.length - '[]'.length);
+                }
+
                 const parent = this.nodes[parentName];
 
                 if (!parent)
