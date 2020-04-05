@@ -718,9 +718,11 @@ export function createTypeLiteral(children: IPropDesc[], parent?: IPropDesc): ts
 
     let node: ts.TypeNode = ts.createTypeLiteralNode(members);
 
-    if (parent) {
+    if (parent)
+    {
         const names = parent.prop.type.names;
-        if (names.length === 1 && names[0].toLowerCase() === 'array.<object>') {
+        if (names.length === 1 && names[0].toLowerCase() === 'array.<object>')
+        {
             node = ts.createArrayTypeNode(node);
         }
     }

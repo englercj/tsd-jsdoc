@@ -57,7 +57,8 @@ export class PropTree
             {
                 parts.pop();
                 let parentName = parts.join('.');
-                if (parentName.endsWith('[]')) {
+                if (parentName.endsWith('[]'))
+                {
                     parentName = parentName.substring(0, parentName.length - '[]'.length);
                 }
 
