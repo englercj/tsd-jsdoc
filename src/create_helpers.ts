@@ -214,7 +214,7 @@ export function createClass(doclet: IClassDoclet, children?: ts.Node[]): ts.Clas
         {
             const node = tree.roots[i];
             const opt = node.prop.optional ? ts.createToken(ts.SyntaxKind.QuestionToken) : undefined;
-            const t = node.children.length ? createTypeLiteral(node.children) : resolveType(node.prop.type);
+            const t = node.children.length ? createTypeLiteral(node.children, node) : resolveType(node.prop.type);
 
             const property = ts.createProperty(
                 undefined,
