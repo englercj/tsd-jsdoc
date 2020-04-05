@@ -2,6 +2,7 @@ import * as ts from 'typescript';
 import { Dictionary } from './Dictionary';
 import { warn } from './logger';
 import { assertNever } from './assert_never';
+import { isClassDoclet, isNamespaceDoclet, isEnumDoclet } from './doclet_utils';
 import {
     createClass,
     createFunction,
@@ -24,26 +25,11 @@ interface IDocletTreeNode
     isNested?: boolean;
 }
 
-function isClassLike(doclet: TDoclet)
-{
-    return doclet.kind === 'class' || doclet.kind === 'interface' || doclet.kind === 'mixin';
-}
-
-function isModuleLike(doclet: TDoclet)
-{
-    return doclet.kind === 'module' || doclet.kind === 'namespace';
-}
-
-function isEnum(doclet: TDoclet)
-{
-    return (doclet.kind === 'member' || doclet.kind === 'constant') && doclet.isEnum;
-}
-
 function shouldMoveOutOfClass(doclet: TDoclet)
 {
-    return isClassLike(doclet)
-        || isModuleLike(doclet)
-        || isEnum(doclet)
+    return isClassDoclet(doclet)
+        || isNamespaceDoclet(doclet)
+        || isEnumDoclet(doclet)
         || doclet.kind === 'typedef';
 }
 
@@ -193,7 +179,7 @@ export class Emitter
                     continue;
                 }
 
-                const isParentClassLike = isClassLike(parent.doclet);
+                const isParentClassLike = isClassDoclet(parent.doclet);
 
                 // We need to move this into a module of the same name as the parent
                 if (isParentClassLike && shouldMoveOutOfClass(doclet))
@@ -209,13 +195,13 @@ export class Emitter
                 }
                 else
                 {
-                    const isObjModuleLike = isModuleLike(doclet);
-                    const isParentModuleLike = isModuleLike(parent.doclet);
+                    const isObjModuleLike = isNamespaceDoclet(doclet);
+                    const isParentModuleLike = isNamespaceDoclet(parent.doclet);
 
                     if (isObjModuleLike && isParentModuleLike)
                         obj.isNested = true;
 
-                    const isParentEnum = isEnum(parent.doclet);
+                    const isParentEnum = isEnumDoclet(parent.doclet);
 
                     if (!isParentEnum)
                     {

@@ -1,5 +1,7 @@
 import * as ts from 'typescript';
 import { warn } from './logger';
+import { isClassDoclet, isEnumDoclet, isFileDoclet, isEventDoclet, isFunctionDoclet, isTypedefDoclet } from './doclet_utils';
+import { PropTree } from "./PropTree";
 import {
     createFunctionParams,
     createFunctionReturnType,
@@ -9,13 +11,12 @@ import {
     resolveTypeParameters,
     resolveOptionalFromName
 } from './type_resolve_helpers';
-import { PropTree } from "./PropTree";
 
 const declareModifier = ts.createModifier(ts.SyntaxKind.DeclareKeyword);
 const constModifier = ts.createModifier(ts.SyntaxKind.ConstKeyword);
 const readonlyModifier = ts.createModifier(ts.SyntaxKind.ReadonlyKeyword);
 
-function validateClassLikeChildren(children: ts.Node[] | undefined, validate: (n: ts.Node) => boolean, msg: string)
+function validateClassLikeChildren(children: ts.Node[] | undefined, validate: (n: ts.Node) => boolean, msg: string): void
 {
     // Validate that the children array actually contains type elements.
     // This should never trigger, but is here for safety.
@@ -33,17 +34,17 @@ function validateClassLikeChildren(children: ts.Node[] | undefined, validate: (n
     }
 }
 
-function validateClassChildren(children: ts.Node[] | undefined)
+function validateClassChildren(children: ts.Node[] | undefined): void
 {
-    return validateClassLikeChildren(children, ts.isClassElement, 'ClassElement');
+    validateClassLikeChildren(children, ts.isClassElement, 'ClassElement');
 }
 
-function validateInterfaceChildren(children: ts.Node[] | undefined)
+function validateInterfaceChildren(children: ts.Node[] | undefined): void
 {
-    return validateClassLikeChildren(children, ts.isTypeElement, 'TypeElement');
+    validateClassLikeChildren(children, ts.isTypeElement, 'TypeElement');
 }
 
-function validateModuleChildren(children?: ts.Node[])
+function validateModuleChildren(children?: ts.Node[]): void
 {
     // Validate that the children array actually contains declaration elements.
     // This should never trigger, but is here for safety.
@@ -101,23 +102,24 @@ function handlePropsComment(props: IDocletProp[], jsdocTagName: String): string
     }).filter((value) => value !== '').join('')
 }
 
-function handleReturnsComment(doclet: IDocletBase): string
+function handleReturnsComment(doclet: TDoclet): string
 {
-    if ('returns' in doclet)
+    if (isFunctionDoclet(doclet) && doclet.returns)
     {
-        return (doclet['returns'] as IDocletReturn[]).map((ret) =>
+        return doclet.returns.map((ret) =>
         {
             if (ret.description)
-            {
                 return `\n * @returns ${formatMultilineComment(ret.description)}`;
-            }
+
             return '';
-        }).filter((value) => value !== '').join('');
+        })
+        .filter((value) => value !== '').join('');
     }
-    return ''
+
+    return '';
 }
 
-function handleExamplesComment(doclet: IDocletBase): string
+function handleExamplesComment(doclet: TDoclet): string
 {
     if (doclet.examples !== undefined)
     {
@@ -125,30 +127,39 @@ function handleExamplesComment(doclet: IDocletBase): string
         {
             return `\n * @example
  * ${formatMultilineComment(example)}`;
-        }).join('');
+        })
+        .join('');
     }
+
     return '';
 }
 
-function handleParamsComment(doclet: IDocletBase): string
+function handleParamsComment(doclet: TDoclet): string
 {
-    if ('params' in doclet)
+    if ((isClassDoclet(doclet)
+        || isFileDoclet(doclet)
+        || isEventDoclet(doclet)
+        || isFunctionDoclet(doclet)
+        || isTypedefDoclet(doclet))
+        && doclet.params)
     {
-        return handlePropsComment((doclet['params'] as IDocletProp[]), 'param');
+        return handlePropsComment(doclet.params, 'param');
     }
+
     return ''
 }
 
-function handlePropertiesComment(doclet: IDocletBase): string
+function handlePropertiesComment(doclet: TDoclet): string
 {
-    if (doclet.properties && (!('isEnum' in doclet) || (doclet['isEnum'] === false)))
+    if (!isEnumDoclet(doclet) && doclet.properties)
     {
         return handlePropsComment(doclet.properties, 'property');
     }
+
     return ''
 }
 
-function handleComment<T extends ts.Node>(doclet: IDocletBase, node: T): T
+function handleComment<T extends ts.Node>(doclet: TDoclet, node: T): T
 {
     if (doclet.comment && doclet.comment.length > 4)
     {
@@ -157,14 +168,39 @@ function handleComment<T extends ts.Node>(doclet: IDocletBase, node: T): T
         {
             description = `\n * ${formatMultilineComment(doclet.description)}`;
         }
-        else if ('classdesc' in doclet)
+        else if (isClassDoclet(doclet) && doclet.classdesc)
         {
-            description = `\n * ${formatMultilineComment((doclet['classdesc'] as string))}`;
+            description = `\n * ${formatMultilineComment(doclet.classdesc)}`;
         }
+
         const examples = handleExamplesComment(doclet);
         const properties = handlePropertiesComment(doclet);
         const params = handleParamsComment(doclet);
         const returns = handleReturnsComment(doclet);
+
+        if (isEnumDoclet(doclet))
+        {
+            if (!ts.isEnumDeclaration(node))
+            {
+                warn(`Node is not an enum declaration, even though the doclet is. This is likely a tsd-jsdoc bug.`);
+                return node;
+            }
+
+            if (doclet.properties)
+            {
+                const enumProperties = doclet.properties;
+                const enumMembers = node.members;
+
+                for (let index = 0; index < enumProperties.length; index++)
+                {
+                    const enumProperty = enumProperties[index];
+                    const enumMember = enumMembers[index];
+
+                    // TODO: Remove this type assertion.
+                    handleComment(enumProperty as IMemberDoclet, enumMember);
+                }
+            }
+        }
 
         if (description || examples || properties || params || returns)
         {
