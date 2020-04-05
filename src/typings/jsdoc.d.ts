@@ -77,7 +77,7 @@ declare interface IDocletBase {
     memberof?: string;
     see?: string;
     access?: ('public' | 'private' | 'protected');
-    examples?: string;
+    examples?: string[];
     deprecated?: string;
     defaultvalue?: string;
     comment?: string;

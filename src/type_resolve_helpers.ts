@@ -721,11 +721,7 @@ export function createTypeLiteral(nodes: IPropDesc[]): ts.TypeLiteralNode
 
 export function createFunctionParams(doclet: IFunctionDoclet | ITypedefDoclet | IClassDoclet): ts.ParameterDeclaration[]
 {
-    if (!doclet.params || !doclet.params.length)
-        return [];
-
     const params: ts.ParameterDeclaration[] = [];
-    const tree = new PropTree(doclet.params);
 
     if ((doclet.kind === 'function' || doclet.kind === 'typedef') && doclet.this)
     {
@@ -742,6 +738,10 @@ export function createFunctionParams(doclet: IFunctionDoclet | ITypedefDoclet | 
         ));
     }
 
+    if (!doclet.params || !doclet.params.length)
+        return params;
+
+    const tree = new PropTree(doclet.params);
     for (let i = 0; i < tree.roots.length; ++i)
     {
         const node = tree.roots[i];

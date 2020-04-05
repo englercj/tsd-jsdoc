@@ -1,20 +1,11 @@
-/**
- * @class
- */
 declare class dummy1 {
     constructor();
 }
 
-/**
- * @class
- */
 declare class dummy2 {
     constructor();
 }
 
-/**
- * @class
- */
 declare class dummy3 {
     constructor();
 }
