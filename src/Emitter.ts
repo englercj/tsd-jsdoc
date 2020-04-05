@@ -51,6 +51,7 @@ export class Emitter
 {
     results: ts.Node[] = [];
 
+    private _customtsd: string = '';
     private _treeRoots: IDocletTreeNode[] = [];
     private _treeNodes: Dictionary<IDocletTreeNode> = {};
 
@@ -68,6 +69,7 @@ export class Emitter
         if (!docs)
             return;
 
+        this._collectCustomTSD(docs);
         this._createTreeNodes(docs);
         this._buildTree(docs);
         this._parseTree();
@@ -95,7 +97,25 @@ export class Emitter
             out2 += '\n\n';
         }
 
+        if (this._customtsd) {
+            out2 += this._customtsd;
+            out2 += '\n\n';
+        }
+
         return out2;
+    }
+
+    private _collectCustomTSD(docs: TAnyDoclet[])
+    {
+        for (let i = 0; i < docs.length; ++i)
+        {
+            const doclet = docs[i];
+            if (doclet.kind === 'customtsd' && doclet.tags)
+            {
+                const value = doclet.tags.map(tag => tag.value).join('\n');
+                this._customtsd += value + '\n\n';
+            }
+        }
     }
 
     private _createTreeNodes(docs: TAnyDoclet[])
@@ -316,6 +336,9 @@ export class Emitter
             case 'event':
                 // TODO: Handle Events.
                 return null;
+
+            case 'customtsd':
+                return null; // Ignore, already collected
 
             default:
                 return assertNever(node.doclet);
