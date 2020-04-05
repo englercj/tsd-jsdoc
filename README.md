@@ -34,7 +34,7 @@ Or add this to your JSON configuration:
 }
 ```
 
-To support `@template` and `@customtsd` you also need to specify it as a plugin, like so:
+If you want to use custom jsdoc tag `@customtsd`, you also need to specify this module as a plugin, like so:
 
 ```json
 {
@@ -113,5 +113,4 @@ list of the tags from CC that are supported in this template:
 JSDoc doesn't have a way to express all the features of typescript so we treat some syntax as special case to
 create better Typescript.
 
-- `Class<T>` - If we encounter a type that is `Class<T>`, we will treat it as `typeof T`. See [jsdoc3/jsdoc#1349](https://github.com/jsdoc3/jsdoc/issues/1349)
-- `@customtsd` - If we encounter the custom jsdoc tag `@customtsd`, we will treat like `@example`, collect all the code, and emit it as-is at the end of the output file
+- `Class<T>` - If we encounter a type that is `Class<T>` we will treat it as `typeof T`. See [jsdoc3/jsdoc#1349](https://github.com/jsdoc3/jsdoc/issues/1349)
