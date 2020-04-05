@@ -1,7 +1,9 @@
 
-/**
- * @param {*} dictionary - The dictionary object for defining custom tags.
- */
 export function defineTags(dictionary: ITagDictionary) {
-    // define tags here
+    dictionary.defineTag("template", {
+        onTagged: function(doclet, tag) {
+            doclet.tags = doclet.tags || [];
+            doclet.tags.push(tag);
+        }
+    });
 };
