@@ -1,7 +1,7 @@
 import { expectJsDoc } from '../lib';
 
-suite('Namespace Checks', () => {
+suite('Custom TSD Checks', () => {
     test('All', () => {
-        expectJsDoc('namespace_all');
+        expectJsDoc('customtsd_all');
     });
 });
