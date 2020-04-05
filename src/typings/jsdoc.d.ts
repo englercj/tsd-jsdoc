@@ -143,6 +143,10 @@ declare interface ITypedefDoclet extends IDocletBase {
     returns?: IDocletReturn[];
 }
 
+declare interface ICustomTSDDoclet extends IDocletBase {
+    kind: 'customtsd';
+}
+
 declare interface IPackageDoclet {
     kind: 'package';
     longname: string;
@@ -158,6 +162,7 @@ declare type TDoclet = (
     | IMemberDoclet
     | INamespaceDoclet
     | ITypedefDoclet
+    | ICustomTSDDoclet
 );
 
 declare type TAnyDoclet = TDoclet | IPackageDoclet;
