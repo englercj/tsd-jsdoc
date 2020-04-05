@@ -161,3 +161,32 @@ declare type TDoclet = (
 );
 
 declare type TAnyDoclet = TDoclet | IPackageDoclet;
+
+declare interface ITagDictionary {
+    defineTag(title: string, opts: ITagDefinitionOptions): ITagDefinition;
+    defineSynonym(title: string, synonym: string): void;
+    getNamespaces(): string[];
+    lookUp(title: string): ITagDefinition | boolean;
+    isNamespace(kind: string): boolean;
+    normalise(title: string): string;
+    normalize(title: string): string;
+}
+
+declare interface ITagDefinitionOptions {
+    isNamespace?: boolean;
+    mustNotHaveValue?: boolean;
+    mustHaveValue?: boolean;
+    canHaveType?: boolean;
+    canHaveName?: boolean;
+    synonyms?: string[];
+    keepsWhitespace?: boolean;
+    removesIndent?: boolean;
+
+    onTagText?: (text: string) => string;
+    onTagged: (doclet: TDoclet, tag: IDocletTag) => void;
+}
+
+declare interface ITagDefinition extends ITagDefinitionOptions {
+    title: string;
+    synonym(synonymName: string): ITagDefinition;
+}

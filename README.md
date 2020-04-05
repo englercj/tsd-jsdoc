@@ -34,6 +34,17 @@ Or add this to your JSON configuration:
 }
 ```
 
+If you want to use jsdoc/closure tag `@template`, you also need to specify this module as a plugin, like so:
+
+```json
+{
+    "plugins": [ "./node_modules/tsd-jsdoc/dist/plugin" ],
+    "opts": {
+        "template": "./node_modules/tsd-jsdoc/dist"
+    }
+}
+```
+
 ## Validation
 
 This library provides very little validation beyond what JSDoc provides. Meaning if you
