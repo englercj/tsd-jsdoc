@@ -9,7 +9,7 @@ declare namespace FoobarNS {
          * @param [opt_this = 10] - An object.
          * @param [opt_2 = 10] - An object.
          */
-        f<S>(f: FoobarNS.Foo.FCallback, opt_this?: any, opt_2?: number[] | {
+        f<S>(f: FoobarNS.Foo.FCallback, opt_this?: number, opt_2?: number[] | {
             [key: number]: string[];
         }): void;
     }
