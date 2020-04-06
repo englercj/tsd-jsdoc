@@ -13,7 +13,7 @@
     "build": "tsc -p tsconfig.json",
     "watch": "tsc -w -p tsconfig.json",
     "prepare": "npm run build",
-    "test": "mocha --ui tdd -r ts-node/register test/specs/**.ts"
+    "test": "npm run build && mocha --ui tdd -r ts-node/register test/specs/**.ts"
   },
   "files": [
     "dist/*",

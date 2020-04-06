@@ -34,7 +34,7 @@ Or add this to your JSON configuration:
 }
 ```
 
-If you want to use custom jsdoc tag `@customtsd`, you also need to specify this module as a plugin, like so:
+If you want to use jsdoc/closure tag `@template` and custom jsdoc tag `@customtsd`, you also need to specify this module as a plugin, like so:
 
 ```json
 {

@@ -74,3 +74,14 @@ var PropTest6 = function() {
      */
     this.myProp = true;
 }
+
+/**
+ * @constructor
+ * @property {object[]} myProps
+ * @property {number} myProps[].foo
+ * @property {boolean} myProps[].bar
+ * @property {string} myProps[].test1
+ * @property {string[]} [myProps[].test2]
+ */
+var PropTest7 = function() {
+}

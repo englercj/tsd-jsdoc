@@ -54,3 +54,13 @@ declare class PropTest6 {
     myProp: boolean;
     myProp: boolean;
 }
+
+declare class PropTest7 {
+    constructor();
+    myProps: {
+        foo: number;
+        bar: boolean;
+        test1: string;
+        test2?: string[];
+    }[];
+}
