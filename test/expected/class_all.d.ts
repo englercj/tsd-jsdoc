@@ -8,6 +8,16 @@ declare class Stuff {
     doStuff(): void;
 }
 
+declare class BaseClass {
+    baseFunc(): void;
+    baseFuncOverridden(): void;
+}
+
+declare class DerivedClass extends BaseClass {
+    derivedFunc(): void;
+    baseFuncOverridden(): void;
+}
+
 declare class Things {
     doThings(): void;
     foobar1?(): void;

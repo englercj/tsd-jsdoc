@@ -13,8 +13,8 @@ export function publish(data: TDocletDb, opts: ITemplateConfig)
     // remove undocumented stuff.
     data({ undocumented: true }).remove();
 
-    // get the doc list
-    const docs = data().get();
+    // get the doc list and filter out inherited non-overridden members
+    const docs = data().get().filter(d => !d.inherited || d.overrides);
 
     setVerbose(!!opts.verbose);
 

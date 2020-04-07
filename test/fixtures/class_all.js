@@ -30,6 +30,34 @@ class Stuff {
 /**
  *
  */
+class BaseClass {
+    /**
+     *
+     */
+    baseFunc() {}
+    /**
+     *
+     */
+    baseFuncOverridden() {}
+}
+
+/**
+ * @extends BaseClass
+ */
+class DerivedClass extends BaseClass {
+    /**
+     *
+     */
+    derivedFunc() {}
+    /**
+     *
+     */
+    baseFuncOverridden() {}
+}
+
+/**
+ *
+ */
 class Things {
     /**
      *

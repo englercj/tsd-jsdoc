@@ -88,6 +88,8 @@ declare interface IDocletBase {
     inherits?: string;
     inherited?: boolean;
     optional?: boolean;
+    override?: boolean;
+    overrides?: string;
 }
 
 /**
