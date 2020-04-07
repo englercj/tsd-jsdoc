@@ -1,10 +1,7 @@
-// tslint:disable-next-line
-/// <reference path="../typings/jsdoc-api.d.ts" />
-
 import * as fs from 'fs';
 import * as path from 'path';
-import * as jsdocApi from 'jsdoc-api';
 import { expect } from 'chai';
+import { renderSync } from './render';
 
 const DEST_DIR = path.resolve(path.join(__dirname, '../_temp'));
 const DATA_DIR = path.resolve(path.join(__dirname, '../fixtures'));
@@ -19,12 +16,12 @@ before(() => {
 });
 
 export function compileJsdoc(sourcePath: string) {
-    jsdocApi.renderSync({
+    renderSync({
         files: sourcePath,
         cache: false,
         destination: DEST_DIR,
         configure: CONFIG_PATH
-    } as any);
+    });
 }
 
 export function expectJsDoc(fileName: string) {
