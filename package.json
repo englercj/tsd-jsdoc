@@ -13,7 +13,7 @@
     "build": "tsc -p tsconfig.json",
     "watch": "tsc -w -p tsconfig.json",
     "prepare": "npm run build",
-    "test": "mocha --ui tdd -r ts-node/register --timeout 5000 test/specs/**.ts"
+    "test": "mocha --ui tdd -r ts-node/register --timeout 5000 --colors test/specs/**.ts"
   },
   "files": [
     "dist/*",

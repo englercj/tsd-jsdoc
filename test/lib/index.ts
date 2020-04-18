@@ -6,9 +6,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as jsdocApi from 'jsdoc-api';
 import { expect } from 'chai';
-// See: [stackoverflow.com](https://stackoverflow.com/questions/39109027/write-a-declaration-file-for-a-default-export-module)
-//      [TypeScript#2242](https://github.com/Microsoft/TypeScript/issues/2242)
-import walkBack  = require('walk-back');
+// See: https://github.com/Alexis-ROYER/tsd-default-export/blob/master/README.md
+// Use ES6 default import.
+import walkBack from 'walk-back';
 
 // jsdoc-api may actually work with a jsdoc instance installed in its own `node_modules` subdirectory.
 // Use the same kind of 'walk-back' call as jsdoc-api does in order to find the jsdoc instance actually used.
