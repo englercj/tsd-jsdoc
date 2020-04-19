@@ -81,7 +81,7 @@ declare interface IDocletBase {
     memberof?: string;
     see?: string;
     access?: ('public' | 'private' | 'protected' | 'package');
-    examples?: string;
+    examples?: string[];
     deprecated?: string;
     defaultvalue?: string;
     comment?: string;
@@ -93,6 +93,7 @@ declare interface IDocletBase {
     inherited?: boolean;
     optional?: boolean;
     override?: boolean;
+    overrides?: string;
 }
 
 /**
@@ -162,8 +163,8 @@ declare interface IPackageDoclet {
 
 declare type TDoclet = (
     IClassDoclet
-    | IEventDoclet
     | IFileDoclet
+    | IEventDoclet
     | IFunctionDoclet
     | IMemberDoclet
     | INamespaceDoclet
@@ -171,3 +172,32 @@ declare type TDoclet = (
 );
 
 declare type TAnyDoclet = TDoclet | IPackageDoclet;
+
+declare interface ITagDictionary {
+    defineTag(title: string, opts: ITagDefinitionOptions): ITagDefinition;
+    defineSynonym(title: string, synonym: string): void;
+    getNamespaces(): string[];
+    lookUp(title: string): ITagDefinition | boolean;
+    isNamespace(kind: string): boolean;
+    normalise(title: string): string;
+    normalize(title: string): string;
+}
+
+declare interface ITagDefinitionOptions {
+    isNamespace?: boolean;
+    mustNotHaveValue?: boolean;
+    mustHaveValue?: boolean;
+    canHaveType?: boolean;
+    canHaveName?: boolean;
+    synonyms?: string[];
+    keepsWhitespace?: boolean;
+    removesIndent?: boolean;
+
+    onTagText?: (text: string) => string;
+    onTagged: (doclet: TDoclet, tag: IDocletTag) => void;
+}
+
+declare interface ITagDefinition extends ITagDefinitionOptions {
+    title: string;
+    synonym(synonymName: string): ITagDefinition;
+}

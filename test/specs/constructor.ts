@@ -1,5 +1,5 @@
 import { tsdJsdocTestCase } from '../lib';
 
 suite('Constructor Checks', () => {
-    tsdJsdocTestCase('All', 'constructors');
+    tsdJsdocTestCase('All', 'constructor_all');
 });

@@ -56,8 +56,8 @@ export function publish(data: TDocletDb, opts: ITemplateConfig)
             + `Feel free to contribute in case you find a bug.`);
     }
 
-    // get the doc list
-    const docs = data().get();
+    // get the doc list and filter out inherited non-overridden members
+    const docs = data().get().filter(d => !d.inherited || d.overrides);
 
     // create an emitter to parse the docs
     const emitter = new Emitter(opts);

@@ -76,6 +76,17 @@ var PropTest6 = function() {
     this.myProp = true;
 }
 
+/**
+ * @constructor
+ * @property {object[]} myProps
+ * @property {number} myProps[].foo
+ * @property {boolean} myProps[].bar
+ * @property {string} myProps[].test1
+ * @property {string[]} [myProps[].test2]
+ */
+var PropTest7 = function() {
+}
+
 module.exports = {
     PropTest1: PropTest1,
     PropTest2: PropTest2,
@@ -83,4 +94,5 @@ module.exports = {
     PropTest4: PropTest4,
     PropTest5: PropTest5,
     PropTest6: PropTest6,
+    PropTest7: PropTest7
 }

@@ -9,10 +9,13 @@
         "noImplicitAny": true,
         "removeComments": true,
         "sourceMap": true,
-        "strict": true
+        "strict": true,
+        "typeRoots": [
+            "./node_modules/@types",
+            "./src/typings"
+        ]
     },
     "include": [
-        "src/typings/**/*.d.ts",
         "src/**/*.ts"
     ]
 }

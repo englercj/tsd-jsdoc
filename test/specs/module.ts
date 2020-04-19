@@ -1,5 +1,5 @@
 import { tsdJsdocTestCase } from '../lib';
 
 suite('Module Checks', () => {
-    tsdJsdocTestCase('All', 'module');
+    tsdJsdocTestCase('All', 'module_all');
 });

@@ -1,14 +1,14 @@
 // tslint:disable-next-line
-/// <reference path="../typings/jsdoc-api.d.ts" />
 /// <reference path="../typings/walk-back.d.ts" />
 
 import * as fs from 'fs';
 import * as path from 'path';
-import * as jsdocApi from 'jsdoc-api';
 import { expect } from 'chai';
 // See: https://github.com/Alexis-ROYER/tsd-default-export/blob/master/README.md
 // Use ES6 default import.
 import walkBack from 'walk-back';
+import { JsdocApi } from './jsdoc-api';
+import { renderSync } from './render';
 
 // jsdoc-api may actually work with a jsdoc instance installed in its own `node_modules` subdirectory.
 // Use the same kind of 'walk-back' call as jsdoc-api does in order to find the jsdoc instance actually used.
@@ -21,8 +21,7 @@ const jsdocInfo = require(path.join(jsdocPath || '../../node_modules/jsdoc', 'pa
 const DEST_DIR = path.resolve(path.join(__dirname, '../_temp'));
 const DATA_DIR = path.resolve(path.join(__dirname, '../fixtures'));
 const EXPECT_DIR = path.resolve(path.join(__dirname, '../expected'));
-const README_PATH = path.resolve(path.join(__dirname, '../../README.md'));
-const TEMPLATE_PATH = path.resolve(path.join(__dirname, '../../dist'));
+const CONFIG_PATH = path.resolve(path.join(__dirname, '../../jsdoc-conf.json'));
 
 before(() => {
     // create the temp dir to store types in
@@ -34,7 +33,7 @@ before(() => {
 function compileJsdoc(sourcePath: string, generationStrategy: 'documented' | 'exported'): string {
     // Let's first export the jsdoc raw output in a file tagged with the jsdoc version,
     // in order to help investigations when somethings fails between jsdoc@3.5.x vs jsdoc@3.6.x.
-    const jsdocRawOutput = jsdocApi.explainSync({
+    const jsdocRawOutput = JsdocApi.explainSync({
         files: sourcePath,
         cache: false
     });
@@ -45,21 +44,20 @@ function compileJsdoc(sourcePath: string, generationStrategy: 'documented' | 'ex
     );
 
     // Create a jsdoc configuration file.
+    let jsdocConf = require(CONFIG_PATH);
+    if (! jsdocConf.opts)
+        jsdocConf.opts = {}
+    jsdocConf.opts.generationStrategyr = generationStrategy
     const confPath = path.join(DEST_DIR, path.basename(sourcePath).replace(".js", `-conf-${generationStrategy}.json`));
-    fs.writeFileSync(confPath, JSON.stringify({
-        opts: {
-            generationStrategy: generationStrategy
-        }
-    }));
+    fs.writeFileSync(confPath, JSON.stringify(jsdocConf));
+
     // Launch jsdoc with the tsd-jsdoc template.
-    jsdocApi.renderSync({
+    renderSync({
         files: sourcePath,
         cache: false,
         destination: DEST_DIR,
-        readme: README_PATH,
-        template: TEMPLATE_PATH,
         configure: confPath
-    } as any);
+    });
     // Rename the `types.d.ts` output file into a `<basepart>-jsdoc@<jsdoc-version>-<generation-strategy>.d.ts` file,
     // <basepart> being inspired from the `sourcePath` parameter.
     // The <jsdoc-version> tag in the file name helps investigations when something fails between jsdoc@3.5.x vs jsdoc@3.6.x.

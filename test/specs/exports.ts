@@ -1,6 +1,6 @@
 import { tsdJsdocTestCase } from '../lib';
 
-suite('Exports Checks', () => {
+suite('Default exports Checks', () => {
     class ExportTest {
         public readonly id: string;
         public readonly desc: string;

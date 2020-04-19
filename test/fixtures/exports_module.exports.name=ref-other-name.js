@@ -21,9 +21,9 @@ class _Bar extends _Foo {
 class _Baz {
 }
 
+// Hack: ignored for 'documented' generation strategy with a (re)named export, generated twice otherwise.
 /**
  * @extends _Baz
- * Hack: ignored for 'documented' generation strategy with a (re)named export, generated twice otherwise.
  * @ignore
  */
 class _Qux extends _Baz {
@@ -39,17 +39,17 @@ class _Qux extends _Baz {
     }
 }
 
+// Hack: ignored for 'documented' generation strategy with a (re)named export, generated twice otherwise.
 /**
  * @return {_Foo | null}
- * Hack: ignored for 'documented' generation strategy with a (re)named export, generated twice otherwise.
  * @ignore
  */
 function _foo() {
 	return null;
 }
 
+// Hack: ignored for 'documented' generation strategy with a (re)named export, generated twice otherwise.
 /**
- * Hack: ignored for 'documented' generation strategy with a (re)named export, generated twice otherwise.
  * @ignore
  */
 const _bar = 0;

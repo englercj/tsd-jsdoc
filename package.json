@@ -1,6 +1,6 @@
 {
   "name": "tsd-jsdoc",
-  "version": "2.4.0",
+  "version": "2.5.0",
   "description": "Compiles JSDoc annotated javascript into a Typescript Declaration File (.d.ts).",
   "main": "dist/publish.js",
   "author": "Chad Engler <chad@pantherdev.com>",
@@ -13,7 +13,7 @@
     "build": "tsc -p tsconfig.json",
     "watch": "tsc -w -p tsconfig.json",
     "prepare": "npm run build",
-    "test": "mocha --ui tdd -r ts-node/register --timeout 5000 --colors test/specs/**.ts"
+    "test": "npm run build && mocha --ui tdd -r ts-node/register --timeout 5000 --colors test/specs/**.ts"
   },
   "files": [
     "dist/*",
@@ -28,6 +28,7 @@
     "jsdoc": "^3.6.3",
     "jsdoc-api": "^5.0.3",
     "mocha": "^5.2.0",
+    "object-to-spawn-args": "^2.0.0",
     "ts-node": "^7.0.1",
     "walk-back": "^3.0.1"
   },

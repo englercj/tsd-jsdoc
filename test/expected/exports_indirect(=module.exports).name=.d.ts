@@ -1,21 +1,10 @@
-/** @module test-export-20190914010059
- */
 declare module "test-export-20190914010059" {
-    /**
-     *
-     */
     class _Foo {
         constructor();
     }
-    /**
-     *
-     */
     class _Bar extends _Foo {
         constructor();
     }
-    /**
-     *
-     */
     class _Baz {
         constructor();
     }

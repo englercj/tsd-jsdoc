@@ -1,9 +1,16 @@
-import * as fs from 'fs';
-import * as path from 'path';
 import * as ts from 'typescript';
 import { Dictionary } from './Dictionary';
 import { warn, debug, docletDebugInfo } from './logger';
 import { assertNever } from './assert_never';
+import {
+    isDocumentedDoclet,
+    isClassDoclet,
+    isNamespaceDoclet,
+    isEnumDoclet,
+    isDefaultExportDoclet,
+    isNamedExportDoclet,
+    isExportsAssignmentDoclet
+} from './doclet_utils';
 import {
     createClass,
     createClassMember,
@@ -22,7 +29,7 @@ import {
 } from './create_helpers';
 import { generateTree, StringTreeNode, resolveTypeParameters } from './type_resolve_helpers';
 
-interface IDocletTreeNode
+export interface IDocletTreeNode
 {
     doclet: TDoclet;
     children: IDocletTreeNode[];
@@ -42,150 +49,11 @@ interface IDocletTreeNode
     exportName?: string;
 }
 
-function isDocumented(doclet: TDoclet): boolean
-{
-    // Same predicate as in publish().
-    if (doclet.undocumented)
-        if (doclet.comment && (doclet.comment.length > 0))
-            return true;
-        else
-            return false;
-    else
-        return true;
-}
-
-function isClassLike(doclet: TDoclet): boolean
-{
-    return doclet.kind === 'class' || doclet.kind === 'interface' || doclet.kind === 'mixin';
-}
-
-function isModuleLike(doclet: TDoclet): boolean
-{
-    return doclet.kind === 'module' || doclet.kind === 'namespace';
-}
-
-function isEnum(doclet: TDoclet): boolean
-{
-    return !!(
-        (doclet.kind === 'member' || doclet.kind === 'constant')
-        && doclet.isEnum
-    );
-}
-
-function isDefaultExport(doclet: TDoclet, treeNodes: Dictionary<IDocletTreeNode>): boolean
-{
-    if ((doclet.kind !== 'module')
-        && doclet.meta && (doclet.meta.code.name === 'module.exports')
-        && doclet.longname.startsWith('module:'))
-    {
-        // Jsdoc does not set the memberof attribute for default exports (we shall fix that actually).
-        // By default, the longname of the default export doclet is the longname of the member module.
-        const moduleName = doclet.memberof ? doclet.memberof : doclet.longname;
-        // Let's check the longname corresponds to an existing module in the current tree nodes.
-        const node = treeNodes[moduleName];
-        if (node && (node.doclet.kind === 'module'))
-        {
-            // This is a default export doclet.
-
-            // Let's fix a couple of missing things (if not already fixed) at this point.
-            if (! doclet.memberof)
-            {
-                doclet.memberof = node.doclet.longname;
-                debug(`isDefaultExport(): ${docletDebugInfo(doclet)}.memberof fixed to '${doclet.memberof}'`);
-            }
-
-            if (! doclet.meta.code.value)
-            {
-                // When the default export value is not given in the `meta.code.value` attribute,
-                // let's read it directly from the source file.
-                const sourcePath : string = path.join(doclet.meta.path, doclet.meta.filename);
-                const fd = fs.openSync(sourcePath, 'r');
-                if (fd < 0)
-                {
-                    warn(`Could not read from '${sourcePath}'`);
-                    return true;
-                }
-                const begin = doclet.meta.range[0];
-                const end = doclet.meta.range[1];
-                const length = end - begin;
-                const buffer = Buffer.alloc(length);
-                if (fs.readSync(fd, buffer, 0, length, begin) !== length)
-                {
-                    warn(`Could not read from '${sourcePath}'`);
-                    return true;
-                }
-                doclet.meta.code.value = buffer.toString().trim();
-                if (doclet.meta.code.value.endsWith(";"))
-                    doclet.meta.code.value = doclet.meta.code.value.slice(0, -1).trimRight();
-                if (doclet.meta.code.value.match(/^export +default +/))
-                    doclet.meta.code.value = doclet.meta.code.value.replace(/^export +default +/, "");
-                debug(`isDefaultExport(): ${docletDebugInfo(doclet)}.meta.code.value fixed to '${doclet.meta.code.value}'`);
-            }
-
-            return true;
-        }
-    }
-    return false;
-}
-
-function isNamedExport(doclet: TDoclet, treeNodes: Dictionary<IDocletTreeNode>): boolean
-{
-    // First of all, check whether the `.isNamedExport` flag is set.
-    const node = treeNodes[doclet.longname];
-    if (node && node.isNamedExport)
-    {
-        return true;
-    }
-
-    // Otherwise, analyze the doclet info.
-    if ((doclet.kind !== 'module')
-        && doclet.meta && doclet.meta.code.name
-        && (doclet.meta.code.name.startsWith('module.exports.') || doclet.meta.code.name.startsWith('exports.'))
-        && doclet.longname.startsWith('module:')
-        && doclet.memberof) // <= memberof is set by jsdoc for named exports.
-    {
-        // Let's check the parent node is a module.
-        const parent = treeNodes[doclet.memberof];
-        if (parent && (parent.doclet.kind === 'module'))
-        {
-            // Set the `.isNamedExport` attribute by the way.
-            // This ensures the doclet will still be recognized as a named export, even though its name is changed (in create_helpers.ts possibly).
-            if (node)
-            {
-                node.isNamedExport = true;
-            }
-
-            return true;
-        }
-    }
-    return false;
-}
-
-/**
- * Determines whether the given doclet is a 'exports =' assignment.
- * In that case, the doclet longname takes the module's one,
- * disturbing by the way the processing of the doclets.
- */
-function isExportsAssignment(doclet: TDoclet, treeNodes: Dictionary<IDocletTreeNode>): boolean
-{
-    if ((doclet.kind === 'member')
-        && doclet.meta && doclet.meta.code.name && (doclet.meta.code.name === 'exports')
-        && doclet.longname.startsWith('module:')
-        && doclet.memberof) // <= memberof is set by jsdoc for named exports.
-    {
-        // Let's check the memberof node is a module.
-        const node = treeNodes[doclet.memberof];
-        if (node && (node.doclet.kind === 'module'))
-            return true;
-    }
-    return false;
-}
-
 function shouldMoveOutOfClass(doclet: TDoclet): boolean
 {
-    return isClassLike(doclet)
-        || isModuleLike(doclet)
-        || isEnum(doclet)
+    return isClassDoclet(doclet)
+        || isNamespaceDoclet(doclet)
+        || isEnumDoclet(doclet)
         || doclet.kind === 'typedef';
 }
 
@@ -409,15 +277,15 @@ export class Emitter
                 }
             }
 
-            // Call isDefaultExport() a first time here, in order to fix the `.memberof` attribute if not set.
-            isDefaultExport(doclet, this._treeNodes);
+            // Call isDefaultExportDoclet() a first time here, in order to fix the `.memberof` attribute if not set.
+            isDefaultExportDoclet(doclet, this._treeNodes);
 
             if (doclet.memberof)
             {
                 const parent = this._getNodeFromLongname(doclet.memberof, function(node: IDocletTreeNode) {
                     // When the scope of the doclet is 'instance', look for something that is a class or so.
                     if (doclet.scope === 'instance')
-                        return isClassLike(node.doclet);
+                        return isClassDoclet(node.doclet);
                     return true;
                 });
                 if (!parent)
@@ -426,7 +294,7 @@ export class Emitter
                     continue nextDoclet;
                 }
 
-                if (isDefaultExport(doclet, this._treeNodes))
+                if (isDefaultExportDoclet(doclet, this._treeNodes))
                 {
                     if (doclet.meta && doclet.meta.code.value && doclet.meta.code.value.startsWith('{'))
                     {
@@ -451,7 +319,7 @@ export class Emitter
                         // Export doclets may be twiced, escpecially in case of inline or lambda definitions.
                         // Scan the parent module's children in order to avoid the addition of two doclets for the same default export purpose.
                         const thisEmitter = this;
-                        if (this._checkDuplicateChild(doclet, parent, (child: IDocletTreeNode) => isDefaultExport(child.doclet, thisEmitter._treeNodes)))
+                        if (this._checkDuplicateChild(doclet, parent, (child: IDocletTreeNode) => isDefaultExportDoclet(child.doclet, thisEmitter._treeNodes)))
                             continue nextDoclet;
                         // No default export doclet yet in the parent module.
                         debug(`Emitter._buildTree(): adding default export ${docletDebugInfo(doclet)} to module ${docletDebugInfo(parent.doclet)}`);
@@ -461,7 +329,7 @@ export class Emitter
                         continue nextDoclet;
                     }
                 }
-                if (isExportsAssignment(doclet, this._treeNodes))
+                if (isExportsAssignmentDoclet(doclet, this._treeNodes))
                 {
                     debug(`Emitter._buildTree(): adding 'exports =' assignment ${docletDebugInfo(doclet)} to module ${docletDebugInfo(parent.doclet)}`);
                     // The longname of 'exports =' assignment doclets is the same as the one of the parent module itself.
@@ -477,7 +345,7 @@ export class Emitter
                     continue nextDoclet;
                 }
 
-                const isParentClassLike = isClassLike(parent.doclet);
+                const isParentClassLike = isClassDoclet(parent.doclet);
 
                 // We need to move this into a module of the same name as the parent
                 if (isParentClassLike && shouldMoveOutOfClass(doclet))
@@ -518,8 +386,8 @@ export class Emitter
                     ))
                         continue nextDoclet;
 
-                    const isObjModuleLike = isModuleLike(doclet);
-                    const isParentModuleLike = isModuleLike(parent.doclet);
+                    const isObjModuleLike = isNamespaceDoclet(doclet);
+                    const isParentModuleLike = isNamespaceDoclet(parent.doclet);
 
                     if (isObjModuleLike && isParentModuleLike)
                     {
@@ -527,7 +395,7 @@ export class Emitter
                         obj.isNested = true;
                     }
 
-                    const isParentEnum = isEnum(parent.doclet);
+                    const isParentEnum = isEnumDoclet(parent.doclet);
 
                     if (!isParentEnum)
                     {
@@ -590,7 +458,7 @@ export class Emitter
         {
             if (match(child))
             {
-                if (! isDocumented(doclet))
+                if (! isDocumentedDoclet(doclet))
                 {
                     // Do not add the undocumented doclet to the parent twice.
                     debug(`Emitter._checkConcurrentChild(): skipping undocumented ${docletDebugInfo(doclet)} because ${docletDebugInfo(child.doclet)} is already known in parent ${docletDebugInfo(parent.doclet)}`);
@@ -695,16 +563,16 @@ export class Emitter
             // IMemberDoclet:
             case 'member':
             case 'constant':
-                if (isDefaultExport(node.doclet, this._treeNodes))
+                if (isDefaultExportDoclet(node.doclet, this._treeNodes))
                 {
                     if (node.doclet.meta && node.doclet.meta.code.value)
                     {
                         this._resolveDocletType(node.doclet.meta.code.value, node, this._markExportedNode);
                     }
                 }
-                else if (isNamedExport(node.doclet, this._treeNodes)
+                else if (isNamedExportDoclet(node.doclet, this._treeNodes)
                          && node.doclet.meta && node.doclet.meta.code.value
-                         && (! isEnum(node.doclet)))
+                         && (! isEnumDoclet(node.doclet)))
                 {
                     const thisEmitter = this;
                     this._resolveDocletType(node.doclet.meta.code.value, node, function (refNode: IDocletTreeNode) {
@@ -729,8 +597,8 @@ export class Emitter
                 // Search for export doclets in the module.
                 for (const child of node.children)
                 {
-                    if (isDefaultExport(child.doclet, this._treeNodes)
-                        || isNamedExport(child.doclet, this._treeNodes))
+                    if (isDefaultExportDoclet(child.doclet, this._treeNodes)
+                        || isNamedExportDoclet(child.doclet, this._treeNodes))
                     {
                         this._markExportedNode(child);
                     }
@@ -841,14 +709,14 @@ export class Emitter
 
             case 'constant':
             case 'member':
-                if (isDefaultExport(node.doclet, this._treeNodes)
+                if (isDefaultExportDoclet(node.doclet, this._treeNodes)
                     && (node.doclet.meta && node.doclet.meta.code.value))
                 {
                     return createExportDefault(node.doclet, node.doclet.meta.code.value);
                 }
-                if (isNamedExport(node.doclet, this._treeNodes)
+                if (isNamedExportDoclet(node.doclet, this._treeNodes)
                     && node.doclet.meta && node.doclet.meta.code.value
-                    && (! isEnum(node.doclet)))
+                    && (! isEnumDoclet(node.doclet)))
                 {
                     if (node.doclet.meta.code.value !== node.doclet.name)
                     {
@@ -875,7 +743,7 @@ export class Emitter
                         return null;
                     }
                 }
-                if (isExportsAssignment(node.doclet, this._treeNodes))
+                if (isExportsAssignmentDoclet(node.doclet, this._treeNodes))
                 {
                     // Nothing to do.
                     debug(`Emitter._parseTreeNode(): skipping 'exports =' assignment`);

@@ -21,6 +21,17 @@ function test2(x, y, z, w) {
 }
 
 /**
+ * @function
+ * @param {object[]} myObjs
+ * @param {number} myObjs[].foo
+ * @param {boolean} myObjs[].bar
+ * @param {string} myObjs[].test1
+ * @param {string[]} [myObjs[].test2]
+ */
+function test3(myObjs) {
+}
+
+/**
  * @class
  */
 class Test12345 {

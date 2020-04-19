@@ -9,8 +9,8 @@ class _NotExported {
 function _foo() {
 }
 
+// Hack: ignored for 'documented' generation strategy with a (re)named export, generated twice otherwise.
 /**
- * Hack: ignored for 'documented' generation strategy with a (re)named export, generated twice otherwise.
  * @ignore
  */
 const _bar = 0;

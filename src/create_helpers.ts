@@ -1,5 +1,7 @@
 import * as ts from 'typescript';
 import { warn, debug, docletDebugInfo } from './logger';
+import { isClassDoclet, isEnumDoclet, isFileDoclet, isEventDoclet, isFunctionDoclet, isTypedefDoclet } from './doclet_utils';
+import { PropTree } from "./PropTree";
 import {
     createFunctionParams,
     createFunctionReturnType,
@@ -9,7 +11,6 @@ import {
     resolveTypeParameters,
     resolveOptionalFromName
 } from './type_resolve_helpers';
-import { PropTree } from "./PropTree";
 
 const declareModifier = ts.createModifier(ts.SyntaxKind.DeclareKeyword);
 const constModifier = ts.createModifier(ts.SyntaxKind.ConstKeyword);
@@ -17,7 +18,7 @@ const readonlyModifier = ts.createModifier(ts.SyntaxKind.ReadonlyKeyword);
 const exportModifier = ts.createModifier(ts.SyntaxKind.ExportKeyword);
 const defaultModifier = ts.createModifier(ts.SyntaxKind.DefaultKeyword);
 
-function validateClassLikeChildren(children: ts.Node[] | undefined, validate: (n: ts.Node) => boolean, msg: string)
+function validateClassLikeChildren(children: ts.Node[] | undefined, validate: (n: ts.Node) => boolean, msg: string): void
 {
     // Validate that the children array actually contains type elements.
     // This should never trigger, but is here for safety.
@@ -35,17 +36,17 @@ function validateClassLikeChildren(children: ts.Node[] | undefined, validate: (n
     }
 }
 
-function validateClassChildren(children: ts.Node[] | undefined)
+function validateClassChildren(children: ts.Node[] | undefined): void
 {
-    return validateClassLikeChildren(children, ts.isClassElement, 'ClassElement');
+    validateClassLikeChildren(children, ts.isClassElement, 'ClassElement');
 }
 
-function validateInterfaceChildren(children: ts.Node[] | undefined)
+function validateInterfaceChildren(children: ts.Node[] | undefined): void
 {
-    return validateClassLikeChildren(children, ts.isTypeElement, 'TypeElement');
+    validateClassLikeChildren(children, ts.isTypeElement, 'TypeElement');
 }
 
-function validateModuleChildren(children?: ts.Node[])
+function validateModuleChildren(children?: ts.Node[]): void
 {
     // Validate that the children array actually contains declaration elements.
     // This should never trigger, but is here for safety.
@@ -90,24 +91,154 @@ function buildOptionalName(doclet: IDocletBase, altName?: string): ts.Identifier
     return ts.createIdentifier(doclet.name);
 }
 
-function handleComment<T extends ts.Node>(doclet: IDocletBase, node: T): T
+function formatMultilineComment(comment: string): string
+{
+    return comment.split('\n').join('\n * ');
+}
+
+function handlePropsComment(props: IDocletProp[], jsdocTagName: String): string
+{
+    return props.map((prop) =>
+    {
+        if (prop.description)
+        {
+            let name;
+            if (prop.optional)
+            {
+                if (prop.defaultvalue !== undefined)
+                {
+                    name = `[${prop.name} = ${prop.defaultvalue}]`;
+                }
+                else
+                {
+                    name = `[${prop.name}]`;
+                }
+            }
+            else
+            {
+                name = prop.name;
+            }
+            const description = ` - ${formatMultilineComment(prop.description)}`;
+            return `\n * @${jsdocTagName} ${name}${description}`
+        }
+        return ''
+    }).filter((value) => value !== '').join('')
+}
+
+function handleReturnsComment(doclet: TDoclet): string
+{
+    if (isFunctionDoclet(doclet) && doclet.returns)
+    {
+        return doclet.returns.map((ret) =>
+        {
+            if (ret.description)
+                return `\n * @returns ${formatMultilineComment(ret.description)}`;
+
+            return '';
+        })
+        .filter((value) => value !== '').join('');
+    }
+
+    return '';
+}
+
+function handleExamplesComment(doclet: TDoclet): string
+{
+    if (doclet.examples !== undefined)
+    {
+        return doclet.examples.map((example) =>
+        {
+            return `\n * @example
+ * ${formatMultilineComment(example)}`;
+        })
+        .join('');
+    }
+
+    return '';
+}
+
+function handleParamsComment(doclet: TDoclet): string
+{
+    if ((isClassDoclet(doclet)
+        || isFileDoclet(doclet)
+        || isEventDoclet(doclet)
+        || isFunctionDoclet(doclet)
+        || isTypedefDoclet(doclet))
+        && doclet.params)
+    {
+        return handlePropsComment(doclet.params, 'param');
+    }
+
+    return ''
+}
+
+function handlePropertiesComment(doclet: TDoclet): string
+{
+    if (!isEnumDoclet(doclet) && doclet.properties)
+    {
+        return handlePropsComment(doclet.properties, 'property');
+    }
+
+    return ''
+}
+
+function handleComment<T extends ts.Node>(doclet: TDoclet, node: T): T
 {
     if (doclet.comment && doclet.comment.length > 4)
     {
-        let comment = doclet.comment;
+        let description = '';
+        if (doclet.description)
+        {
+            description = `\n * ${formatMultilineComment(doclet.description)}`;
+        }
+        else if (isClassDoclet(doclet) && doclet.classdesc)
+        {
+            // 'classdesc' field may be set for constructors that have no relevant comment.
+            // It should not be used here, otherwise it duplicates the class description.
+            if (! ts.isConstructorDeclaration(node))
+            {
+                description = `\n * ${formatMultilineComment(doclet.classdesc)}`;
+            }
+        }
 
-        // remove '/*' and '*/'
-        comment = comment.substring(2, doclet.comment.length - 2);
+        const examples = handleExamplesComment(doclet);
+        const properties = handlePropertiesComment(doclet);
+        const params = handleParamsComment(doclet);
+        const returns = handleReturnsComment(doclet);
 
-        // remove '          *' leading spaces
-        comment = comment.replace(/[ \t]+\*/g, ' *');
+        if (isEnumDoclet(doclet))
+        {
+            if (!ts.isEnumDeclaration(node))
+            {
+                warn(`Node is not an enum declaration, even though the doclet is. This is likely a tsd-jsdoc bug.`);
+                return node;
+            }
 
-        // remove trailing spacesgit dif
-        comment = comment.trim() + '\n ';
+            if (doclet.properties)
+            {
+                const enumProperties = doclet.properties;
+                const enumMembers = node.members;
 
-        const kind = ts.SyntaxKind.MultiLineCommentTrivia;
+                for (let index = 0; index < enumProperties.length; index++)
+                {
+                    const enumProperty = enumProperties[index];
+                    const enumMember = enumMembers[index];
 
-        ts.addSyntheticLeadingComment(node, kind, comment, true);
+                    // TODO: Remove this type assertion.
+                    handleComment(enumProperty as IMemberDoclet, enumMember);
+                }
+            }
+        }
+
+        if (description || examples || properties || params || returns)
+        {
+            let comment = `*${description}${examples}${properties}${params}${returns}
+ `;
+
+            const kind = ts.SyntaxKind.MultiLineCommentTrivia;
+
+            ts.addSyntheticLeadingComment(node, kind, comment, true);
+        }
     }
 
     return node;
@@ -168,7 +299,7 @@ export function createClass(doclet: IClassDoclet, children?: ts.Node[], altName?
             }
 
             const opt = node.prop.optional ? ts.createToken(ts.SyntaxKind.QuestionToken) : undefined;
-            const t = node.children.length ? createTypeLiteral(node.children) : resolveType(node.prop.type);
+            const t = node.children.length ? createTypeLiteral(node.children, node) : resolveType(node.prop.type);
 
             const property = ts.createProperty(
                 undefined,

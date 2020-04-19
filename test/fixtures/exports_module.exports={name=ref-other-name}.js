@@ -3,8 +3,8 @@
 class _NotExported {
 }
 
+// Hack: ignored for 'documented' generation strategy with a (re)named export, generated twice otherwise.
 /**
- * Hack: ignored for 'documented' generation strategy with a (re)named export, generated twice otherwise.
  * @ignore
  */
 function _foo() {

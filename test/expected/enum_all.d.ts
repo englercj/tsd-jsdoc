@@ -1,13 +1,15 @@
-/** @module enums
- */
 declare module "enums" {
     /**
      * Enum for tri-state values.
-     * @readonly
-     * @enum {number}
      */
     enum triState {
+        /**
+         * The true value
+         */
         TRUE = 1,
+        /**
+         * The false value
+         */
         FALSE = -1,
         MAYBE = true
     }

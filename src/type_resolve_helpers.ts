@@ -720,7 +720,7 @@ export function resolveTypeName(name: string, doclet?: TTypedDoclet): ts.TypeNod
     return resolveComplexTypeName(name);
 }
 
-export function resolveTypeLiteral(props?: IDocletProp[]): ts.TypeLiteralNode
+export function resolveTypeLiteral(props?: IDocletProp[]): ts.TypeNode
 {
     if (!props)
         return ts.createTypeLiteralNode([]);
@@ -730,15 +730,15 @@ export function resolveTypeLiteral(props?: IDocletProp[]): ts.TypeLiteralNode
     return createTypeLiteral(tree.roots);
 }
 
-export function createTypeLiteral(nodes: IPropDesc[]): ts.TypeLiteralNode
+export function createTypeLiteral(children: IPropDesc[], parent?: IPropDesc): ts.TypeNode
 {
     const members: ts.PropertySignature[] = [];
 
-    for (let i = 0; i < nodes.length; ++i)
+    for (let i = 0; i < children.length; ++i)
     {
-        const node = nodes[i];
+        const node = children[i];
         const opt = node.prop.optional ? ts.createToken(ts.SyntaxKind.QuestionToken) : undefined;
-        const t = node.children.length ? createTypeLiteral(node.children) : resolveType(node.prop.type);
+        const t = node.children.length ? createTypeLiteral(node.children, node) : resolveType(node.prop.type);
 
         members.push(ts.createPropertySignature(
             undefined,      // modifiers
@@ -749,16 +749,23 @@ export function createTypeLiteral(nodes: IPropDesc[]): ts.TypeLiteralNode
         ));
     }
 
-    return ts.createTypeLiteralNode(members);
+    let node: ts.TypeNode = ts.createTypeLiteralNode(members);
+
+    if (parent && parent.prop.type)
+    {
+        const names = parent.prop.type.names;
+        if (names.length === 1 && names[0].toLowerCase() === 'array.<object>')
+        {
+            node = ts.createArrayTypeNode(node);
+        }
+    }
+
+    return node;
 }
 
 export function createFunctionParams(doclet: IFunctionDoclet | ITypedefDoclet | IClassDoclet): ts.ParameterDeclaration[]
 {
-    if (!doclet.params || !doclet.params.length)
-        return [];
-
     const params: ts.ParameterDeclaration[] = [];
-    const tree = new PropTree(doclet.params);
 
     if ((doclet.kind === 'function' || doclet.kind === 'typedef') && doclet.this)
     {
@@ -775,12 +782,16 @@ export function createFunctionParams(doclet: IFunctionDoclet | ITypedefDoclet | 
         ));
     }
 
+    if (!doclet.params || !doclet.params.length)
+        return params;
+
+    const tree = new PropTree(doclet.params);
     for (let i = 0; i < tree.roots.length; ++i)
     {
         const node = tree.roots[i];
         const opt = resolveOptionalParameter(node.prop);
         const dots = resolveVariableParameter(node.prop);
-        let type = node.children.length ? createTypeLiteral(node.children) : resolveType(node.prop.type);
+        let type = node.children.length ? createTypeLiteral(node.children, node) : resolveType(node.prop.type);
 
         if (dots)
         {
