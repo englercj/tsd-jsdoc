@@ -255,8 +255,8 @@ export class Emitter
         switch (node.doclet.kind)
         {
             case 'class':
+            case 'external':
                 return createClass(node.doclet, children);
-
             case 'constant':
             case 'member':
                 if (node.doclet.isEnum)
@@ -267,7 +267,6 @@ export class Emitter
                     return createInterfaceMember(node.doclet);
                 else
                     return createNamespaceMember(node.doclet);
-
             case 'callback':
             case 'function':
                 if (node.doclet.memberof)
