@@ -33,10 +33,10 @@ export class StringTreeNode {
 
     walkTypes(callback: (treeNode: StringTreeNode) => void) : void
     {
-        for (let i=0; i<this.children.length; i++)
+        for (let i = 0; i < this.children.length; ++i)
         {
             // Skip object field names.
-            if ((this.type === ENodeType.OBJECT) && (i % 2 === 0))
+            if (this.type === ENodeType.OBJECT && (i % 2 === 0))
                 continue;
             this.children[i].walkTypes(callback);
         }

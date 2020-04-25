@@ -253,7 +253,7 @@ export function createClass(doclet: IClassDoclet, children?: ts.Node[], altName?
     const mods: ts.Modifier[] = [];
     if (!doclet.memberof)
         mods.push(declareModifier);
-    if (doclet.meta && (doclet.meta.code.name === 'module.exports'))
+    if (doclet.meta && doclet.meta.code.name === 'module.exports')
         mods.push(exportModifier, defaultModifier);
     const members = children as ts.ClassElement[] || [];
     const typeParams = resolveTypeParameters(doclet);

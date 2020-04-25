@@ -15,7 +15,7 @@ export function publish(data: TDocletDb, opts: ITemplateConfig)
     setDebug(!!opts.debug);
 
     // In order not to break backward compatibility, the 'documented' generation strategy is used by default.
-    if (! opts.generationStrategy)
+    if (!opts.generationStrategy)
     {
         opts.generationStrategy = 'documented';
     }
