@@ -321,6 +321,7 @@ MyThing.me = 10;
 
 module.exports = {
     doStuff: doStuff,
+    DerivedClass: DerivedClass,
     DeepClass1: DeepClass1,
     MyClass: MyClass,
     GitGraph: GitGraph,

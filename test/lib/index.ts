@@ -60,7 +60,7 @@ function compileJsdoc(sourcePath: string, generationStrategy: 'documented' | 'ex
     let jsdocConf = JSON.parse(JSON.stringify(require(CONFIG_PATH))); // <= Ensure we modify a clone object.
     if (! jsdocConf.opts)
         jsdocConf.opts = {}
-    jsdocConf.opts.generationStrategyr = generationStrategy
+    jsdocConf.opts.generationStrategy = generationStrategy
     const confPath = path.join(DEST_DIR, path.basename(sourcePath).replace(".js", `-conf-${generationStrategy}.json`));
     fs.writeFileSync(confPath, JSON.stringify(jsdocConf, null, 2));
 
