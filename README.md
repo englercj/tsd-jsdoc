@@ -34,7 +34,7 @@ Or add this to your JSON configuration:
 }
 ```
 
-If you want to use jsdoc/closure tag `@template`, you also need to specify this module as a plugin, like so:
+If you want to use [supported ClosureCompiler features](#supported-closurecompiler-features), you also need to specify this module as a pluginin your JSON configuration, like so:
 
 ```json
 {
@@ -101,16 +101,16 @@ the code are ignored. These are:
 
 All other JSDoc tags should work fine.
 
-## Supported ClosureCompiler Tags
+## Supported ClosureCompiler features
 
 ClosureCompiler has a couple tags beyond the built-in JSDoc tags that can improve your TypeScript output. Here is a complete
-list of the tags from CC that are supported in this template:
+list of the features from CC that are supported in this template:
 
-- [`@template`](https://github.com/google/closure-compiler/wiki/Annotating-JavaScript-for-the-Closure-Compiler#template-t) - For generics
+- [`@template T`](https://github.com/google/closure-compiler/wiki/Annotating-JavaScript-for-the-Closure-Compiler#template-t) - For generics
+- [`typeof T`](https://github.com/google/closure-compiler/wiki/Types-in-the-Closure-Type-System#the-javascript-type-language) - For typeof operator
 
-## Extended support for TS features
+## Supported non-standard features
 
-JSDoc doesn't have a way to express all the features of typescript so we treat some syntax as special case to
-create better Typescript.
+Vanilla JSDoc doesn't have a way to express all the features of TypeScript so we also support these non-standardized conventions:
 
 - `Class<T>` - If we encounter a type that is `Class<T>` we will treat it as `typeof T`. See [jsdoc3/jsdoc#1349](https://github.com/jsdoc3/jsdoc/issues/1349)

@@ -30,26 +30,39 @@ before(() => {
     } catch (e) { /* Do Nothing */ }
 });
 
-function compileJsdoc(sourcePath: string, generationStrategy: 'documented' | 'exported'): string {
-    // Let's first export the jsdoc raw output in a file tagged with the jsdoc version,
-    // in order to help investigations when somethings fails between jsdoc@3.5.x vs jsdoc@3.6.x.
+function explainJsdoc(sourcePath: string): string {
+    // Create a jsdoc configuration file.
+    let jsdocConf = JSON.parse(JSON.stringify(require(CONFIG_PATH))); // <= Ensure we modify a clone object.
+    if (jsdocConf.opts && jsdocConf.opts.template)
+        // Remove the tsd-jsdoc template.
+        delete jsdocConf.opts.template;
+    const confPath = path.join(DEST_DIR, path.basename(sourcePath).replace(".js", `-conf-explain.json`));
+    fs.writeFileSync(confPath, JSON.stringify(jsdocConf, null, 2));
+
+    // Call the `JsdocApi.explainSync()` function.
+    const rawDestPath = path.join(DEST_DIR, path.basename(sourcePath).replace(".js", `-jsdoc@${jsdocInfo.version}-explain.json`));
     const jsdocRawOutput = JsdocApi.explainSync({
         files: sourcePath,
-        cache: false
+        cache: false,
+        configure: confPath
     });
-    const rawDestPath = path.join(DEST_DIR, path.basename(sourcePath).replace(".js", `-jsdoc@${jsdocInfo.version}-explain.json`));
     fs.writeFileSync(
         rawDestPath,
         JSON.stringify(jsdocRawOutput, null, 2)
     );
 
+    // Eventually return the path of the raw output file.
+    return rawDestPath;
+}
+
+function compileJsdoc(sourcePath: string, generationStrategy: 'documented' | 'exported'): string {
     // Create a jsdoc configuration file.
-    let jsdocConf = require(CONFIG_PATH);
+    let jsdocConf = JSON.parse(JSON.stringify(require(CONFIG_PATH))); // <= Ensure we modify a clone object.
     if (! jsdocConf.opts)
         jsdocConf.opts = {}
     jsdocConf.opts.generationStrategyr = generationStrategy
     const confPath = path.join(DEST_DIR, path.basename(sourcePath).replace(".js", `-conf-${generationStrategy}.json`));
-    fs.writeFileSync(confPath, JSON.stringify(jsdocConf));
+    fs.writeFileSync(confPath, JSON.stringify(jsdocConf, null, 2));
 
     // Launch jsdoc with the tsd-jsdoc template.
     renderSync({
@@ -75,12 +88,17 @@ function compileJsdoc(sourcePath: string, generationStrategy: 'documented' | 'ex
 function expectJsDoc(fileName: string, generationStrategy: 'documented' | 'exported') {
     const dataPath = path.join(DATA_DIR, `${fileName}.js`);
 
+    // Let's first export the jsdoc raw output in a file tagged with the jsdoc version,
+    // in order to help investigations when somethings fails between jsdoc@3.5.x vs jsdoc@3.6.x.
+    explainJsdoc(dataPath);
+
+    // Execute tsd-jsdoc.
     const destPath = compileJsdoc(dataPath, generationStrategy);
     const destStr = fs.readFileSync(destPath, 'utf8');
 
+    // Check result.
     const expectPath = path.join(EXPECT_DIR, `${fileName}.d.ts`);
     const expectStr = fs.readFileSync(expectPath, 'utf8');
-
     expect(destStr.trim()).to.equal(expectStr.trim());
 }
 
