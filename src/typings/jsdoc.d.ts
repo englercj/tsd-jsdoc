@@ -120,7 +120,7 @@ declare interface IFunctionDoclet extends IDocletBase {
     this?: string;
     params?: IDocletProp[];
     returns?: IDocletReturn[];
-    overrides?: string; //< wierd: when `overrides` is declared after `override` below, tsc@3.3.1 generates an error telling it does not know `overrides`...
+    overrides?: string;
     override?: boolean;
     virtual?: string[];
 }

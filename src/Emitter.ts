@@ -599,31 +599,51 @@ export class Emitter
     private _markExportedTypes(node: IDocletTreeNode, types?: IDocletType)
     {
         if (types)
+        {
             for (const typeName of types.names)
+            {
                 this._resolveDocletType(typeName, node, this._markExportedNode);
+            }
+        }
     }
 
     private _markExportedParams(node: IDocletTreeNode, params?: IDocletProp[])
     {
         if (params)
+        {
             for (const param of params)
+            {
                 if (param.type)
+                {
                     for (const paramType of param.type.names)
+                    {
                         this._resolveDocletType(paramType, node, this._markExportedNode);
+                    }
+                }
+            }
+        }
     }
 
     private _markExportedReturns(node: IDocletTreeNode, returns?: IDocletReturn[])
     {
         if (returns)
+        {
             for (const ret of returns)
+            {
                 for (const retType of ret.type.names)
+                {
                     this._resolveDocletType(retType, node, this._markExportedNode);
+                }
+            }
+        }
     }
 
     private _markExportedChildren(node: IDocletTreeNode)
     {
         for (const child of node.children)
+        {
             this._markExportedNode(child);
+        }
     }
 
     private _parseTree()
@@ -828,12 +848,8 @@ export class Emitter
 
     private _getOrCreateClassNamespace(obj: IDocletTreeNode): IDocletTreeNode
     {
-        function _debug(msg: string) { /*debug(msg);*/ }
-        _debug(`Emitter._getOrCreateClassNamespace(${docletDebugInfo(obj.doclet)})`);
-
         if (obj.doclet.kind === 'module' || obj.doclet.kind === 'namespace')
         {
-            _debug(`Emitter._getOrCreateClassNamespace(): ${docletDebugInfo(obj.doclet)} is a module or namespace`)
             return obj;
         }
 
@@ -842,7 +858,6 @@ export class Emitter
 
         if (mod)
         {
-            _debug(`Emitter._getOrCreateClassNamespace(): longname '${obj.doclet.longname}' already exists in this._treeNodes`);
             return mod;
         }
 
@@ -858,7 +873,6 @@ export class Emitter
 
         if (obj.doclet.memberof)
         {
-            _debug(`Emitter._getOrCreateClassNamespace(): memberof='${obj.doclet.memberof}'`);
             const parent = this._treeNodes[obj.doclet.memberof];
 
             if (!parent)
