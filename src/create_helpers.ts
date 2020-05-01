@@ -509,12 +509,12 @@ export function createModule(doclet: INamespaceDoclet, nested: boolean, children
     if (children)
 				body = ts.createModuleBlock(children as ts.Statement[]);
 
-		const nameArray = [...doclet.name]
+		const nameArray = [...doclet.name];
 		// Check if name is encapsulated in quotes
 		if (nameArray[0] === '"' && nameArray[nameArray.length] === '"' || nameArray[0] === "'" && nameArray[nameArray.length] === "'"){
-			nameArray.shift()
-			nameArray.pop()
-		}
+			nameArray.shift();
+			nameArray.pop();
+		};
     const name = ts.createStringLiteral(nameArray.join(''));
 
     return handleComment(doclet, ts.createModuleDeclaration(
