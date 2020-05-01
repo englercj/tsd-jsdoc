@@ -507,9 +507,15 @@ export function createModule(doclet: INamespaceDoclet, nested: boolean, children
         flags |= ts.NodeFlags.NestedNamespace;
 
     if (children)
-        body = ts.createModuleBlock(children as ts.Statement[]);
+				body = ts.createModuleBlock(children as ts.Statement[]);
 
-    const name = ts.createStringLiteral(doclet.name);
+		const nameArray = [...doclet.name]
+		// Check if name is encapsulated in quotes
+		if (nameArray[0] === '"' && nameArray[nameArray.length] === '"' || nameArray[0] === "'" && nameArray[nameArray.length] === "'"){
+			nameArray.shift()
+			nameArray.pop()
+		}
+    const name = ts.createStringLiteral(nameArray.join(''));
 
     return handleComment(doclet, ts.createModuleDeclaration(
         undefined,      // decorators
