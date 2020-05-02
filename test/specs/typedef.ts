@@ -1,7 +1,5 @@
-import { expectJsDoc } from '../lib';
+import { tsdJsdocTestCase } from '../lib';
 
 suite('Typedef Checks', () => {
-    test('All', () => {
-        expectJsDoc('typedef_all');
-    });
+    tsdJsdocTestCase('All', 'typedef_all');
 });

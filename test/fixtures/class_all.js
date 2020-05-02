@@ -1,3 +1,5 @@
+/** @module util */
+
 /**
  * @this OtherThing
  */
@@ -66,14 +68,14 @@ class Things {
     }
 
     /**
-     * @method Things#[foobar1]
+     * @method module:util~Things#[foobar1]
      */
     foobar1() {
     };
 
     /**
      * @type {Number}
-     * @name Things#[foobar2]
+     * @name module:util~Things#[foobar2]
      */
     foobar2 = undefined;
 }
@@ -107,8 +109,6 @@ function DeepClass1() {
     }
 }
 
-/** @module util */
-
 /**
  * @class MyClass
  * @param {string} message
@@ -123,7 +123,7 @@ class MyClass {
 
 /**
  * GitGraph
- * @class GitGraph
+ * @constructor
  * @param {object} options - GitGraph options
  * @param {string} [options.elementId = "gitGraph"] - Id of the canvas container
  * @param {Template|string|object} [options.template] - Template of the graph
@@ -147,7 +147,7 @@ class GitGraph {
  */
 
 /**
- * @class MyThing
+ * @class
  * @extends OtherThing
  * @mixes Stuff
  * @mixes Things
@@ -318,3 +318,13 @@ class MyThing extends OtherThing {
  * @static
  */
 MyThing.me = 10;
+
+module.exports = {
+    doStuff: doStuff,
+    DerivedClass: DerivedClass,
+    DeepClass1: DeepClass1,
+    MyClass: MyClass,
+    GitGraph: GitGraph,
+    Something: Something,
+    MyThing: MyThing
+}

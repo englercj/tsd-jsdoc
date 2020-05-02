@@ -1,15 +1,16 @@
-/**
- * Enum for tri-state values.
- */
-declare enum triState {
+declare module "enums" {
     /**
-     * The true value
+     * Enum for tri-state values.
      */
-    TRUE = 1,
-    /**
-     * The false value
-     */
-    FALSE = -1,
-    MAYBE = true
+    enum triState {
+        /**
+         * The true value
+         */
+        TRUE = 1,
+        /**
+         * The false value
+         */
+        FALSE = -1,
+        MAYBE = true
+    }
 }
-

@@ -29,10 +29,10 @@ declare interface IDocletType {
 }
 
 declare interface IDocletProp {
-    type: IDocletType;
+    type?: IDocletType;
     name: string;
     description: string;
-    comment: string;
+    comment?: string;
     defaultvalue?: string;
     meta?: any;
     optional?: boolean;
@@ -45,9 +45,9 @@ declare interface IDocletReturn {
 }
 
 declare interface IDocletCode {
-    id: string;
-    name: string;
-    type: string;
+    id?: string;
+    name?: string;
+    type?: string;
     value?: string;
     paramnames?: string[];
 }
@@ -76,7 +76,7 @@ declare interface IDocletBase {
     tags?: IDocletTag[];
     memberof?: string;
     see?: string;
-    access?: ('public' | 'private' | 'protected');
+    access?: ('public' | 'private' | 'protected' | 'package');
     examples?: string[];
     deprecated?: string;
     defaultvalue?: string;
@@ -120,15 +120,16 @@ declare interface IFunctionDoclet extends IDocletBase {
     this?: string;
     params?: IDocletProp[];
     returns?: IDocletReturn[];
+    overrides?: string;
     override?: boolean;
     virtual?: string[];
 }
 
 declare interface IMemberDoclet extends IDocletBase {
     kind: 'member' | 'constant';
-    readonly: boolean;
-    isEnum: boolean;
-    type: IDocletType;
+    readonly?: boolean;
+    isEnum?: boolean;
+    type?: IDocletType;
 }
 
 declare interface INamespaceDoclet extends IDocletBase {

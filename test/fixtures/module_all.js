@@ -26,4 +26,7 @@
 const arrayToObjectKeys = (array, valueGenerator = null) => {
 }
 
+/**
+ * Export arrayToObjectKeys as default.
+ */
 export default arrayToObjectKeys

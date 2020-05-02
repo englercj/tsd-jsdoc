@@ -1,7 +1,5 @@
-import { expectJsDoc } from '../lib';
+import { tsdJsdocTestCase } from '../lib';
 
 suite('Interface Checks', () => {
-    test('All', () => {
-        expectJsDoc('interface_all');
-    });
+    tsdJsdocTestCase('All', 'interface_all');
 });

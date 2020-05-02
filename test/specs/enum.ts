@@ -1,7 +1,5 @@
-import { expectJsDoc } from '../lib';
+import { tsdJsdocTestCase } from '../lib';
 
 suite('Enum Checks', () => {
-    test('All', () => {
-        expectJsDoc('enum_all');
-    });
+    tsdJsdocTestCase('All', 'enum_all');
 });

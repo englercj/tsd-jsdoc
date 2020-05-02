@@ -1,3 +1,5 @@
+/** @module enums */
+
 /**
  * Enum for tri-state values.
  * @readonly
@@ -11,3 +13,7 @@ var triState = {
     /** @type {boolean} */
     MAYBE: true,
 };
+
+module.exports = {
+    triState: triState
+}

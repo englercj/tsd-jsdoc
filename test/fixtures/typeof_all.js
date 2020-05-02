@@ -1,3 +1,5 @@
+/** @module typeofs */
+
 /**
  * @property {Class<MyClass>} x
  * @property {Class.< MyClass >} y
@@ -23,3 +25,8 @@ class Foobar1 {}
  * @property {typeof Array<typeof MyClass>} s
  */
 class Foobar2 {}
+
+module.exports = {
+    Foobar1: Foobar1,
+    Foobar2: Foobar2
+}
