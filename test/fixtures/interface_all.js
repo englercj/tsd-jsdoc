@@ -1,3 +1,5 @@
+/** @module interfaces */
+
 /**
  * Interface for classes that represent a color.
  *
@@ -6,7 +8,7 @@
 function Color() {}
 
 /**
- * @function Color.staticMethod1
+ * @function module:interfaces~Color.staticMethod1
  */
 Color.staticMethod1 = function() {};
 
@@ -17,7 +19,7 @@ Color.staticMethod1 = function() {};
 Color.staticMethod2 = function() {};
 
 /**
- * @member {Number} Color.staticMember1
+ * @member {Number} module:interfaces~Color.staticMember1
  */
 Color.staticMember1 = 1;
 
@@ -29,7 +31,7 @@ Color.staticMember2 = true;
 
 /**
 * @type {String}
-* @name Color.staticMember3
+* @name module:interfaces~Color.staticMember3
 */
 Color.staticMember3 = "foobar";
 
@@ -63,7 +65,7 @@ Color.prototype.rgb = function() {
 /**
  * @function
  * @name [foobar1]
- * @memberof Color#
+ * @memberof module:interfaces~Color#
  */
 Color.prototype.foobar1 = function() {
     throw new Error('not implemented');
@@ -71,7 +73,7 @@ Color.prototype.foobar1 = function() {
 
 /**
  * @function [foobar2]
- * @memberof Color#
+ * @memberof module:interfaces~Color#
  */
 Color.prototype.foobar2 = function() {
     throw new Error('not implemented');
@@ -80,19 +82,23 @@ Color.prototype.foobar2 = function() {
 /**
  * @type {Boolean}
  * @name [foobar3]
- * @memberof Color#
+ * @memberof module:interfaces~Color#
  */
 Color.prototype.foobar3 = undefined;
 
 /**
  * @member {String}
  * @name [foobar4]
- * @memberof Color#
+ * @memberof module:interfaces~Color#
  */
 Color.prototype.foobar4 = undefined;
 
 /**
  * @member {Object} [foobar5]
- * @memberof Color#
+ * @memberof module:interfaces~Color#
  */
 Color.prototype.foobar5 = undefined;
+
+module.exports = {
+    Color: Color
+}

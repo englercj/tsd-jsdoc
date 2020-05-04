@@ -1,62 +1,54 @@
-declare function doStuff(this: OtherThing): void;
-
-declare class OtherThing {
-    copy(): void;
-}
-
-declare class Stuff {
-    doStuff(): void;
-}
-
-declare class BaseClass {
-    baseFunc(): void;
-    baseFuncOverridden(): void;
-}
-
-declare class DerivedClass extends BaseClass {
-    derivedFunc(): void;
-    baseFuncOverridden(): void;
-}
-
-declare class Things {
-    doThings(): void;
-    foobar1?(): void;
-    foobar2?: number;
-}
-
-/**
- * Deep class #1
- */
-declare class DeepClass1 {
-    constructor();
-}
-
-declare namespace DeepClass1 {
+declare module "util" {
+    function doStuff(this: OtherThing): void;
+    class OtherThing {
+        copy(): void;
+    }
+    class Stuff {
+        doStuff(): void;
+    }
+    class BaseClass {
+        baseFunc(): void;
+        baseFuncOverridden(): void;
+    }
+    class DerivedClass extends BaseClass {
+        derivedFunc(): void;
+        baseFuncOverridden(): void;
+    }
+    class Things {
+        doThings(): void;
+        foobar1?(): void;
+        foobar2?: number;
+    }
     /**
-     * Deep class #2
+     * Deep class #1
      */
-    class DeepClass2 {
+    class DeepClass1 {
         constructor();
     }
-    namespace DeepClass2 {
+    namespace DeepClass1 {
         /**
-         * Deep class #3
+         * Deep class #2
          */
-        class DeepClass3 {
+        class DeepClass2 {
             constructor();
         }
-        namespace DeepClass3 {
+        namespace DeepClass2 {
             /**
-             * Deep class #4
+             * Deep class #3
              */
-            class DeepClass4 {
+            class DeepClass3 {
                 constructor();
+            }
+            namespace DeepClass3 {
+                /**
+                 * Deep class #4
+                 */
+                class DeepClass4 {
+                    constructor();
+                }
             }
         }
     }
-}
-
-declare module "util" {
     class MyClass {
         constructor(message: string);
         message: string;
@@ -93,6 +85,11 @@ declare module "util" {
     interface MyThing extends Stuff, Things {
     }
     class MyThing extends OtherThing implements Stuff, Things {
+        /**
+         * Constructs!
+         * @param a - The number.
+         */
+        private constructor(...a: number[]);
         /**
          * Derp or something.
          */
@@ -170,11 +167,5 @@ declare module "util" {
          */
         D: string;
         static me: number;
-        /**
-         * @param other - To copy from.
-         */
-        copy(other: OtherThing): void;
     }
 }
-
-

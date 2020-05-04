@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import { warn } from './logger';
+import { warn, debug, docletDebugInfo } from './logger';
 import { isClassDoclet, isEnumDoclet, isFileDoclet, isEventDoclet, isFunctionDoclet, isTypedefDoclet } from './doclet_utils';
 import { PropTree } from "./PropTree";
 import {
@@ -15,6 +15,8 @@ import {
 const declareModifier = ts.createModifier(ts.SyntaxKind.DeclareKeyword);
 const constModifier = ts.createModifier(ts.SyntaxKind.ConstKeyword);
 const readonlyModifier = ts.createModifier(ts.SyntaxKind.ReadonlyKeyword);
+const exportModifier = ts.createModifier(ts.SyntaxKind.ExportKeyword);
+const defaultModifier = ts.createModifier(ts.SyntaxKind.DefaultKeyword);
 
 function validateClassLikeChildren(children: ts.Node[] | undefined, validate: (n: ts.Node) => boolean, msg: string): void
 {
@@ -59,13 +61,34 @@ function validateModuleChildren(children?: ts.Node[]): void
                 && !ts.isEnumDeclaration(child)
                 && !ts.isModuleDeclaration(child)
                 && !ts.isTypeAliasDeclaration(child)
-                && !ts.isVariableStatement(child))
+                && !ts.isVariableStatement(child)
+                && !ts.isExportAssignment(child))
             {
                 warn('Encountered child that is not a supported declaration, this is likely due to invalid JSDoc.', child);
                 children.splice(i, 1);
             }
         }
     }
+}
+
+function buildName(doclet: IDocletBase, altName?: string): ts.Identifier
+{
+    if (altName)
+        return ts.createIdentifier(altName);
+    if (doclet.name.startsWith('exports.'))
+        return ts.createIdentifier(doclet.name.replace('exports.', ''));
+    return ts.createIdentifier(doclet.name);
+}
+
+function buildOptionalName(doclet: IDocletBase, altName?: string): ts.Identifier | undefined
+{
+    if (altName)
+        return ts.createIdentifier(altName);
+    if (doclet.meta && (doclet.meta.code.name === 'module.exports'))
+        return undefined;
+    if (doclet.name.startsWith('exports.'))
+        return ts.createIdentifier(doclet.name.replace('exports.', ''));
+    return ts.createIdentifier(doclet.name);
 }
 
 function formatMultilineComment(comment: string): string
@@ -170,7 +193,12 @@ function handleComment<T extends ts.Node>(doclet: TDoclet, node: T): T
         }
         else if (isClassDoclet(doclet) && doclet.classdesc)
         {
-            description = `\n * ${formatMultilineComment(doclet.classdesc)}`;
+            // 'classdesc' field may be set for constructors that have no relevant comment.
+            // It should not be used here, otherwise it duplicates the class description.
+            if (! ts.isConstructorDeclaration(node))
+            {
+                description = `\n * ${formatMultilineComment(doclet.classdesc)}`;
+            }
         }
 
         const examples = handleExamplesComment(doclet);
@@ -216,39 +244,60 @@ function handleComment<T extends ts.Node>(doclet: TDoclet, node: T): T
     return node;
 }
 
-export function createClass(doclet: IClassDoclet, children?: ts.Node[]): ts.ClassDeclaration
+export function createClass(doclet: IClassDoclet, children?: ts.Node[], altName?: string): ts.ClassDeclaration
 {
+    debug(`createClass(${docletDebugInfo(doclet)}, altName=${altName})`);
+
     validateClassChildren(children);
 
-    const mods = doclet.memberof ? undefined : [declareModifier];
+    const mods: ts.Modifier[] = [];
+    if (!doclet.memberof)
+        mods.push(declareModifier);
+    if (doclet.meta && doclet.meta.code.name === 'module.exports')
+        mods.push(exportModifier, defaultModifier);
     const members = children as ts.ClassElement[] || [];
     const typeParams = resolveTypeParameters(doclet);
     const heritageClauses = resolveHeritageClauses(doclet, false);
 
-    if (doclet.name.startsWith('exports.'))
-        doclet.name = doclet.name.replace('exports.', '');
-
     if (doclet.params)
     {
-        const params = createFunctionParams(doclet);
-
-        members.unshift(
-            ts.createConstructor(
-                undefined,  // decorators
-                undefined,  // modifiers
-                params,     // parameters
-                undefined   // body
-            )
-        );
+        // Check whether the constructor has already been declared.
+        if (members.filter(member => ts.isConstructorDeclaration(member)).length === 0)
+        {
+            debug(`createClass(): no constructor set yet, adding one automatically`);
+            members.unshift(
+                ts.createConstructor(
+                    undefined,                      // decorators
+                    undefined,                      // modifiers
+                    createFunctionParams(doclet),   // parameters
+                    undefined                       // body
+                )
+            );
+        }
     }
 
     if (doclet.properties)
     {
         const tree = new PropTree(doclet.properties);
 
-        for (let i = 0; i < tree.roots.length; ++i)
+        nextProperty: for (let i = 0; i < tree.roots.length; ++i)
         {
             const node = tree.roots[i];
+
+            // Check whether the property has already been declared.
+            for (const tsProp of members.filter(member => ts.isPropertyDeclaration(member)))
+            {
+                if (tsProp.name)
+                {
+                    const propName:string = (<any> tsProp.name).text;
+                    if (propName === node.name)
+                    {
+                        debug(`createClass(): skipping property already declared '${node.name}'`);
+                        continue nextProperty;
+                    }
+                }
+            }
+
             const opt = node.prop.optional ? ts.createToken(ts.SyntaxKind.QuestionToken) : undefined;
             const t = node.children.length ? createTypeLiteral(node.children, node) : resolveType(node.prop.type);
 
@@ -274,15 +323,17 @@ export function createClass(doclet: IClassDoclet, children?: ts.Node[]): ts.Clas
     return handleComment(doclet, ts.createClassDeclaration(
         undefined,      // decorators
         mods,           // modifiers
-        doclet.name,    // name
+        buildOptionalName(doclet, altName), // name
         typeParams,     // typeParameters
         heritageClauses,// heritageClauses
         members         // members
     ));
 }
 
-export function createInterface(doclet: IClassDoclet, children?: ts.Node[]): ts.InterfaceDeclaration
+export function createInterface(doclet: IClassDoclet, children?: ts.Node[], altName?: string): ts.InterfaceDeclaration
 {
+    debug(`createInterface(${docletDebugInfo(doclet)}, altName=${altName})`);
+
     validateInterfaceChildren(children);
 
     const mods = doclet.memberof ? undefined : [declareModifier];
@@ -290,34 +341,34 @@ export function createInterface(doclet: IClassDoclet, children?: ts.Node[]): ts.
     const typeParams = resolveTypeParameters(doclet);
     const heritageClauses = resolveHeritageClauses(doclet, true);
 
-    if (doclet.name.startsWith('exports.'))
-        doclet.name = doclet.name.replace('exports.', '');
-
     return handleComment(doclet, ts.createInterfaceDeclaration(
         undefined,      // decorators
         mods,           // modifiers
-        doclet.name,    // name
+        buildName(doclet, altName), // name, avoid undefined
         typeParams,     // typeParameters
         heritageClauses,// heritageClauses
         members         // members
     ));
 }
 
-export function createFunction(doclet: IFunctionDoclet): ts.FunctionDeclaration
+export function createFunction(doclet: IFunctionDoclet, altName?: string): ts.FunctionDeclaration
 {
-    const mods = doclet.memberof ? undefined : [declareModifier];
+    debug(`createFunction(${docletDebugInfo(doclet)}, altName=${altName})`);
+
+    const mods = [];
+    if (!doclet.memberof)
+        mods.push(declareModifier);
+    if (doclet.meta && (doclet.meta.code.name === 'module.exports'))
+        mods.push(exportModifier, defaultModifier);
     const params = createFunctionParams(doclet);
     const type = createFunctionReturnType(doclet);
     const typeParams = resolveTypeParameters(doclet);
-
-    if (doclet.name.startsWith('exports.'))
-        doclet.name = doclet.name.replace('exports.', '');
 
     return handleComment(doclet, ts.createFunctionDeclaration(
         undefined,      // decorators
         mods,           // modifiers
         undefined,      // asteriskToken
-        doclet.name,    // name
+        buildOptionalName(doclet, altName), // name
         typeParams,     // typeParameters
         params,         // parameters
         type,           // type
@@ -327,6 +378,8 @@ export function createFunction(doclet: IFunctionDoclet): ts.FunctionDeclaration
 
 export function createClassMethod(doclet: IFunctionDoclet): ts.MethodDeclaration
 {
+    debug(`createClassMethod(${docletDebugInfo(doclet)})`);
+
     const mods: ts.Modifier[] = [];
     const params = createFunctionParams(doclet);
     const type = createFunctionReturnType(doclet);
@@ -345,9 +398,6 @@ export function createClassMethod(doclet: IFunctionDoclet): ts.MethodDeclaration
     if (doclet.scope === 'static')
         mods.push(ts.createModifier(ts.SyntaxKind.StaticKeyword));
 
-    if (doclet.name.startsWith('exports.'))
-        doclet.name = doclet.name.replace('exports.', '');
-
     const [ name, questionToken ] = resolveOptionalFromName(doclet);
     return handleComment(doclet, ts.createMethod(
         undefined,      // decorators
@@ -364,13 +414,12 @@ export function createClassMethod(doclet: IFunctionDoclet): ts.MethodDeclaration
 
 export function createInterfaceMethod(doclet: IFunctionDoclet): ts.MethodSignature
 {
+    debug(`createInterfaceMethod(${docletDebugInfo(doclet)})`);
+
     const mods: ts.Modifier[] = [];
     const params = createFunctionParams(doclet);
     const type = createFunctionReturnType(doclet);
     const typeParams = resolveTypeParameters(doclet);
-
-    if (doclet.name.startsWith('exports.'))
-        doclet.name = doclet.name.replace('exports.', '');
 
     const [ name, questionToken ] = resolveOptionalFromName(doclet);
     return handleComment(doclet, ts.createMethodSignature(
@@ -382,8 +431,10 @@ export function createInterfaceMethod(doclet: IFunctionDoclet): ts.MethodSignatu
     ));
 }
 
-export function createEnum(doclet: IMemberDoclet): ts.EnumDeclaration
+export function createEnum(doclet: IMemberDoclet, altName?: string): ts.EnumDeclaration
 {
+    debug(`createEnum(${docletDebugInfo(doclet)}, altName=${altName})`);
+
     const mods: ts.Modifier[] = [];
     const props: ts.EnumMember[] = [];
 
@@ -407,22 +458,18 @@ export function createEnum(doclet: IMemberDoclet): ts.EnumDeclaration
     return handleComment(doclet, ts.createEnumDeclaration(
         undefined,
         mods,
-        doclet.name,
+        buildName(doclet, altName),
         props,
     ));
 }
 
 export function createClassMember(doclet: IMemberDoclet): ts.PropertyDeclaration
 {
-    const mods: ts.Modifier[] = [];
+    debug(`createClassMember(${docletDebugInfo(doclet)})`);
+
     const type = resolveType(doclet.type, doclet);
 
-    if (doclet.access === 'private')
-        mods.push(ts.createModifier(ts.SyntaxKind.PrivateKeyword));
-    else if (doclet.access === 'protected')
-        mods.push(ts.createModifier(ts.SyntaxKind.ProtectedKeyword));
-    else if (doclet.access === 'public')
-        mods.push(ts.createModifier(ts.SyntaxKind.PublicKeyword));
+    const mods: ts.Modifier[] = getAccessModifiers(doclet);
 
     if (doclet.scope === 'static')
         mods.push(ts.createModifier(ts.SyntaxKind.StaticKeyword));
@@ -441,8 +488,36 @@ export function createClassMember(doclet: IMemberDoclet): ts.PropertyDeclaration
     ));
 }
 
+function getAccessModifiers(doclet: IMemberDoclet | IClassDoclet): ts.Modifier[]
+{
+    const mods: ts.Modifier[] = [];
+
+    if (doclet.access === 'private' || doclet.access === 'package')
+        mods.push(ts.createModifier(ts.SyntaxKind.PrivateKeyword));
+    else if (doclet.access === 'protected')
+        mods.push(ts.createModifier(ts.SyntaxKind.ProtectedKeyword));
+    else if (doclet.access === 'public')
+        mods.push(ts.createModifier(ts.SyntaxKind.PublicKeyword));
+
+    return mods
+}
+
+export function createConstructor(doclet: IClassDoclet): ts.ConstructorDeclaration
+{
+    debug(`createConstructor(${docletDebugInfo(doclet)})`);
+
+    return handleComment(doclet, ts.createConstructor(
+        undefined,                      // decorators
+        getAccessModifiers(doclet),     // modifiers
+        createFunctionParams(doclet),   // parameters
+        undefined                       // body
+    ))
+}
+
 export function createInterfaceMember(doclet: IMemberDoclet): ts.PropertySignature
 {
+    debug(`createInterfaceMember(${docletDebugInfo(doclet)})`);
+
     const mods: ts.Modifier[] = [];
     const type = resolveType(doclet.type, doclet);
 
@@ -462,8 +537,14 @@ export function createInterfaceMember(doclet: IMemberDoclet): ts.PropertySignatu
     ));
 }
 
-export function createNamespaceMember(doclet: IMemberDoclet): ts.VariableStatement
+/**
+ * Used for both namespace and module members.
+ * `altName` may be set for an exported module member.
+ */
+export function createNamespaceMember(doclet: IMemberDoclet, altName?: string): ts.VariableStatement
 {
+    debug(`createNamespaceMember(${docletDebugInfo(doclet)})`);
+
     const mods = doclet.memberof ? undefined : [declareModifier];
     const flags = (doclet.kind === 'constant' || doclet.readonly) ? ts.NodeFlags.Const : undefined;
 
@@ -475,14 +556,11 @@ export function createNamespaceMember(doclet: IMemberDoclet): ts.VariableStateme
     // ignore regular type if constant literal, because a literal provides more type information
     const type = initializer ? undefined : resolveType(doclet.type, doclet);
 
-    if (doclet.name.startsWith('exports.'))
-        doclet.name = doclet.name.replace('exports.', '');
-
     return handleComment(doclet, ts.createVariableStatement(
         mods,
         ts.createVariableDeclarationList([
             ts.createVariableDeclaration(
-                doclet.name,    // name
+                buildName(doclet, altName), // name
                 type,           // type
                 initializer     // initializer
                 )
@@ -492,16 +570,23 @@ export function createNamespaceMember(doclet: IMemberDoclet): ts.VariableStateme
     ));
 }
 
+export function createExportDefault(doclet: IMemberDoclet, value: string): ts.ExportAssignment | null
+{
+    debug(`createExportDefault(${docletDebugInfo(doclet)}, '${value}')`);
+
+    const expression : ts.Expression = ts.createIdentifier(value);
+    return handleComment(doclet, ts.createExportDefault(expression));
+}
+
 export function createModule(doclet: INamespaceDoclet, nested: boolean, children?: ts.Node[]): ts.ModuleDeclaration
 {
+    debug(`createModule(${docletDebugInfo(doclet)})`);
+
     validateModuleChildren(children);
 
     const mods = doclet.memberof ? undefined : [declareModifier];
     let body: ts.ModuleBlock | undefined = undefined;
     let flags = ts.NodeFlags.None;
-
-    if (doclet.name.startsWith('exports.'))
-        doclet.name = doclet.name.replace('exports.', '');
 
     if (nested)
         flags |= ts.NodeFlags.NestedNamespace;
@@ -524,16 +609,15 @@ export function createModule(doclet: INamespaceDoclet, nested: boolean, children
     ));
 }
 
-export function createNamespace(doclet: INamespaceDoclet, nested: boolean, children?: ts.Node[]): ts.ModuleDeclaration
+export function createNamespace(doclet: INamespaceDoclet, nested: boolean, children?: ts.Node[], altName?: string): ts.ModuleDeclaration
 {
+    debug(`createNamespace(${docletDebugInfo(doclet)}, altName=${altName})`);
+
     validateModuleChildren(children);
 
     const mods = doclet.memberof ? undefined : [declareModifier];
     let body: ts.ModuleBlock | undefined = undefined;
     let flags = ts.NodeFlags.Namespace;
-
-    if (doclet.name.startsWith('exports.'))
-        doclet.name = doclet.name.replace('exports.', '');
 
     if (nested)
         flags |= ts.NodeFlags.NestedNamespace;
@@ -543,30 +627,27 @@ export function createNamespace(doclet: INamespaceDoclet, nested: boolean, child
         body = ts.createModuleBlock(children as ts.Statement[]);
     }
 
-    const name = ts.createIdentifier(doclet.name);
-
     return handleComment(doclet, ts.createModuleDeclaration(
         undefined,      // decorators
         mods,           // modifiers
-        name,           // name
+        buildName(doclet, altName), // name
         body,           // body
         flags           // flags
     ));
 }
 
-export function createTypedef(doclet: ITypedefDoclet, children?: ts.Node[]): ts.TypeAliasDeclaration
+export function createTypedef(doclet: ITypedefDoclet, children?: ts.Node[], altName?: string): ts.TypeAliasDeclaration
 {
+    debug(`createTypedef(${docletDebugInfo(doclet)}, altName=${altName})`);
+
     const mods = doclet.memberof ? undefined : [declareModifier];
     const type = resolveType(doclet.type, doclet);
     const typeParams = resolveTypeParameters(doclet);
 
-    if (doclet.name.startsWith('exports.'))
-        doclet.name = doclet.name.replace('exports.', '');
-
     return handleComment(doclet, ts.createTypeAliasDeclaration(
         undefined,      // decorators
         mods,           // modifiers
-        doclet.name,    // name
+        buildName(doclet, altName), // name
         typeParams,     // typeParameters
         type            // type
     ));

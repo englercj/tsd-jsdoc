@@ -1,7 +1,5 @@
-import { expectJsDoc } from '../lib';
+import { tsdJsdocTestCase } from '../lib';
 
 suite('Function Checks', () => {
-    test('All', () => {
-        expectJsDoc('function_all');
-    });
+    tsdJsdocTestCase('All', 'function_all');
 });

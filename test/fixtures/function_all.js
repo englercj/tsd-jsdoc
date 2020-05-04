@@ -1,3 +1,5 @@
+/** @module functions */
+
 /**
  *
  * @param {number} [a=10]
@@ -35,17 +37,24 @@ function test3(myObjs) {
 class Test12345 {
     /**
      * @function
-     * @memberof Test12345
+     * @memberof module:functions~Test12345
      * @name f
      * @return {number[]}
      */
 
     /**
      * @function
-     * @memberof Test12345
+     * @memberof module:functions~Test12345
      * @variation 1
      * @name f
      * @param {string} key
      * @return {number}
      */
+}
+
+module.exports = {
+    test1: test1,
+    test2: test2,
+    test3: test3,
+    Test12345: Test12345
 }

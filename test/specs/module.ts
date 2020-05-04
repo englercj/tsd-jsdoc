@@ -1,10 +1,6 @@
-import { expectJsDoc } from '../lib';
+import { tsdJsdocTestCase } from '../lib';
 
 suite('Module Checks', () => {
-    test('All', () => {
-        expectJsDoc('module_all');
-		});
-		test('Quoted', () => {
-			expectJsDoc('module_quoted');
-	});
+		tsdJsdocTestCase('All', 'module_all');
+		tsdJsdocTestCase('Quoted', 'module_quoted');
 });

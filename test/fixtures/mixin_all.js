@@ -1,3 +1,5 @@
+/** @module mixins */
+
 /**
  * @mixin
  */
@@ -31,4 +33,8 @@ class MyBaseClass {
  */
 class MyMixedClass extends MyBaseClass {
 
+}
+
+module.exports = {
+    MyMixedClass: MyMixedClass
 }

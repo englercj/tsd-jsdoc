@@ -1,7 +1,5 @@
-import { expectJsDoc } from '../lib';
+import { tsdJsdocTestCase } from '../lib';
 
 suite('Mixin Checks', () => {
-    test('All', () => {
-        expectJsDoc('mixin_all');
-    });
+    tsdJsdocTestCase('All', 'mixin_all');
 });

@@ -1,8 +1,6 @@
 import * as ts from 'typescript';
-import { Dictionary } from './Dictionary';
-import { warn } from './logger';
+import { warn, debug, docletDebugInfo } from './logger';
 import { PropTree, IPropDesc } from './PropTree';
-import { type } from 'os';
 
 const rgxObjectTokenize = /(<|>|,|\(|\)|\||\{|\}|:)/;
 const rgxCommaAll = /,/g;
@@ -20,17 +18,29 @@ enum ENodeType {
     TYPE,       // string, X    has no children
     OBJECT,     // {a:b, c:d}   has name value pairs for children
 }
-class StringTreeNode {
+export class StringTreeNode {
     children: StringTreeNode[] = [];
     constructor(public name: string, public type: ENodeType, public parent: StringTreeNode | null)
     { }
 
-    dump(indent:number = 0) : void
+    dump(output: (msg: string) => void, indent: number = 0) : void
     {
-        console.log(`${'  '.repeat(indent)}name: ${this.name}, type:${this.typeToString()}`);
+        output(`${'  '.repeat(indent)}name: ${this.name}, type:${this.typeToString()}`);
         this.children.forEach((child) => {
-            child.dump(indent + 1);
+            child.dump(output, indent + 1);
         });
+    }
+
+    walkTypes(callback: (treeNode: StringTreeNode) => void) : void
+    {
+        for (let i = 0; i < this.children.length; ++i)
+        {
+            // Skip object field names.
+            if (this.type === ENodeType.OBJECT && (i % 2 === 0))
+                continue;
+            this.children[i].walkTypes(callback);
+        }
+        callback(this);
     }
 
     typeToString() : string
@@ -70,7 +80,7 @@ export function resolveComplexTypeName(name: string, doclet?: TTypedDoclet): ts.
     return resolveTree(root);
 }
 
-function generateTree(name: string, parent: StringTreeNode | null = null) : StringTreeNode | null
+export function generateTree(name: string, parent: StringTreeNode | null = null) : StringTreeNode | null
 {
     const anyNode = new StringTreeNode('any', ENodeType.TYPE, parent);
     const parts = name.split(rgxObjectTokenize).filter(function (e) {
@@ -550,6 +560,8 @@ export function resolveTypeParameters(doclet: TDoclet): ts.TypeParameterDeclarat
 {
     const typeParams: ts.TypeParameterDeclaration[] = [];
 
+    // Works in jsdoc@3.5.x only, not in jsdoc@3.6.x (up to jsdoc@3.6.3 at least).
+    // jsdoc@3.6.x does not seem to generate `tags` sections for `@template` tags anymore.
     if (doclet.tags)
     {
         for (let i = 0; i < doclet.tags.length; ++i)
@@ -558,22 +570,43 @@ export function resolveTypeParameters(doclet: TDoclet): ts.TypeParameterDeclarat
 
             if (tag.title === 'template')
             {
-                const types = (tag.text || 'T').split(',');
-
-                for (let x = 0; x < types.length; ++x)
-                {
-                    const name = types[x].trim();
-
-                    if (!name)
-                        continue;
-
-                    typeParams.push(ts.createTypeParameterDeclaration(
-                        name,           // name
-                        undefined,      // constraint
-                        undefined       // defaultType
-                    ));
-                }
+                onTemplateTag(tag.text);
             }
+        }
+    }
+    // Otherwise, let's check directly the comment text.
+    else if (doclet.comment && doclet.comment.includes('@template'))
+    {
+        debug(`resolveTypeParameters(): jsdoc@3.6.x @template handling directly in the comment text for ${docletDebugInfo(doclet)}`);
+        for (let line of doclet.comment.split(/\r?\n/))
+        {
+            line = line.trim();
+            if (line.startsWith('*'))
+                line = line.slice(1).trim();
+            if (line.startsWith('@template'))
+            {
+                line = line.slice('@template'.length).trim();
+                onTemplateTag(line);
+            }
+        }
+    }
+
+    function onTemplateTag(tagText?: string)
+    {
+        const types = (tagText || 'T').split(',');
+
+        for (let x = 0; x < types.length; ++x)
+        {
+            const name = types[x].trim();
+
+            if (!name)
+                continue;
+
+            typeParams.push(ts.createTypeParameterDeclaration(
+                name,           // name
+                undefined,      // constraint
+                undefined       // defaultType
+            ));
         }
     }
 
@@ -582,7 +615,7 @@ export function resolveTypeParameters(doclet: TDoclet): ts.TypeParameterDeclarat
 
 export type TTypedDoclet = IMemberDoclet | ITypedefDoclet | IFunctionDoclet;
 
-export function resolveType(t: IDocletType, doclet?: TTypedDoclet): ts.TypeNode
+export function resolveType(t?: IDocletType, doclet?: TTypedDoclet): ts.TypeNode
 {
     if (!t || !t.names || t.names.length === 0)
     {
@@ -718,7 +751,7 @@ export function createTypeLiteral(children: IPropDesc[], parent?: IPropDesc): ts
 
     let node: ts.TypeNode = ts.createTypeLiteralNode(members);
 
-    if (parent)
+    if (parent && parent.prop.type)
     {
         const names = parent.prop.type.names;
         if (names.length === 1 && names[0].toLowerCase() === 'array.<object>')
