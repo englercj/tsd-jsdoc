@@ -22,4 +22,8 @@ declare module "1.0/array-to-object-keys" {
     function arrayToObjectKeys(array: string[], valueGenerator?: valueGenerator | any): {
         [key: string]: any;
     };
+    /**
+     * Export arrayToObjectKeys as default.
+     */
+    export default arrayToObjectKeys;
 }
