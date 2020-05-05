@@ -594,7 +594,14 @@ export function createModule(doclet: INamespaceDoclet, nested: boolean, children
     if (children)
         body = ts.createModuleBlock(children as ts.Statement[]);
 
-    const name = ts.createStringLiteral(doclet.name);
+    let nameStr = doclet.name;
+    if ((nameStr[0] === '"' && nameStr[nameStr.length - 1] === '"')
+        || (nameStr[0] === '\'' && nameStr[nameStr.length - 1] === '\''))
+    {
+        nameStr = nameStr.substr(1, nameStr.length - 2);
+    }
+
+    const name = ts.createStringLiteral(nameStr);
 
     return handleComment(doclet, ts.createModuleDeclaration(
         undefined,      // decorators
