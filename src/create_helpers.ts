@@ -592,14 +592,15 @@ export function createModule(doclet: INamespaceDoclet, nested: boolean, children
         flags |= ts.NodeFlags.NestedNamespace;
 
     if (children)
-      body = ts.createModuleBlock(children as ts.Statement[]);
+        body = ts.createModuleBlock(children as ts.Statement[]);
 
     let nameStr = doclet.name;
     if ((nameStr[0] === '"' && nameStr[nameStr.length - 1] === '"')
         || (nameStr[0] === '\'' && nameStr[nameStr.length - 1] === '\''))
     {
-      nameStr = nameStr.substr(1, nameStr.length - 2);
+        nameStr = nameStr.substr(1, nameStr.length - 2);
     }
+
     const name = ts.createStringLiteral(nameStr);
 
     return handleComment(doclet, ts.createModuleDeclaration(
