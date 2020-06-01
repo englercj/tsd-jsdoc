@@ -740,13 +740,28 @@ export function createTypeLiteral(children: IPropDesc[], parent?: IPropDesc): ts
         const opt = node.prop.optional ? ts.createToken(ts.SyntaxKind.QuestionToken) : undefined;
         const t = node.children.length ? createTypeLiteral(node.children, node) : resolveType(node.prop.type);
 
-        members.push(ts.createPropertySignature(
+        const property = ts.createPropertySignature(
             undefined,      // modifiers
             node.name,      // name
             opt,            // questionToken
             t,              // type
             undefined       // initializer
-        ));
+        );
+
+        // !parent ensures we are dealing with a top-level typedef.
+        // So that the tsd-doc is added at the property level.
+        if(!parent && (node.prop.description || node.prop.defaultvalue)) {
+            let comment = `*\n `;
+            if(node.prop.description){
+                comment += `* ${node.prop.description.split(/\r\s*/).join("\n * ")}\n `
+            }
+            if(node.prop.defaultvalue){
+                comment += `* @defaultValue ${node.prop.defaultvalue}\n `
+            }
+            ts.addSyntheticLeadingComment(property, ts.SyntaxKind.MultiLineCommentTrivia, comment, true);
+        }
+
+        members.push(property);
     }
 
     let node: ts.TypeNode = ts.createTypeLiteralNode(members);
