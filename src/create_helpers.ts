@@ -234,7 +234,8 @@ function handleComment<T extends ts.Node>(doclet: TDoclet, node: T): T
         {
             let comment = `*${description}${examples}${properties}${params}${returns}
  `;
-            if(doclet.kind === 'typedef') {
+            if (doclet.kind === 'typedef')
+            {
                 // typedef properties are written out at the member.
                 comment = `*${description}${examples}${params}${returns}
  `;

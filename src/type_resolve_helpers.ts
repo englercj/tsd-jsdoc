@@ -750,7 +750,8 @@ export function createTypeLiteral(children: IPropDesc[], parent?: IPropDesc): ts
 
         // !parent ensures we are dealing with a top-level typedef.
         // So that the tsd-doc is added at the property level.
-        if(!parent && (node.prop.description || node.prop.defaultvalue)) {
+        if (!parent && (node.prop.description || node.prop.defaultvalue))
+        {
             let comment = `*\n `;
             if (node.prop.description)
                 comment += `* ${node.prop.description.split(/\r\s*/).join("\n * ")}\n `;
