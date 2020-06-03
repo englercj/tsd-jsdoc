@@ -752,9 +752,9 @@ export function createTypeLiteral(children: IPropDesc[], parent?: IPropDesc): ts
         // So that the tsd-doc is added at the property level.
         if(!parent && (node.prop.description || node.prop.defaultvalue)) {
             let comment = `*\n `;
-            if(node.prop.description){
-                comment += `* ${node.prop.description.split(/\r\s*/).join("\n * ")}\n `
-            }
+            if (node.prop.description)
+                comment += `* ${node.prop.description.split(/\r\s*/).join("\n * ")}\n `;
+
             if(node.prop.defaultvalue){
                 comment += `* @defaultValue ${node.prop.defaultvalue}\n `
             }
