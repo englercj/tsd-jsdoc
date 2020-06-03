@@ -755,9 +755,9 @@ export function createTypeLiteral(children: IPropDesc[], parent?: IPropDesc): ts
             if (node.prop.description)
                 comment += `* ${node.prop.description.split(/\r\s*/).join("\n * ")}\n `;
 
-            if(node.prop.defaultvalue){
-                comment += `* @defaultValue ${node.prop.defaultvalue}\n `
-            }
+            if (node.prop.defaultvalue)
+                comment += `* @defaultValue ${node.prop.defaultvalue}\n `;
+
             ts.addSyntheticLeadingComment(property, ts.SyntaxKind.MultiLineCommentTrivia, comment, true);
         }
 
