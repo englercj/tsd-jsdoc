@@ -17,4 +17,5 @@ declare interface ITemplateConfig {
      * In order not to break backward compatibility, the 'documented' generation strategy remains the default.
      */
     generationStrategy?: ("documented" | "exported");
+    strictDocumentation?: boolean;
 }
