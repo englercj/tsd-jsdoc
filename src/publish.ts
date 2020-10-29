@@ -32,7 +32,7 @@ export function publish(data: TDocletDb, opts: ITemplateConfig)
                 if (this.undocumented)
                 {
                     // Some doclets are marked 'undocumented', but actually have a 'comment' set.
-                    if ((! this.comment) || (this.comment === ''))
+                    if (opts.strictDocumentation || (! this.comment) || (this.comment === ''))
                     {
                         debug(`publish(): ${docletDebugInfo(this)} removed`);
                         return true;
