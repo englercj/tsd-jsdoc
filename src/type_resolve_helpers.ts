@@ -17,6 +17,7 @@ enum ENodeType {
     TUPLE,      // [a,b]        has types for children
     TYPE,       // string, X    has no children
     OBJECT,     // {a:b, c:d}   has name value pairs for children
+    MODULE,     // module:foo/bar~baz
 }
 export class StringTreeNode {
     children: StringTreeNode[] = [];
@@ -59,10 +60,17 @@ export class StringTreeNode {
                 return 'TYPE';
             case ENodeType.OBJECT:
                 return 'OBJECT';
+            case ENodeType.MODULE:
+                return 'MODULE';
             default:
                 return 'UNKNOWN'
         }
     }
+}
+
+export class ModuleTreeNode extends StringTreeNode {
+    constructor(public name: string, public type: ENodeType, public parent: StringTreeNode | null, public qualifier?: string)
+    { super(name, type, parent); }
 }
 
 export function resolveComplexTypeName(name: string, doclet?: TTypedDoclet): ts.TypeNode
@@ -78,6 +86,14 @@ export function resolveComplexTypeName(name: string, doclet?: TTypedDoclet): ts.
 
     // walk the tree generating the ts.TypeNode's tree
     return resolveTree(root);
+}
+
+export function createModuleImport(name: string, qualifier?: string | null): ts.ImportTypeNode
+{
+    const nameLiteral: ts.StringLiteral = ts.createStringLiteral(name);
+    const nameNode: ts.LiteralTypeNode = ts.createLiteralTypeNode(nameLiteral);
+    const qualifierIdentifier: ts.Identifier =  ts.createIdentifier(qualifier || 'default');
+    return ts.createImportTypeNode(nameNode, qualifierIdentifier);
 }
 
 export function generateTree(name: string, parent: StringTreeNode | null = null) : StringTreeNode | null
@@ -189,6 +205,17 @@ export function generateTree(name: string, parent: StringTreeNode | null = null)
             continue;
         }
 
+        if (partUpper === 'MODULE') {
+            const [name, qualifier] = parts.slice(i + 2).join('').split('~');
+            const node = new ModuleTreeNode(name, ENodeType.MODULE, parent, qualifier);
+            if (!parent)
+                return node;
+
+            parent.children.push(node);
+            i = parts.length;
+            continue;
+        }
+
         // TODO: Tuples?
 
         // skip separators, our handling below takes them into account
@@ -236,7 +263,7 @@ function findMatchingBracket(parts: string[], startIndex: number, openBracket: s
     return -1;
 }
 
-function resolveTree(node: StringTreeNode, parentTypes: ts.TypeNode[] | null = null) : ts.TypeNode
+function resolveTree(node: StringTreeNode | ModuleTreeNode, parentTypes: ts.TypeNode[] | null = null) : ts.TypeNode
 {
     // this nodes resolved child types
     const childTypes: ts.TypeNode[] = [];
@@ -372,7 +399,14 @@ function resolveTree(node: StringTreeNode, parentTypes: ts.TypeNode[] | null = n
 
             parentTypes.push(genericNode);
             break;
+        case ENodeType.MODULE:
+            const moduleNode: ModuleTreeNode = node;
+            const importNode: ts.ImportTypeNode = createModuleImport(moduleNode.name, moduleNode.qualifier);
+            if (!parentTypes)
+                return importNode;
 
+            parentTypes.push(importNode);
+            break;
         case ENodeType.UNION:
             if (childTypes.length === 0 )
             {
@@ -715,6 +749,11 @@ export function resolveTypeName(name: string, doclet?: TTypedDoclet): ts.TypeNod
                 anyTypeNode     // type
             );
         }
+    }
+
+    if (/^module:/.test(name)) {
+        const [moduleName, qualifier] = name.replace(/^module:/, '').split('~');
+        return createModuleImport(moduleName, qualifier);
     }
 
     return resolveComplexTypeName(name);
