@@ -88,12 +88,13 @@ export function resolveComplexTypeName(name: string, doclet?: TTypedDoclet): ts.
     return resolveTree(root);
 }
 
-export function createModuleImport(name: string, qualifier?: string | null): ts.ImportTypeNode
+export function createModuleImport(name: string, qualifier?: string | null, typeArguments?: ts.TypeNode[] | null): ts.ImportTypeNode
 {
     const nameLiteral: ts.StringLiteral = ts.createStringLiteral(name);
     const nameNode: ts.LiteralTypeNode = ts.createLiteralTypeNode(nameLiteral);
     const qualifierIdentifier: ts.Identifier =  ts.createIdentifier(qualifier || 'default');
-    return ts.createImportTypeNode(nameNode, qualifierIdentifier);
+    const innerTypeArguments: ts.TypeNode[] = Array.isArray(typeArguments) ? typeArguments.slice() : [];
+    return ts.createImportTypeNode(nameNode, qualifierIdentifier, innerTypeArguments);
 }
 
 export function generateTree(name: string, parent: StringTreeNode | null = null) : StringTreeNode | null
@@ -206,8 +207,20 @@ export function generateTree(name: string, parent: StringTreeNode | null = null)
         }
 
         if (partUpper === 'MODULE') {
-            const [name, qualifier] = parts.slice(i + 2).join('').split('~');
-            const node = new ModuleTreeNode(name, ENodeType.MODULE, parent, qualifier);
+            let generic;
+            const templateIndex = parts.indexOf('<');
+            if (templateIndex > -1) {
+                const genericClosingIndex = findMatchingBracket(parts, templateIndex, '<', '>');
+                if (genericClosingIndex > -1) {
+                    generic = parts.slice(templateIndex + 1, genericClosingIndex).join('')
+                }
+            }
+
+            const endAt = templateIndex < 0 ? parts.length : templateIndex;
+            const [name, qualifier] = parts.slice(i + 2, endAt).join('').split('~');
+            const node = new ModuleTreeNode(name, ENodeType.MODULE, parent, qualifier.replace(/\.$/, ''));
+            if (generic)
+                generateTree(generic, node);
             if (!parent)
                 return node;
 
@@ -401,7 +414,7 @@ function resolveTree(node: StringTreeNode | ModuleTreeNode, parentTypes: ts.Type
             break;
         case ENodeType.MODULE:
             const moduleNode: ModuleTreeNode = node;
-            const importNode: ts.ImportTypeNode = createModuleImport(moduleNode.name, moduleNode.qualifier);
+            const importNode: ts.ImportTypeNode = createModuleImport(moduleNode.name, moduleNode.qualifier, childTypes);
             if (!parentTypes)
                 return importNode;
 
@@ -750,12 +763,7 @@ export function resolveTypeName(name: string, doclet?: TTypedDoclet): ts.TypeNod
             );
         }
     }
-
-    if (/^module:/.test(name)) {
-        const [moduleName, qualifier] = name.replace(/^module:/, '').split('~');
-        return createModuleImport(moduleName, qualifier);
-    }
-
+    
     return resolveComplexTypeName(name);
 }
 
